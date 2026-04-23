@@ -521,6 +521,145 @@ svg {
     padding-right: 36px;
 }
 
+.product-categoria {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-text-soft);
+    text-align: right;
+}
+
+.stock-grid-wrapper {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.stock-grid {
+    border-collapse: separate;
+    border-spacing: 3px;
+    width: 100%;
+    font-family: var(--font-body);
+}
+
+.stock-grid thead th {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--color-text-soft);
+    padding: 6px 2px;
+    background: var(--color-primary-whisper);
+    border-radius: 5px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.stock-grid thead .stock-corner {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    background: transparent;
+    color: var(--color-text-muted);
+    text-align: left;
+    padding: 6px 10px 6px 2px;
+    white-space: nowrap;
+    width: 1px;
+}
+
+.stock-grid tbody .stock-cor-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--color-text);
+    text-align: left;
+    padding: 0 12px 0 2px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    width: 1px;
+}
+
+.stock-cell {
+    text-align: center;
+    padding: 8px 2px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 5px;
+    transition: all 0.2s var(--ease);
+    position: relative;
+    line-height: 1;
+}
+
+.stock-cell.disponivel {
+    background: var(--color-surface-warm);
+    color: var(--color-text);
+    border: 1px solid var(--color-primary-whisper);
+}
+
+.stock-cell.baixo {
+    background: var(--color-warning-soft);
+    color: var(--color-text);
+    border: 1px solid var(--color-warning);
+    font-weight: 700;
+}
+
+.stock-cell.baixo::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-warning);
+    animation: pulseDot 2s infinite;
+}
+
+.stock-cell.esgotado {
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px dashed var(--color-primary-whisper);
+    font-weight: 400;
+    font-size: 13px;
+}
+
+.stock-total {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--color-text-soft);
+    text-align: right;
+    padding: 0 4px;
+    letter-spacing: 0.02em;
+}
+
+.stock-total span {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-primary-deep);
+    letter-spacing: 0;
+}
+
+.grid-empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    font-style: italic;
+}
+
+@media (max-width: 380px) {
+    .stock-grid thead th {
+        font-size: 9px;
+        padding: 5px 1px;
+    }
+    .stock-cell {
+        font-size: 13px;
+        padding: 7px 1px;
+    }
+    .stock-grid tbody .stock-cor-label {
+        font-size: 9px;
+    }
+}
+
 .product-codigo {
     font-family: var(--font-mono);
     font-size: 11px;

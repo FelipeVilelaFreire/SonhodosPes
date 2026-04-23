@@ -140,30 +140,68 @@
         const lines = text.trim().split(/\r?\n/);
         if (lines.length < 2) return [];
 
-        const headers = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
-        const list = [];
+        const rawHeaders = parseCSVLine(lines[0]).map(h => h.trim());
+        const headers = rawHeaders.map(h => h.toLowerCase());
+
+        const sizeColumnIndices = [];
+        rawHeaders.forEach((h, idx) => {
+            const trimmed = h.trim();
+            if (/^(\d{2,3}|P|M|G|GG|XG|U|UN|PP)$/i.test(trimmed)) {
+                sizeColumnIndices.push({ label: trimmed.toUpperCase(), idx });
+            }
+        });
+
+        function col(row, ...names) {
+            for (const name of names) {
+                const idx = headers.indexOf(name.toLowerCase());
+                if (idx !== -1 && row[idx]) return row[idx].trim();
+            }
+            return '';
+        }
+
+        const byCode = new Map();
 
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!line) continue;
 
             const values = parseCSVLine(line);
-            if (values.length < headers.length) continue;
+            if (values.length < 2) continue;
 
-            const produto = {};
-            headers.forEach((h, idx) => {
-                produto[h] = values[idx] ? values[idx].trim() : '';
+            const produtoCodRaw = col(values, 'produto', 'codigo', 'cod', 'sku');
+            if (!produtoCodRaw) continue;
+
+            const codigo = String(produtoCodRaw).padStart(5, '0');
+            const corNome = col(values, 'desc_cor_produto', 'cor', 'desc_cor') || 'ÚNICA';
+
+            const tamanhos = {};
+            sizeColumnIndices.forEach(({ label, idx }) => {
+                const qty = parseInt(values[idx], 10);
+                tamanhos[label] = Number.isFinite(qty) ? qty : 0;
             });
 
-            if (!produto.codigo) continue;
+            if (!byCode.has(codigo)) {
+                byCode.set(codigo, {
+                    codigo,
+                    modelo: col(values, 'desc_produto', 'modelo', 'nome', 'descricao'),
+                    categoria: col(values, 'subgrupo_produto', 'subgrupo', 'categoria'),
+                    grupo: col(values, 'grupo_produto', 'grupo'),
+                    referencia: col(values, 'refer_fabricante', 'referencia', 'ref'),
+                    localizacao: col(values, 'localizacao', 'local', 'endereco'),
+                    preco: parseFloat(String(col(values, 'preco_venda', 'preco', 'valor') || '0').replace(',', '.')) || 0,
+                    cores: [],
+                    _search: '',
+                });
+            }
 
-            produto.codigo = String(produto.codigo).padStart(5, '0');
-            produto.preco = parseFloat(String(produto.preco).replace(',', '.')) || 0;
-            produto.tamanhos = parseTamanhos(produto.tamanhos);
-            produto._search = buildSearchString(produto);
-
-            list.push(produto);
+            const produto = byCode.get(codigo);
+            produto.cores.push({ nome: corNome, tamanhos });
         }
+
+        const list = Array.from(byCode.values());
+        list.forEach(p => {
+            p._search = buildSearchString(p);
+        });
 
         return list;
     }
@@ -223,7 +261,15 @@
     }
 
     function buildSearchString(produto) {
-        return normalize([produto.codigo, produto.modelo, produto.marca].join(' '));
+        const parts = [
+            produto.codigo,
+            produto.modelo,
+            produto.categoria,
+            produto.grupo,
+            produto.referencia,
+            (produto.cores || []).map(c => c.nome).join(' '),
+        ];
+        return normalize(parts.filter(Boolean).join(' '));
     }
 
     function buildIndex(list) {
@@ -305,10 +351,33 @@
     }
 
     function isAllSoldOut(produto) {
-        if (!produto.tamanhos || !produto.tamanhos.length) return false;
-        const hasQuantities = produto.tamanhos.some(t => t.quantidade !== null);
-        if (!hasQuantities) return false;
-        return produto.tamanhos.every(t => t.quantidade === 0 || t.quantidade === null);
+        if (!produto.cores || !produto.cores.length) return false;
+        return produto.cores.every(cor =>
+            Object.values(cor.tamanhos || {}).every(q => !q || q === 0)
+        );
+    }
+
+    function collectAllSizes(produto, onlyWithStock = true) {
+        const set = new Set();
+        (produto.cores || []).forEach(c => {
+            Object.entries(c.tamanhos || {}).forEach(([s, q]) => {
+                if (!onlyWithStock || (q && q > 0)) set.add(s);
+            });
+        });
+        return Array.from(set).sort((a, b) => {
+            const aNum = parseInt(a, 10);
+            const bNum = parseInt(b, 10);
+            if (Number.isFinite(aNum) && Number.isFinite(bNum)) return aNum - bNum;
+            return a.localeCompare(b);
+        });
+    }
+
+    function getTotalStock(produto) {
+        let total = 0;
+        (produto.cores || []).forEach(c => {
+            Object.values(c.tamanhos || {}).forEach(q => { total += (q || 0); });
+        });
+        return total;
     }
 
     function renderCard(produto) {
@@ -318,41 +387,87 @@
         card.dataset.codigo = produto.codigo;
 
         card.querySelector('.product-codigo').textContent = produto.codigo;
-        card.querySelector('.product-marca').textContent = produto.marca || '—';
+
+        const categoriaEl = card.querySelector('.product-categoria');
+        if (categoriaEl) categoriaEl.textContent = produto.categoria || produto.grupo || '';
+
         card.querySelector('.product-modelo').textContent = produto.modelo || 'Sem descrição';
         card.querySelector('.price-value').textContent = formatPrice(produto.preco);
 
-        const tamanhosContainer = card.querySelector('.tamanhos');
-        tamanhosContainer.innerHTML = '';
+        const gridWrapper = card.querySelector('.stock-grid-wrapper');
+        gridWrapper.innerHTML = '';
 
-        const tamanhosNorm = ensureTamanhosFormat(produto.tamanhos);
+        const allSizes = collectAllSizes(produto, true);
+        const cores = (produto.cores || []).filter(c =>
+            Object.values(c.tamanhos || {}).some(q => q && q > 0)
+        );
 
-        if (tamanhosNorm.length) {
-            tamanhosNorm.forEach(t => {
-                const chip = document.createElement('span');
-                chip.className = getStockClass(t.quantidade);
-
-                const numeroEl = document.createElement('span');
-                numeroEl.className = 'chip-numero';
-                numeroEl.textContent = t.numero;
-                chip.appendChild(numeroEl);
-
-                if (t.quantidade !== null) {
-                    const qtyEl = document.createElement('span');
-                    qtyEl.className = 'chip-quantidade';
-                    qtyEl.textContent = t.quantidade;
-                    chip.appendChild(qtyEl);
-                }
-
-                tamanhosContainer.appendChild(chip);
-            });
+        if (!cores.length || !allSizes.length) {
+            gridWrapper.innerHTML = '<p class="grid-empty">Sem estoque em nenhum tamanho</p>';
         } else {
-            tamanhosContainer.innerHTML = '<span class="chip-empty">Não informado</span>';
+            const table = document.createElement('table');
+            table.className = 'stock-grid';
+
+            const thead = document.createElement('thead');
+            const headRow = document.createElement('tr');
+            const SIZE_LABELS = { 'U': 'QTD', 'UN': 'QTD', 'UNICO': 'QTD', 'ÚNICO': 'QTD' };
+            const hasOnlyQtd = allSizes.length === 1 && SIZE_LABELS[allSizes[0]];
+
+            const corner = document.createElement('th');
+            corner.className = 'stock-corner';
+            corner.textContent = hasOnlyQtd ? 'COR' : 'COR / TAM';
+            headRow.appendChild(corner);
+            allSizes.forEach(s => {
+                const th = document.createElement('th');
+                th.textContent = SIZE_LABELS[s] || s;
+                headRow.appendChild(th);
+            });
+            thead.appendChild(headRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            cores.forEach(cor => {
+                const row = document.createElement('tr');
+                const label = document.createElement('th');
+                label.className = 'stock-cor-label';
+                label.textContent = cor.nome;
+                row.appendChild(label);
+
+                allSizes.forEach(s => {
+                    const cell = document.createElement('td');
+                    cell.className = 'stock-cell';
+                    const qty = cor.tamanhos && cor.tamanhos[s];
+                    if (!qty || qty === 0) {
+                        cell.classList.add('esgotado');
+                        cell.textContent = '—';
+                    } else if (qty <= 2) {
+                        cell.classList.add('baixo');
+                        cell.textContent = qty;
+                    } else {
+                        cell.classList.add('disponivel');
+                        cell.textContent = qty;
+                    }
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+
+            gridWrapper.appendChild(table);
+
+            const total = getTotalStock(produto);
+            if (total > 0) {
+                const totalEl = document.createElement('p');
+                totalEl.className = 'stock-total';
+                totalEl.innerHTML = `<span>${total}</span> ${total === 1 ? 'par' : 'pares'} · ${cores.length} ${cores.length === 1 ? 'cor' : 'cores'}`;
+                gridWrapper.appendChild(totalEl);
+            }
         }
 
-        const produtoNorm = { ...produto, tamanhos: tamanhosNorm };
-        if (isAllSoldOut(produtoNorm)) {
-            card.querySelector('.card-esgotado-badge').hidden = false;
+        if (isAllSoldOut(produto)) {
+            const badge = card.querySelector('.card-esgotado-badge');
+            if (badge) badge.hidden = false;
             card.classList.add('is-esgotado');
         }
 
@@ -361,6 +476,12 @@
         });
 
         return card;
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
     }
 
     function addToStack(produto) {
@@ -458,7 +579,9 @@
 
             const marcaEl = document.createElement('span');
             marcaEl.className = 'ac-marca';
-            marcaEl.textContent = produto.marca;
+            const cores = (produto.cores || []).map(c => c.nome).join(' · ');
+            const cat = produto.categoria || produto.grupo || '';
+            marcaEl.textContent = cores ? `${cat} · ${cores}` : cat;
             leftCol.appendChild(marcaEl);
 
             const rightCol = document.createElement('div');
@@ -543,10 +666,13 @@
         try {
             const list = await db.getAll(STORE_PRODUTOS);
             if (list && list.length) {
-                list.forEach(p => {
-                    p.tamanhos = ensureTamanhosFormat(p.tamanhos);
-                    p._search = buildSearchString(p);
-                });
+                const isOldFormat = !Array.isArray(list[0].cores);
+                if (isOldFormat) {
+                    await db.clearAll();
+                    return false;
+                }
+
+                list.forEach(p => { p._search = buildSearchString(p); });
                 produtos = list;
                 produtosByCode = buildIndex(list);
                 await updateSyncInfo();
@@ -953,15 +1079,28 @@
         setupEvents();
         updateStatus(navigator.onLine);
 
-        const hadData = await loadFromDB();
-        if (!hadData) {
-            const loadedLocal = await loadFromLocalCSV();
-            if (!loadedLocal) {
-                el.lastSync.textContent = 'Abra as configurações para carregar a tabela';
+        const savedUrl = localStorage.getItem(STORAGE_KEY_URL);
+        let loaded = false;
+
+        if (navigator.onLine) {
+            try {
+                if (savedUrl) {
+                    await loadFromURL(savedUrl);
+                    loaded = true;
+                } else {
+                    loaded = await loadFromLocalCSV();
+                }
+            } catch (e) {
+                console.warn('Falha no carregamento fresco, usando cache local:', e);
             }
-        } else if (navigator.onLine) {
-            const savedUrl = localStorage.getItem(STORAGE_KEY_URL);
-            if (savedUrl) loadFromURL(savedUrl).catch(() => {});
+        }
+
+        if (!loaded) {
+            loaded = await loadFromDB();
+        }
+
+        if (!loaded) {
+            el.lastSync.textContent = 'Abra as configurações para carregar a tabela';
         }
 
         updateStackUI();
