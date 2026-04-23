@@ -1,0 +1,216 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-whisper);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+}
+
+.filterRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+.filterRow label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.filterRow select {
+  padding: 11px var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-soft);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--color-text);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.filterRow select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.checkboxWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 11px 0;
+}
+
+.checkboxWrap input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary-deep);
+}
+
+.checkboxWrap span {
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+@media (min-width: 768px) {
+  .filterRow {
+    grid-template-columns: 2fr 1fr auto;
+    align-items: end;
+  }
+}
+
+.tableScroll {
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-whisper);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 600px;
+}
+
+.table thead {
+  background: var(--color-primary-whisper);
+}
+
+.table th {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+  padding: var(--spacing-md) var(--spacing-sm);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table th.centered {
+  text-align: center;
+  min-width: 52px;
+}
+
+.table tr {
+  border-bottom: 1px solid var(--color-primary-whisper);
+}
+
+.table tbody tr:hover {
+  background: var(--color-surface-warm);
+}
+
+.table td {
+  padding: var(--spacing-sm);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-primary-whisper);
+}
+
+.codigoCol {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.1em;
+  color: var(--color-primary-deep);
+  white-space: nowrap;
+}
+
+.modeloCol {
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  min-width: 220px;
+}
+
+.modeloCol small {
+  display: block;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 2px;
+  font-weight: var(--font-weight-regular);
+}
+
+.corCol {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.qtdCell {
+  text-align: center;
+}
+
+.qtdBtn {
+  min-width: 44px;
+  padding: 6px 8px;
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-body);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-whisper);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.qtdBtn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-whisper);
+}
+
+.qtdBtn.baixo {
+  background: var(--color-warning-soft);
+  border-color: var(--color-warning);
+  font-weight: var(--font-weight-bold);
+}
+
+.qtdBtn.esgotado {
+  background: transparent;
+  border-style: dashed;
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
+
+.qtdBtn.indisponivel {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.emptyState {
+  padding: var(--spacing-4xl) var(--spacing-xl);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.counter {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: 12px;
+  color: var(--color-text-soft);
+  background: var(--color-surface-warm);
+  border-top: 1px solid var(--color-primary-whisper);
+  text-align: center;
+  letter-spacing: 0.05em;
+}

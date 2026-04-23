@@ -1,0 +1,129 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.03em;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease);
+  white-space: nowrap;
+  user-select: none;
+  position: relative;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.size-sm {
+  padding: 8px 14px;
+  font-size: 12px;
+  min-height: 32px;
+}
+
+.size-md {
+  padding: 11px 18px;
+  font-size: 13px;
+  min-height: 40px;
+}
+
+.size-lg {
+  padding: 14px 24px;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  min-height: 48px;
+}
+
+.variant-primary {
+  background: var(--color-primary-deep);
+  color: var(--color-surface);
+  box-shadow: 0 2px 8px rgba(168, 139, 101, 0.25);
+}
+
+.variant-primary:hover:not(:disabled) {
+  background: #8F7550;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 139, 101, 0.35);
+}
+
+.variant-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.variant-secondary {
+  background: transparent;
+  color: var(--color-primary-deep);
+  border-color: var(--color-primary);
+}
+
+.variant-secondary:hover:not(:disabled) {
+  background: var(--color-primary-whisper);
+}
+
+.variant-ghost {
+  background: transparent;
+  color: var(--color-text-soft);
+}
+
+.variant-ghost:hover:not(:disabled) {
+  background: var(--color-primary-whisper);
+  color: var(--color-text);
+}
+
+.variant-danger {
+  background: transparent;
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+  opacity: 0.85;
+}
+
+.variant-danger:hover:not(:disabled) {
+  background: rgba(181, 87, 74, 0.08);
+  opacity: 1;
+}
+
+.variant-dangerSolid {
+  background: var(--color-danger);
+  color: var(--color-surface);
+}
+
+.variant-dangerSolid:hover:not(:disabled) {
+  background: #9B4235;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.loading .content {
+  opacity: 0;
+}
+
+.spinner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.iconOnly {
+  padding: 0;
+  aspect-ratio: 1;
+}

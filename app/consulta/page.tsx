@@ -1,12 +1,12 @@
 import AppShell from '@/src/components/layout/AppShell';
 import AuthGuard from '@/src/components/layout/AuthGuard';
-import DashboardScreen from '@/src/screens/DashboardScreen';
+import ConsultaScreen from '@/src/screens/ConsultaScreen';
 
-export default function HomePage() {
+export default function ConsultaPage() {
   return (
     <AuthGuard>
-      <AppShell title="Dashboard">
-        <DashboardScreen />
+      <AppShell title="Consulta">
+        <ConsultaScreen />
       </AppShell>
     </AuthGuard>
   );

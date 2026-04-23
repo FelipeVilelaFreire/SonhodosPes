@@ -1,0 +1,177 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-whisper);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+}
+
+@media (min-width: 768px) {
+  .filters {
+    grid-template-columns: 2fr 1fr 1fr auto;
+    align-items: end;
+  }
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.filters select {
+  padding: 11px var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-soft);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--color-text);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.filters select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.tableScroll {
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-whisper);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 700px;
+}
+
+.table thead {
+  background: var(--color-primary-whisper);
+}
+
+.table th {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+  padding: var(--spacing-md);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--spacing-md);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-primary-whisper);
+  font-size: 13px;
+}
+
+.table tbody tr:hover {
+  background: var(--color-surface-warm);
+}
+
+.whenCell {
+  color: var(--color-text-soft);
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.whenDate {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.userCell {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.estoqueCell {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--color-primary-deep);
+  white-space: nowrap;
+}
+
+.operacaoCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+
+.operacaoCell.venda { background: var(--color-success-soft); color: var(--color-success); }
+.operacaoCell.entrada { background: var(--color-primary-whisper); color: var(--color-primary-deep); }
+.operacaoCell.ajuste { background: var(--color-warning-soft); color: var(--color-warning); }
+.operacaoCell.devolucao { background: var(--color-primary-whisper); color: var(--color-primary-deep); }
+
+.qtdCell {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  color: var(--color-text);
+}
+
+.obsCell {
+  font-size: 12px;
+  color: var(--color-text-soft);
+  font-style: italic;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty {
+  padding: var(--spacing-4xl);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  gap: var(--spacing-md);
+  background: var(--color-surface-warm);
+  border-top: 1px solid var(--color-primary-whisper);
+}
+
+.paginationInfo {
+  font-size: 12px;
+  color: var(--color-text-soft);
+  letter-spacing: 0.05em;
+}
+
+.paginationBtns {
+  display: flex;
+  gap: var(--spacing-sm);
+}

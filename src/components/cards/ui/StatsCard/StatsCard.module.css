@@ -1,0 +1,93 @@
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-primary-whisper);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-base) var(--ease);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.card.highlight {
+  background: linear-gradient(135deg, var(--color-primary-whisper), var(--color-surface-warm));
+  border-color: var(--color-primary-soft);
+}
+
+.card.danger {
+  background: linear-gradient(135deg, var(--color-danger-soft), var(--color-surface-warm));
+  border-color: rgba(181, 87, 74, 0.2);
+}
+
+.iconBox {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-whisper);
+  color: var(--color-primary-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card.danger .iconBox {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+  margin-bottom: var(--spacing-sm);
+}
+
+.value {
+  font-family: var(--font-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.unit {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-soft);
+  margin-left: 4px;
+}
+
+.caption {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-sm);
+}
+
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  margin-top: var(--spacing-sm);
+}
+
+.trend.up { color: var(--color-success); }
+.trend.down { color: var(--color-danger); }

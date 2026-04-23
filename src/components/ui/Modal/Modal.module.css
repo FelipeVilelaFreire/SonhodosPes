@@ -1,0 +1,114 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 33, 24, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn var(--duration-base) var(--ease);
+}
+
+.content {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp var(--duration-slow) var(--ease-out);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.size-sm { max-width: 380px; }
+.size-md { max-width: 520px; }
+.size-lg { max-width: 720px; }
+.size-xl { max-width: 960px; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xl) var(--spacing-2xl) var(--spacing-md);
+  border-bottom: 1px solid var(--color-primary-whisper);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.closeBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-soft);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease);
+}
+
+.closeBtn:hover {
+  background: var(--color-primary-whisper);
+  color: var(--color-text);
+}
+
+.body {
+  padding: var(--spacing-md) var(--spacing-2xl) var(--spacing-xl);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.footer {
+  padding: var(--spacing-md) var(--spacing-2xl) var(--spacing-xl);
+  padding-bottom: calc(var(--spacing-xl) + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  border-top: 1px solid var(--color-primary-whisper);
+  background: var(--color-surface-warm);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .backdrop {
+    align-items: center;
+    padding: var(--spacing-xl);
+  }
+  .content {
+    max-height: 85vh;
+    border-radius: var(--radius-xl);
+    animation: scaleIn var(--duration-base) var(--ease-out);
+  }
+}

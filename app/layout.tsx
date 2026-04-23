@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { STRINGS } from '@/src/constants/strings';
+import { AuthProvider } from '@/src/contexts/AuthContext';
+import { ToastProvider } from '@/src/contexts/ToastContext';
+import ToastContainer from '@/src/components/ui/Toast';
 import '@/src/styles/globals.css';
 
 export const metadata: Metadata = {
@@ -32,7 +35,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <ToastProvider>
+          <AuthProvider>
+            {children}
+            <ToastContainer />
+          </AuthProvider>
+        </ToastProvider>
+      </body>
     </html>
   );
 }

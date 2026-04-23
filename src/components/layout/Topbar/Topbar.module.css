@@ -1,0 +1,104 @@
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: rgba(250, 247, 242, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--color-primary-whisper);
+  padding: var(--spacing-md) var(--spacing-xl);
+  padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  min-height: 56px;
+}
+
+.menuBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-soft);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+  flex-shrink: 0;
+}
+
+.menuBtn:hover {
+  background: var(--color-primary-whisper);
+  color: var(--color-text);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  flex: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.actionBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-soft);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease);
+  position: relative;
+}
+
+.actionBtn:hover {
+  background: var(--color-primary-whisper);
+  color: var(--color-text);
+}
+
+.notifBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 14px;
+  height: 14px;
+  background: var(--color-danger);
+  color: var(--color-surface);
+  font-size: 9px;
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+@media (min-width: 1024px) {
+  .menuBtn {
+    display: none;
+  }
+
+  .topbar {
+    padding: var(--spacing-lg) var(--spacing-3xl);
+  }
+
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+}
