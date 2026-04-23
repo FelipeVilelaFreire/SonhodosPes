@@ -147,7 +147,15 @@
         if (tabs > commas && tabs > semicolons) delimiter = '\t';
         else if (semicolons > commas) delimiter = ';';
 
-        const rawHeaders = parseCSVLine(lines[0], delimiter).map(h => h.trim());
+        let rawHeaders = parseCSVLine(lines[0], delimiter).map(h => h.trim());
+        let startIdx = 1;
+
+        if (/^\d+$/.test(rawHeaders[0]) && !rawHeaders.some(h => String(h).toLowerCase() === 'produto')) {
+            const defaultHeaderStr = "PRODUTO,COR_PRODUTO,Coleção,QTDE_CONTAGEM,CONTAGEM,DIFERENCA_TOTAL,U,34,35,36,37,38,39,40,P,M,G,GG,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20,Q21,Q22,Q23,Q24,Q25,Q26,Q27,Q28,Q29,Q30,Q31,Q32,Q33,Q34,Q35,Q36,Q37,Q38,Q39,Q40,Q41,Q42,Q43,Q44,Q45,Q46,Q47,Q48,S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12,S13,S14,S15,S16,S17,S18,S19,S20,S21,S22,S23,S24,S25,S26,S27,S28,S29,S30,S31,S32,S33,S34,S35,S36,S37,S38,S39,S40,S41,S42,S43,S44,S45,S46,S47,S48,DESC_PRODUTO,GRUPO_PRODUTO,SUBGRUPO_PRODUTO,GRADE,UNIDADE,PESO,REVENDA,DESC_COR_PRODUTO,COR_SORTIDA,COR_FABRICANTE,REFER_FABRICANTE,D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13,D14,D15,D16,D17,D18,D19,D20,D21,D22,D23,D24,D25,D26,D27,D28,D29,D30,D31,D32,D33,D34,D35,D36,D37,D38,D39,D40,D41,D42,D43,D44,D45,D46,D47,D48,PONTEIRO_PRECO_TAM,VARIA_PRECO_COR,VARIA_PRECO_TAM,CUSTO_REPOSICAO1,CUSTO_REPOSICAO2,CUSTO_REPOSICAO3,CUSTO_REPOSICAO4,CUSTO_MEDIO1,CUSTO_MEDIO2,CUSTO_MEDIO3,CUSTO_MEDIO4,CUSTO4_A_VALORIZAR,CUSTO3_A_VALORIZAR,CUSTO2_A_VALORIZAR,CUSTO1_A_VALORIZAR,VALOR_CONTAGEM_DIFERENCA,ESTOQUE_CONTAGEM,ES1,ES2,ES3,ES4,ES5,ES6,ES7,ES8,ES9,ES10,ES11,ES12,ES13,ES14,ES15,ES16,ES17,ES18,ES19,ES20,ES21,ES22,ES23,ES24,ES25,ES26,ES27,ES28,ES29,ES30,ES31,ES32,ES33,ES34,ES35,ES36,ES37,ES38,ES39,ES40,ES41,ES42,ES43,ES44,ES45,ES46,ES47,ES48,DIFERENCA,PRECO_VENDA";
+            rawHeaders = defaultHeaderStr.split(',');
+            startIdx = 0;
+        }
+
         const headers = rawHeaders.map(h => h.toLowerCase());
 
         const sizeColumnIndices = [];
@@ -168,7 +176,7 @@
 
         const byCode = new Map();
 
-        for (let i = 1; i < lines.length; i++) {
+        for (let i = startIdx; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!line) continue;
 
