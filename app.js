@@ -471,6 +471,11 @@
             card.classList.add('is-esgotado');
         }
 
+        const siteLink = card.querySelector('.product-site-link');
+        if (siteLink) {
+            siteLink.href = `https://www.sonhodospesoficial.com.br/${produto.codigo}`;
+        }
+
         card.querySelector('.card-close').addEventListener('click', () => {
             removeFromStack(produto.codigo);
         });
