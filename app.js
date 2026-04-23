@@ -140,7 +140,14 @@
         const lines = text.trim().split(/\r?\n/);
         if (lines.length < 2) return [];
 
-        const rawHeaders = parseCSVLine(lines[0]).map(h => h.trim());
+        let delimiter = ',';
+        const commas = (lines[0].match(/,/g) || []).length;
+        const semicolons = (lines[0].match(/;/g) || []).length;
+        const tabs = (lines[0].match(/\t/g) || []).length;
+        if (tabs > commas && tabs > semicolons) delimiter = '\t';
+        else if (semicolons > commas) delimiter = ';';
+
+        const rawHeaders = parseCSVLine(lines[0], delimiter).map(h => h.trim());
         const headers = rawHeaders.map(h => h.toLowerCase());
 
         const sizeColumnIndices = [];
@@ -165,7 +172,7 @@
             const line = lines[i].trim();
             if (!line) continue;
 
-            const values = parseCSVLine(line);
+            const values = parseCSVLine(line, delimiter);
             if (values.length < 2) continue;
 
             const produtoCodRaw = col(values, 'produto', 'codigo', 'cod', 'sku');
@@ -206,7 +213,7 @@
         return list;
     }
 
-    function parseCSVLine(line) {
+    function parseCSVLine(line, delimiter = ',') {
         const result = [];
         let current = '';
         let inQuotes = false;
@@ -215,7 +222,7 @@
             if (char === '"') {
                 if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
                 else { inQuotes = !inQuotes; }
-            } else if (char === ',' && !inQuotes) {
+            } else if (char === delimiter && !inQuotes) {
                 result.push(current); current = '';
             } else {
                 current += char;
