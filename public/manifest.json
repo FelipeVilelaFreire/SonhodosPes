@@ -1,0 +1,27 @@
+{
+    "name": "Sonho dos Pés — Consulta",
+    "short_name": "Sonho dos Pés",
+    "description": "Consulta de preços offline — Sonho dos Pés",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#FAF7F2",
+    "theme_color": "#C8B091",
+    "lang": "pt-BR",
+    "categories": ["business", "shopping"],
+    "icons": [
+        {
+            "src": "logo.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "logo.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ]
+}

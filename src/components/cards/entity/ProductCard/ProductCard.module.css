@@ -1,0 +1,169 @@
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl) 22px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  border: 1px solid var(--color-primary-whisper);
+  overflow: hidden;
+  animation: cardEntry var(--duration-slow) var(--ease-out) both;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-soft),
+    var(--color-primary),
+    var(--color-primary-deep),
+    var(--color-primary),
+    var(--color-primary-soft)
+  );
+}
+
+.card.esgotado {
+  background: var(--color-surface-warm);
+  opacity: 0.92;
+}
+
+.card.esgotado::before {
+  background: linear-gradient(
+    90deg,
+    var(--color-danger-soft),
+    var(--color-danger),
+    var(--color-danger-soft)
+  );
+  opacity: 0.5;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  transition: all var(--duration-fast) var(--ease);
+  z-index: 1;
+}
+
+.closeBtn:hover {
+  background: var(--color-primary-whisper);
+  color: var(--color-text);
+}
+
+.esgotadoBadge {
+  display: inline-block;
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  background: var(--color-danger);
+  color: var(--color-surface);
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.18em;
+  padding: 5px var(--spacing-md);
+  border-radius: var(--radius-xs);
+  box-shadow: 0 2px 6px rgba(181, 87, 74, 0.3);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  padding-right: 36px;
+}
+
+.card.esgotado .header {
+  margin-top: 18px;
+}
+
+.codigo {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.15em;
+  color: var(--color-primary-deep);
+  background: var(--color-primary-whisper);
+  padding: 5px var(--spacing-md);
+  border-radius: var(--radius-xs);
+}
+
+.categoria {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+  text-align: right;
+}
+
+.modelo {
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  margin-bottom: 18px;
+  word-wrap: break-word;
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-primary-soft), transparent);
+  margin: 0 -4px 18px;
+}
+
+.priceBlock {
+  background: linear-gradient(135deg, var(--color-primary-whisper), var(--color-surface-warm));
+  border-radius: var(--radius-md);
+  padding: 18px var(--spacing-xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border: 1px solid var(--color-primary-soft);
+}
+
+.card.esgotado .priceBlock {
+  opacity: 0.7;
+}
+
+.priceLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.priceValue {
+  font-family: var(--font-display);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-deep);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+@keyframes cardEntry {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
