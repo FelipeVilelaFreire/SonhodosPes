@@ -213,6 +213,13 @@ svg {
     position: relative;
 }
 
+.search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .search-label {
     display: block;
     font-size: 11px;
@@ -220,7 +227,6 @@ svg {
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--color-text-soft);
-    margin-bottom: 12px;
     padding-left: 4px;
 }
 
@@ -282,22 +288,23 @@ svg {
     color: var(--color-text);
 }
 
-.scan-btn {
-    width: 32px;
-    height: 32px;
-    display: flex;
+.scan-action-btn {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 50%;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--color-primary-deep);
+    background: var(--color-primary-whisper);
+    padding: 6px 10px;
+    border-radius: 6px;
     transition: all 0.2s var(--ease);
-    flex-shrink: 0;
-    margin-left: 4px;
 }
 
-.scan-btn:hover {
-    background: var(--color-primary-whisper);
-    color: var(--color-primary);
+.scan-action-btn:hover {
+    background: var(--color-primary-soft);
 }
 
 .autocomplete {
