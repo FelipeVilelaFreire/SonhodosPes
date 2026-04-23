@@ -326,6 +326,54 @@
         return matches.slice(0, MAX_AUTOCOMPLETE);
     }
 
+    /**
+     * Quando a vendedora escaneia um código de barras (geralmente 10+ dígitos),
+     * extraímos o código do produto (5 dígitos) que aparece dentro dele.
+     *
+     * Ex: scan "7281917382" — se algum produto tem código que aparece como
+     * substring (ex: "19173" bate com produto 19173), esse produto é retornado.
+     *
+     * Regra definida pelo cliente: "ele vai ler um código de 10 números e vc
+     * aproveita 5, que eh o número do produto".
+     */
+    function findProductByBarcodeScan(scannedText) {
+        const digits = String(scannedText || '').replace(/\D/g, '');
+        if (!digits) return null;
+
+        if (digits.length === 5) {
+            return produtosByCode.get(digits) || null;
+        }
+
+        if (digits.length < 5) return null;
+
+        for (const produto of produtos) {
+            if (produto.codigo && digits.includes(produto.codigo)) {
+                return produto;
+            }
+        }
+        return null;
+    }
+
+    /*
+     * TODO — aguardando template do cliente:
+     *
+     * Adicionar colunas CORREDOR e PRATELEIRA no CSV do ERP.
+     * Cliente disse: "Ainda vamos colocar que corredor e prateleira estao no estoque"
+     *
+     * No parser (parseCSV):
+     *   // produto.corredor   = col(values, 'corredor', 'aisle');
+     *   // produto.prateleira = col(values, 'prateleira', 'shelf');
+     *
+     * No card do produto (renderCard), adicionar um badge discreto:
+     *   // if (produto.corredor || produto.prateleira) {
+     *   //   const local = [
+     *   //     produto.corredor   ? `Corredor ${produto.corredor}`   : '',
+     *   //     produto.prateleira ? `Prateleira ${produto.prateleira}` : '',
+     *   //   ].filter(Boolean).join(' · ');
+     *   //   // renderizar com ícone 📍 perto do nome do produto
+     *   // }
+     */
+
     function formatPrice(value) {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency', currency: 'BRL', minimumFractionDigits: 2,
@@ -711,9 +759,21 @@
             (decodedText, decodedResult) => {
                 closeQrScanner();
                 if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+                // Regra do cliente: o código de barras tem ~10 dígitos, mas
+                // só 5 deles são o código do produto. Procuramos qualquer código
+                // de produto que apareça como substring dentro do escaneado.
+                const matched = findProductByBarcodeScan(decodedText);
+                if (matched) {
+                    addToStack(matched);
+                    clearInput();
+                    return;
+                }
+
+                // Fallback: se não achou match por substring, joga o texto
+                // no input e deixa a busca normal rodar (por código/nome/marca)
                 el.consultaInput.value = decodedText;
                 handleInput();
-                handleEnter();
             },
             (errorMessage) => {
                 // ignora erros de scan enquanto busca
