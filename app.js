@@ -10,7 +10,8 @@
     const STORAGE_KEY_PIN = 'sdp:pinHash';
     const MAX_AUTOCOMPLETE = 6;
 
-    const DEFAULT_PIN = '1357';
+    const LOCAL_DEV_PIN = '1357';
+    const PIN_VERIFY_ENDPOINT = '/api/verify-pin';
 
     const el = {
         statusIndicator: document.getElementById('statusIndicator'),
@@ -676,7 +677,25 @@
             const hash = await hashPin(pin);
             return hash === stored;
         }
-        return String(pin) === DEFAULT_PIN;
+
+        const isLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+
+        try {
+            const response = await fetch(PIN_VERIFY_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: String(pin) }),
+            });
+            if (response.ok) {
+                const data = await response.json();
+                return !!data.valid;
+            }
+        } catch (e) {
+            if (isLocal) return String(pin) === LOCAL_DEV_PIN;
+        }
+
+        if (isLocal) return String(pin) === LOCAL_DEV_PIN;
+        return false;
     }
 
     async function savePin(pin) {
