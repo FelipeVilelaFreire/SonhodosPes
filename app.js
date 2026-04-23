@@ -20,6 +20,7 @@
 
         consultaInput: document.getElementById('consultaInput'),
         clearBtn: document.getElementById('clearBtn'),
+        scanBtn: document.getElementById('scanBtn'),
         autocomplete: document.getElementById('autocomplete'),
 
         stack: document.getElementById('stack'),
@@ -60,6 +61,10 @@
         pinDots: document.getElementById('pinDots'),
         pinInput: document.getElementById('pinInput'),
         pinError: document.getElementById('pinError'),
+
+        qrModal: document.getElementById('qrModal'),
+        qrBackdrop: document.getElementById('qrBackdrop'),
+        qrClose: document.getElementById('qrClose'),
     };
 
     let produtos = [];
@@ -682,6 +687,52 @@
         }
     }
 
+    let html5QrcodeScanner = null;
+
+    function openQrScanner() {
+        el.qrModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+
+        if (typeof Html5Qrcode === 'undefined') {
+            showToast("Leitor não carregado", "error");
+            closeQrScanner();
+            return;
+        }
+
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        }
+
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        html5QrcodeScanner.start(
+            { facingMode: "environment" },
+            config,
+            (decodedText, decodedResult) => {
+                closeQrScanner();
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                el.consultaInput.value = decodedText;
+                handleInput();
+                handleEnter();
+            },
+            (errorMessage) => {
+                // ignora erros de scan enquanto busca
+            }
+        ).catch((err) => {
+            showToast("Erro ao abrir a câmera", "error");
+            console.error(err);
+            closeQrScanner();
+        });
+    }
+
+    function closeQrScanner() {
+        el.qrModal.hidden = true;
+        document.body.style.overflow = '';
+        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+            html5QrcodeScanner.stop().catch(e => console.error(e));
+        }
+    }
+
     async function loadFromDB() {
         try {
             const list = await db.getAll(STORE_PRODUTOS);
@@ -1041,6 +1092,7 @@
         });
 
         el.clearBtn.addEventListener('click', clearInput);
+        if (el.scanBtn) el.scanBtn.addEventListener('click', openQrScanner);
         el.btnClearSearch.addEventListener('click', clearInput);
 
         el.btnClearAll.addEventListener('click', () => {
@@ -1063,6 +1115,9 @@
         el.pinInput.addEventListener('input', handlePinInput);
         el.pinClose.addEventListener('click', hidePinModal);
         el.pinBackdrop.addEventListener('click', hidePinModal);
+
+        if (el.qrClose) el.qrClose.addEventListener('click', closeQrScanner);
+        if (el.qrBackdrop) el.qrBackdrop.addEventListener('click', closeQrScanner);
 
         el.pinModal.addEventListener('click', (e) => {
             if (e.target === el.pinModal || e.target.closest('.pin-content')) {
