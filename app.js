@@ -858,7 +858,7 @@
                 const id = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/)?.[1];
                 if (id) {
                     const gid = u.searchParams.get('gid') || '0';
-                    return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
+                    return `https://docs.google.com/spreadsheets/d/${id}/pub?output=csv&gid=${gid}`;
                 }
             }
         } catch (_) { /* deixa passar — validação acontece depois */ }
