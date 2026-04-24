@@ -787,10 +787,14 @@
     }
 
     async function loadFromURL(url) {
+        console.log('[SDP] loadFromURL →', url);
         const response = await fetch(url, { cache: 'no-cache' });
+        console.log('[SDP] fetch status:', response.status, response.ok);
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const text = await response.text();
+        console.log('[SDP] resposta (primeiros 200 chars):', text.slice(0, 200));
         const list = parseCSV(text);
+        console.log('[SDP] produtos parseados:', list.length);
         if (!list.length) throw new Error('CSV vazio');
 
         await db.replaceProdutos(list);
@@ -1208,6 +1212,7 @@
         } catch (_) { /* config.json indisponível */ }
 
         const savedUrl = sharedUrl || localStorage.getItem(STORAGE_KEY_URL);
+        console.log('[SDP] init | online:', navigator.onLine, '| sharedUrl:', sharedUrl, '| savedUrl:', savedUrl);
         if (sharedUrl) {
             localStorage.setItem(STORAGE_KEY_URL, sharedUrl);
             if (el.csvUrl) el.csvUrl.value = sharedUrl;
@@ -1224,13 +1229,16 @@
                     loaded = await loadFromLocalCSV();
                 }
             } catch (e) {
-                console.warn('Falha no carregamento remoto, usando cache local:', e.message);
+                console.warn('[SDP] Falha no carregamento remoto:', e.message);
             }
         }
 
         if (!loaded) {
             loaded = await loadFromDB();
+            console.log('[SDP] loadFromDB →', loaded, '| produtos:', produtos.length);
         }
+
+        console.log('[SDP] init finalizado | loaded:', loaded, '| produtos total:', produtos.length);
 
         if (!loaded) {
             el.lastSync.textContent = 'Abra as configurações para carregar a tabela';
