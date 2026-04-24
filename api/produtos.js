@@ -4,7 +4,6 @@ export default async function handler(req, res) {
     let csvUrl = process.env.URL_TABLE;
     if (!csvUrl) return res.status(500).json({ error: 'URL_TABLE não configurada no ambiente' });
 
-    // Garante que a URL retorna CSV mesmo se o usuário colocou a URL /pubhtml
     try {
         const u = new URL(csvUrl);
         if (u.pathname.endsWith('/pubhtml') || u.searchParams.get('output') !== 'csv') {
@@ -19,6 +18,15 @@ export default async function handler(req, res) {
         if (!upstream.ok) return res.status(502).json({ error: `Sheets retornou ${upstream.status}` });
 
         const text = await upstream.text();
+
+        if (text.trimStart().startsWith('<')) {
+            return res.status(502).json({
+                error: 'Google Sheets retornou HTML em vez de CSV',
+                hint: 'Verifique se a planilha está publicada em Arquivo → Publicar na web → formato CSV',
+                url: csvUrl,
+            });
+        }
+
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Cache-Control', 'no-store');
         res.status(200).send(text);
