@@ -1061,7 +1061,7 @@
     function openSettings() {
         el.settingsModal.hidden = false;
         const savedUrl = localStorage.getItem(STORAGE_KEY_URL);
-        if (savedUrl) el.csvUrl.value = savedUrl;
+        if (savedUrl && el.csvUrl) el.csvUrl.value = savedUrl;
         document.body.style.overflow = 'hidden';
         updateSecurityUI();
     }
@@ -1148,7 +1148,7 @@
         el.modalBackdrop.addEventListener('click', closeSettings);
 
         el.btnUpdate.addEventListener('click', handleUpdate);
-        el.btnSaveUrl.addEventListener('click', handleSaveUrl);
+        el.btnSaveUrl?.addEventListener('click', handleSaveUrl);
 
         if (el.btnClear) el.btnClear.addEventListener('click', handleClear);
         if (el.btnSetPin) el.btnSetPin.addEventListener('click', handleSetPin);
