@@ -859,8 +859,13 @@
     function toCSVUrl(raw) {
         try {
             const u = new URL(raw);
-            // Google Sheets: converte qualquer variante para URL de exportação CSV
             if (u.hostname === 'docs.google.com' && u.pathname.includes('/spreadsheets/')) {
+                // Formato publicado: /d/e/2PACX-.../pubhtml → /pub?output=csv
+                if (u.pathname.includes('/d/e/')) {
+                    return raw.replace(/\/pubhtml.*$/, '/pub?output=csv')
+                               .replace(/\/pub\?.*$/, '/pub?output=csv');
+                }
+                // Formato de edição/compartilhamento: /d/ID/edit → /pub?output=csv
                 const id = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/)?.[1];
                 if (id) {
                     const gid = u.searchParams.get('gid') || '0';
