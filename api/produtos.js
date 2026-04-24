@@ -1,8 +1,18 @@
 export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).end();
 
-    const csvUrl = process.env.URL_TABLE;
+    let csvUrl = process.env.URL_TABLE;
     if (!csvUrl) return res.status(500).json({ error: 'URL_TABLE não configurada no ambiente' });
+
+    // Garante que a URL retorna CSV mesmo se o usuário colocou a URL /pubhtml
+    try {
+        const u = new URL(csvUrl);
+        if (u.pathname.endsWith('/pubhtml') || u.searchParams.get('output') !== 'csv') {
+            u.pathname = u.pathname.replace(/\/pubhtml$/, '/pub');
+            u.search = '?output=csv';
+            csvUrl = u.toString();
+        }
+    } catch (_) { /* URL inválida — vai falhar no fetch abaixo */ }
 
     try {
         const upstream = await fetch(csvUrl, { cache: 'no-store' });
