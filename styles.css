@@ -717,12 +717,20 @@ svg {
 }
 
 .product-localizacao {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--color-primary-deep);
     margin: -10px 0 18px;
+}
+
+.product-localizacao svg {
+    color: var(--color-primary-deep);
+    flex-shrink: 0;
 }
 
 .product-divider {
