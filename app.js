@@ -13,6 +13,7 @@
     const LOCAL_DEV_PIN = '1357';
     const PIN_VERIFY_ENDPOINT = '/api/verify-pin';
     const CONFIG_URL = '/config.json';
+    const APP_TOKEN = 'sdp-4K9mX2rP7nQ1wL5j';
 
     const el = {
         statusIndicator: document.getElementById('statusIndicator'),
@@ -788,7 +789,7 @@
     }
 
     async function loadFromURL(url) {
-        const response = await fetch(url, { cache: 'no-cache' });
+        const response = await fetch(url, { cache: 'no-cache', headers: { 'X-App-Token': APP_TOKEN } });
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const text = await response.text();
         const list = parseCSV(text);

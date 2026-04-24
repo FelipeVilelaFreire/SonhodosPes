@@ -1,6 +1,11 @@
 export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).end();
 
+    const token = process.env.APP_TOKEN;
+    if (token && req.headers['x-app-token'] !== token) {
+        return res.status(401).json({ error: 'Não autorizado' });
+    }
+
     let csvUrl = process.env.URL_TABLE;
     if (!csvUrl) return res.status(500).json({ error: 'URL_TABLE não configurada no ambiente' });
 
