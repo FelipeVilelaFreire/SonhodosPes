@@ -12,6 +12,7 @@
 
     const LOCAL_DEV_PIN = '1357';
     const PIN_VERIFY_ENDPOINT = '/api/verify-pin';
+    const CONFIG_URL = '/config.json';
 
     const el = {
         statusIndicator: document.getElementById('statusIndicator'),
@@ -836,10 +837,29 @@
         showToast('Dados removidos', 'success');
     }
 
+    function toCSVUrl(raw) {
+        try {
+            const u = new URL(raw);
+            // Google Sheets: converte qualquer variante para URL de exportação CSV
+            if (u.hostname === 'docs.google.com' && u.pathname.includes('/spreadsheets/')) {
+                const id = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/)?.[1];
+                if (id) {
+                    const gid = u.searchParams.get('gid') || '0';
+                    return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
+                }
+            }
+        } catch (_) { /* deixa passar — validação acontece depois */ }
+        return raw;
+    }
+
     function handleSaveUrl() {
-        const url = el.csvUrl.value.trim();
-        if (!url) { showToast('Informe uma URL válida', 'error'); return; }
-        try { new URL(url); } catch { showToast('URL inválida', 'error'); return; }
+        const raw = el.csvUrl.value.trim();
+        if (!raw) { showToast('Informe uma URL válida', 'error'); return; }
+        let url;
+        try { url = toCSVUrl(raw); new URL(url); } catch { showToast('URL inválida', 'error'); return; }
+
+        // Atualiza o campo com a URL já convertida para o usuário ver
+        el.csvUrl.value = url;
 
         showPinModal({
             mode: 'verify',
@@ -847,7 +867,7 @@
             subtitle: 'Confirme o PIN para salvar a URL',
             onSuccess: () => {
                 localStorage.setItem(STORAGE_KEY_URL, url);
-                showToast('URL salva ✓', 'success');
+                showToast('URL salva neste dispositivo. Para todos os outros, atualize config.json no repositório.', '');
             },
         });
     }
@@ -869,14 +889,14 @@
     }
 
     async function verifyPin(pin) {
+        // PIN customizado salvo localmente — compara hash sem chamar API
         const stored = localStorage.getItem(STORAGE_KEY_PIN);
         if (stored) {
             const hash = await hashPin(pin);
             return hash === stored;
         }
 
-        const isLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname);
-
+        // Sem PIN customizado: tenta a API (Vercel/Next.js); se falhar, usa PIN padrão
         try {
             const response = await fetch(PIN_VERIFY_ENDPOINT, {
                 method: 'POST',
@@ -887,12 +907,10 @@
                 const data = await response.json();
                 return !!data.valid;
             }
-        } catch (e) {
-            if (isLocal) return String(pin) === LOCAL_DEV_PIN;
-        }
+        } catch (_) { /* API indisponível (site estático) — cai no fallback */ }
 
-        if (isLocal) return String(pin) === LOCAL_DEV_PIN;
-        return false;
+        // Fallback: PIN padrão definido em LOCAL_DEV_PIN (1357)
+        return String(pin) === LOCAL_DEV_PIN;
     }
 
     async function savePin(pin) {
@@ -972,7 +990,7 @@
                 flashPinSuccess();
                 setTimeout(() => {
                     hidePinModal();
-                    if (pinState.onSuccess) pinState.onSuccess();
+                    if (pinState.onSuccess) pinState.onSuccess(entered);
                 }, 250);
             } else {
                 flashPinError('PIN incorreto');
@@ -1154,7 +1172,23 @@
         setupEvents();
         updateStatus(navigator.onLine);
 
-        const savedUrl = localStorage.getItem(STORAGE_KEY_URL);
+        // 1. Lê config.json compartilhado (mesma URL para todos os dispositivos)
+        let sharedUrl = null;
+        try {
+            const cfgRes = await fetch(CONFIG_URL, { cache: 'no-cache' });
+            if (cfgRes.ok) {
+                const cfg = await cfgRes.json();
+                if (cfg.csvUrl) sharedUrl = cfg.csvUrl;
+            }
+        } catch (_) { /* config.json indisponível (ambiente local/estático) */ }
+
+        // Sincroniza localStorage com o config compartilhado
+        const savedUrl = sharedUrl || localStorage.getItem(STORAGE_KEY_URL);
+        if (sharedUrl) {
+            localStorage.setItem(STORAGE_KEY_URL, sharedUrl);
+            if (el.csvUrl) el.csvUrl.value = sharedUrl;
+        }
+
         let loaded = false;
 
         if (navigator.onLine) {

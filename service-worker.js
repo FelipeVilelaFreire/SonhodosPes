@@ -5,6 +5,7 @@ const PRECACHE_URLS = [
     './styles.css',
     './app.js',
     './logo.svg',
+    './config.json',
     './produtos.csv',
     './manifest.json',
     './html5-qrcode.min.js',

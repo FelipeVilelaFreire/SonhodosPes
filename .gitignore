@@ -1,10 +1,40 @@
 # Pasta de trabalho do Claude Code (memória da conversa)
 .claude/
 
-# Dependências (caso use build tools no futuro)
+# ─── Next.js / Node — não pertencem à branch vanilla (main) ───────────────────
+# Se esses arquivos aparecerem aqui, estão na branch errada.
 node_modules/
 .pnp
 .pnp.js
+package.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Configs Next.js / TypeScript / Tooling
+next.config.*
+next-env.d.ts
+tsconfig.json
+tsconfig*.json
+*.tsbuildinfo
+.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Diretórios Next.js
+.next/
+src/
+app/
+
+# Supabase / infra
+supabase/
+.supabase/
+
+# Docs extras (ficam na branch nextjs)
+docs/
+# ──────────────────────────────────────────────────────────────────────────────
 
 # Logs
 *.log
@@ -15,10 +45,6 @@ pnpm-debug.log*
 
 # Arquivos de ambiente / segredos
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
 # OS
 .DS_Store
