@@ -716,6 +716,16 @@ svg {
     word-wrap: break-word;
 }
 
+.product-localizacao {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    margin: -12px 0 16px;
+    opacity: 0.75;
+}
+
 .product-divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--color-primary-soft), transparent);

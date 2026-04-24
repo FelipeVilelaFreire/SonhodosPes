@@ -208,8 +208,14 @@
                     categoria: col(values, 'subgrupo_produto', 'subgrupo', 'categoria'),
                     grupo: col(values, 'grupo_produto', 'grupo'),
                     referencia: col(values, 'refer_fabricante', 'referencia', 'ref'),
-                    localizacao: col(values, 'localizacao', 'local', 'endereco'),
-                    preco: parseFloat(String(col(values, 'preco_venda', 'preco', 'valor') || '0').replace(',', '.')) || 0,
+                    localizacao: (() => {
+                        const c = col(values, 'corredor');
+                        const a = col(values, 'armario', 'armário');
+                        const p = col(values, 'prateleira');
+                        const parts = [c && `Corredor ${c}`, a && `Armário ${a}`, p && `Prat. ${p}`].filter(Boolean);
+                        return parts.length ? parts.join(' · ') : col(values, 'localizacao', 'local', 'endereco');
+                    })(),
+                    preco: parseFloat(String(col(values, 'preco_venda', 'preco', 'preço', 'valor') || '0').replace(',', '.')) || 0,
                     cores: [],
                     _search: '',
                 });
@@ -413,6 +419,13 @@
         if (categoriaEl) categoriaEl.textContent = produto.categoria || produto.grupo || '';
 
         card.querySelector('.product-modelo').textContent = produto.modelo || 'Sem descrição';
+
+        const locEl = card.querySelector('.product-localizacao');
+        if (locEl && produto.localizacao) {
+            locEl.textContent = produto.localizacao;
+            locEl.hidden = false;
+        }
+
         card.querySelector('.price-value').textContent = formatPrice(produto.preco);
 
         const gridWrapper = card.querySelector('.stock-grid-wrapper');

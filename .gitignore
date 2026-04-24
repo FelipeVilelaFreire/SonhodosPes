@@ -80,3 +80,9 @@ coverage/
 *.tmp
 *.temp
 *~
+
+# Planilhas de dados (não versionadas — fonte é o Google Sheets)
+produtos.csv
+template app.csv
+*.xlsx
+*.xls
