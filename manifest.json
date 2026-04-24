@@ -1,6 +1,6 @@
 {
     "name": "Sonho dos Pés — Consulta",
-    "short_name": "Sonho dos Pés",
+    "short_name": "Consulta",
     "description": "Consulta de preços offline — Sonho dos Pés",
     "start_url": "./",
     "scope": "./",
@@ -12,13 +12,13 @@
     "categories": ["business", "shopping"],
     "icons": [
         {
-            "src": "logo.svg",
+            "src": "icon.svg",
             "sizes": "any",
             "type": "image/svg+xml",
             "purpose": "any"
         },
         {
-            "src": "logo.svg",
+            "src": "icon.svg",
             "sizes": "any",
             "type": "image/svg+xml",
             "purpose": "maskable"
