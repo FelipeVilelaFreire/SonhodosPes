@@ -787,10 +787,16 @@
     }
 
     async function loadFromURL(url) {
+        console.log('[SDP] loadFromURL → tentando buscar:', url);
         const response = await fetch(url, { cache: 'no-cache' });
+        console.log('[SDP] loadFromURL → status HTTP:', response.status, response.ok ? 'OK' : 'ERRO');
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const text = await response.text();
+        console.log('[SDP] loadFromURL → bytes recebidos:', text.length);
+        console.log('[SDP] loadFromURL → primeiros 300 chars:', text.slice(0, 300));
         const list = parseCSV(text);
+        console.log('[SDP] loadFromURL → produtos parseados:', list.length);
+        if (list.length) console.log('[SDP] loadFromURL → exemplo produto[0]:', JSON.stringify(list[0], null, 2));
         if (!list.length) throw new Error('CSV vazio');
 
         await db.replaceProdutos(list);
@@ -1186,17 +1192,24 @@
         updateStatus(navigator.onLine);
 
         // 1. Lê config.json compartilhado (mesma URL para todos os dispositivos)
+        console.log('[SDP] init → online:', navigator.onLine);
+
         let sharedUrl = null;
         try {
             const cfgRes = await fetch(CONFIG_URL, { cache: 'no-cache' });
+            console.log('[SDP] config.json → status:', cfgRes.status);
             if (cfgRes.ok) {
                 const cfg = await cfgRes.json();
+                console.log('[SDP] config.json → conteúdo:', cfg);
                 if (cfg.csvUrl) sharedUrl = cfg.csvUrl;
             }
-        } catch (_) { /* config.json indisponível (ambiente local/estático) */ }
+        } catch (e) {
+            console.warn('[SDP] config.json → falhou:', e.message);
+        }
 
         // Sincroniza localStorage com o config compartilhado
         const savedUrl = sharedUrl || localStorage.getItem(STORAGE_KEY_URL);
+        console.log('[SDP] init → URL que será usada:', savedUrl || '(nenhuma — vai usar localStorage ou CSV local)');
         if (sharedUrl) {
             localStorage.setItem(STORAGE_KEY_URL, sharedUrl);
             if (el.csvUrl) el.csvUrl.value = sharedUrl;
@@ -1210,10 +1223,11 @@
                     await loadFromURL(savedUrl);
                     loaded = true;
                 } else {
+                    console.log('[SDP] init → sem URL configurada, tentando CSV local');
                     loaded = await loadFromLocalCSV();
                 }
             } catch (e) {
-                console.warn('Falha no carregamento fresco, usando cache local:', e);
+                console.warn('[SDP] init → falha no carregamento remoto, usando cache IndexedDB:', e.message);
             }
         }
 
