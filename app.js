@@ -209,9 +209,17 @@
                     grupo: col(values, 'grupo_produto', 'grupo'),
                     referencia: col(values, 'refer_fabricante', 'referencia', 'ref'),
                     localizacao: (() => {
-                        const c = col(values, 'corredor');
-                        const a = col(values, 'armario', 'armário');
-                        const p = col(values, 'prateleira');
+                        const strip = (v, ...prefixes) => {
+                            const t = v.trim();
+                            for (const p of prefixes) {
+                                if (t.toLowerCase().startsWith(p.toLowerCase() + ' ')) return t.slice(p.length + 1).trim();
+                                if (t.toLowerCase() === p.toLowerCase()) return '';
+                            }
+                            return t;
+                        };
+                        const c = strip(col(values, 'corredor'), 'corredor');
+                        const a = strip(col(values, 'armario', 'armário'), 'armario', 'armário');
+                        const p = strip(col(values, 'prateleira'), 'prateleira', 'prat.');
                         const parts = [c, a, p].filter(Boolean);
                         return parts.length ? parts.join(' · ') : col(values, 'localizacao', 'local', 'endereco');
                     })(),
