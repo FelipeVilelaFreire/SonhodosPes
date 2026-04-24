@@ -2,7 +2,7 @@
     'use strict';
 
     const DB_NAME = 'sonhodospes';
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     const STORE_PRODUTOS = 'produtos';
     const STORE_META = 'meta';
     const LOCAL_CSV_PATH = 'produtos.csv';
@@ -82,12 +82,10 @@
                 req.onsuccess = () => { this._db = req.result; resolve(this._db); };
                 req.onupgradeneeded = (e) => {
                     const database = e.target.result;
-                    if (!database.objectStoreNames.contains(STORE_PRODUTOS)) {
-                        database.createObjectStore(STORE_PRODUTOS, { keyPath: 'codigo' });
-                    }
-                    if (!database.objectStoreNames.contains(STORE_META)) {
-                        database.createObjectStore(STORE_META, { keyPath: 'key' });
-                    }
+                    if (database.objectStoreNames.contains(STORE_PRODUTOS)) database.deleteObjectStore(STORE_PRODUTOS);
+                    if (database.objectStoreNames.contains(STORE_META)) database.deleteObjectStore(STORE_META);
+                    database.createObjectStore(STORE_PRODUTOS, { keyPath: 'codigo' });
+                    database.createObjectStore(STORE_META, { keyPath: 'key' });
                 };
             });
         },
@@ -209,17 +207,9 @@
                     grupo: col(values, 'grupo_produto', 'grupo'),
                     referencia: col(values, 'refer_fabricante', 'referencia', 'ref'),
                     localizacao: (() => {
-                        const strip = (v, ...prefixes) => {
-                            const t = v.trim();
-                            for (const p of prefixes) {
-                                if (t.toLowerCase().startsWith(p.toLowerCase() + ' ')) return t.slice(p.length + 1).trim();
-                                if (t.toLowerCase() === p.toLowerCase()) return '';
-                            }
-                            return t;
-                        };
-                        const c = strip(col(values, 'corredor'), 'corredor');
-                        const a = strip(col(values, 'armario', 'armário'), 'armario', 'armário');
-                        const p = strip(col(values, 'prateleira'), 'prateleira', 'prat.');
+                        const c = col(values, 'corredor');
+                        const a = col(values, 'armario', 'armário');
+                        const p = col(values, 'prateleira');
                         const parts = [c, a, p].filter(Boolean);
                         return parts.length ? parts.join(' · ') : col(values, 'localizacao', 'local', 'endereco');
                     })(),
@@ -429,9 +419,8 @@
         card.querySelector('.product-modelo').textContent = produto.modelo || 'Sem descrição';
 
         const locEl = card.querySelector('.product-localizacao');
-        const locTextEl = card.querySelector('.product-localizacao-text');
-        if (locEl && locTextEl && produto.localizacao) {
-            locTextEl.textContent = produto.localizacao;
+        if (locEl && produto.localizacao) {
+            locEl.textContent = produto.localizacao;
             locEl.hidden = false;
         }
 
