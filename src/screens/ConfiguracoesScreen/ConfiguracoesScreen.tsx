@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, ExternalLink, UserPlus } from 'lucide-react';
+import { Save, ExternalLink, UserPlus, RefreshCw } from 'lucide-react';
 import Input from '@/src/components/ui/Input';
 import Button from '@/src/components/ui/Button';
 import FormField from '@/src/components/ui/FormField';
@@ -9,6 +9,9 @@ import Badge from '@/src/components/ui/Badge';
 import Avatar from '@/src/components/ui/Avatar';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { useToast } from '@/src/contexts/ToastContext';
+import { useOnlineStatus } from '@/src/hooks/shared/useOnlineStatus';
+import { produtoService } from '@/src/services/produtoService';
+import { cacheService } from '@/src/services/cacheService';
 import { listMockUsers } from '@/src/mocks/users';
 import type { UserRole } from '@/src/types/auth';
 import styles from './ConfiguracoesScreen.module.css';
@@ -29,11 +32,39 @@ const ROLE_VARIANT: Record<UserRole, 'danger' | 'warning' | 'default'> = {
 
 export default function ConfiguracoesScreen() {
   const { user, mockMode, isAdmin } = useAuth();
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
+  const isOnline = useOnlineStatus();
   const [tab, setTab] = useState<Tab>('perfil');
 
   const [nome, setNome] = useState(user?.nome ?? '');
   const [csvUrl, setCsvUrl] = useState('');
+  const [syncing, setSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<Date | null>(() => cacheService.getLastSync());
+
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const { total } = await produtoService.syncNow();
+      const now = new Date();
+      setLastSync(now);
+      showSuccess(`Cache atualizado — ${total} produtos sincronizados`);
+    } catch (e) {
+      showError(e instanceof Error ? e.message : 'Erro ao sincronizar');
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  function formatLastSync(date: Date | null): string {
+    if (!date) return 'Nunca sincronizado';
+    const diff = Date.now() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'Agora mesmo';
+    if (minutes < 60) return `Há ${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `Há ${hours}h`;
+    return date.toLocaleDateString('pt-BR');
+  }
 
   if (!user) return null;
 
@@ -140,17 +171,27 @@ export default function ConfiguracoesScreen() {
           <div className={styles.row}>
             <div className={styles.infoBlock}>
               <span className={styles.infoLabel}>Última sincronização</span>
-              <span className={styles.infoValue}>Há 2 horas</span>
+              <span className={styles.infoValue}>{formatLastSync(lastSync)}</span>
             </div>
             <div className={styles.infoBlock}>
-              <span className={styles.infoLabel}>Sincronização automática</span>
-              <span className={styles.infoValue}>Ativada · a cada hora</span>
+              <span className={styles.infoLabel}>Produtos em cache</span>
+              <span className={styles.infoValue}>
+                {cacheService.hasCache() ? `${cacheService.getMeta()?.total ?? 0} produtos` : 'Sem cache'}
+              </span>
             </div>
           </div>
 
           <div className={styles.actions}>
             <Button
               variant="primary"
+              leftIcon={<RefreshCw size={14} />}
+              onClick={handleSync}
+              disabled={!isOnline || syncing}
+            >
+              {syncing ? 'Sincronizando...' : 'Sincronizar tabela'}
+            </Button>
+            <Button
+              variant="secondary"
               leftIcon={<Save size={14} />}
               onClick={() => showSuccess('URL salva ✓')}
               disabled={!csvUrl}
@@ -158,7 +199,7 @@ export default function ConfiguracoesScreen() {
               Salvar URL
             </Button>
             <Button
-              variant="secondary"
+              variant="ghost"
               rightIcon={<ExternalLink size={14} />}
               onClick={() => window.open('https://docs.google.com/spreadsheets', '_blank')}
             >
@@ -166,10 +207,18 @@ export default function ConfiguracoesScreen() {
             </Button>
           </div>
 
-          <div className={styles.info}>
-            <strong>Dica:</strong> publique a planilha em <em>Arquivo → Compartilhar → Publicar na Web</em>,
-            escolha <em>Valores separados por vírgula (.csv)</em> e cole a URL aqui.
-          </div>
+          {!isOnline && (
+            <div className={styles.info}>
+              <strong>Offline:</strong> usando dados do cache local. Conecte-se para sincronizar.
+            </div>
+          )}
+
+          {isOnline && (
+            <div className={styles.info}>
+              <strong>Dica:</strong> publique a planilha em <em>Arquivo → Compartilhar → Publicar na Web</em>,
+              escolha <em>Valores separados por vírgula (.csv)</em> e cole a URL aqui.
+            </div>
+          )}
         </div>
       )}
 

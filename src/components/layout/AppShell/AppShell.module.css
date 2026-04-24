@@ -15,20 +15,8 @@
 
 .content {
   flex: 1;
-  padding: var(--spacing-xl);
-  max-width: 1280px;
   width: 100%;
-  margin: 0 auto;
-}
-
-@media (min-width: 768px) {
-  .content {
-    padding: var(--spacing-2xl) var(--spacing-3xl);
-  }
-}
-
-@media (min-width: 1024px) {
-  .content {
-    padding: var(--spacing-3xl);
-  }
+  padding-inline: var(--spacing-3xl);
+  padding-block-start: var(--spacing-3xl);
+  padding-block-end: var(--spacing-2xl);
 }

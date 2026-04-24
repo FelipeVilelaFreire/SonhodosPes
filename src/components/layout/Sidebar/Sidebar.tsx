@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Search,
   Package,
+  BookOpen,
   History,
   Settings,
   LogOut,
@@ -26,8 +27,9 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['admin', 'gerente'] },
+  { label: 'Tabela', href: '/estoque', icon: Package, roles: ['admin', 'gerente'] },
   { label: 'Consulta', href: '/consulta', icon: Search, roles: ['admin', 'gerente', 'vendedora'] },
-  { label: 'Estoque', href: '/estoque', icon: Package, roles: ['admin', 'gerente'] },
+  { label: 'Catálogo', href: '/catalogo', icon: BookOpen, roles: ['admin', 'gerente'] },
   { label: 'Histórico', href: '/historico', icon: History, roles: ['admin', 'gerente'] },
   { label: 'Configurações', href: '/configuracoes', icon: Settings, roles: ['admin', 'gerente', 'vendedora'] },
 ];

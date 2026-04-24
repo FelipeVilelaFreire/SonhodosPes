@@ -7,22 +7,13 @@ import { useEstoqueScreen } from '@/src/hooks/estoque/useEstoqueScreen';
 
 export default function EstoqueScreen() {
   const {
-    rows,
-    allSizes,
-    loading,
-    error,
-    query,
-    setQuery,
-    categoria,
-    setCategoria,
-    apenasEsgotados,
-    setApenasEsgotados,
+    rows, allSizes, loading, error,
+    query, setQuery,
+    categoria, setCategoria,
     categorias,
-    editTarget,
-    openEdit,
-    closeEdit,
-    saveEdit,
-    saving,
+    apenasEsgotados, setApenasEsgotados,
+    editTarget, openEdit, closeEdit, saveEdit, saving,
+    updateField, addRow, deleteRow, deleteColumn,
   } = useEstoqueScreen();
 
   if (loading) return <Spinner size="lg" center />;
@@ -48,13 +39,14 @@ export default function EstoqueScreen() {
         apenasEsgotados={apenasEsgotados}
         onApenasEsgotadosChange={setApenasEsgotados}
         onEditCell={(row, tamanho, quantidadeAtual) =>
-          openEdit({
-            produto: row.produto,
-            cor: row.cor,
-            tamanho,
-            quantidadeAtual,
-          })
+          openEdit({ produto: row.produto, cor: row.cor, tamanho, quantidadeAtual })
         }
+        onFieldChange={(row, field, value) =>
+          updateField(row.produto.codigo, row.cor.nome, field, value)
+        }
+        onAddRow={addRow}
+        onDeleteRow={(row) => deleteRow(row.produto.codigo, row.cor.nome)}
+        onDeleteColumn={deleteColumn}
       />
 
       <StockEditModal

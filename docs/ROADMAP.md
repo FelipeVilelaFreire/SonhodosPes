@@ -181,13 +181,30 @@ Opções pro dono:
 
 ## Modelo de dados no Supabase
 
-Normalização clássica em 3 tabelas:
+### Filosofia multi-tenant
+
+O schema já nasce com `empresa_id` em todas as tabelas. Isso custa quase nada agora e evita
+uma migração dolorosa quando surgir o segundo cliente. **Não será construída nenhuma interface
+de gerenciamento de tenants por enquanto** — só a fundação no banco. A UI multi-tenant vem
+quando o segundo cliente for real.
+
+### Tabela `empresas` (fundação multi-tenant)
+
+```
+┌───────────┬────────┬─────────────────┬──────────────────────┐
+│ id        │ PK     │ uuid            │ auto                 │
+│ nome      │        │ text            │ "Sonho dos Pés"      │
+│ slug      │        │ text            │ "sonho-dos-pes"      │
+│ created_at│        │ timestamptz     │ auto                 │
+└───────────┴────────┴─────────────────┴──────────────────────┘
+```
 
 ### Tabela `produtos`
 Informação que não muda por cor.
 
 ```
 ┌───────────┬────────┬─────────────────┬────────────┐
+│ empresa_id│ FK →   │ uuid            │ ref        │ ← multi-tenant
 │ codigo    │ PK     │ text            │ "37201"    │
 │ modelo    │        │ text            │ "SCARPIN..."│
 │ categoria │        │ text            │ "SCARPIN"  │
@@ -204,6 +221,7 @@ Uma linha por combinação produto+cor.
 
 ```
 ┌───────────┬────────┬─────────────────┬────────────┐
+│ empresa_id│ FK →   │ uuid            │ ref        │ ← multi-tenant
 │ id        │ PK     │ uuid            │ auto       │
 │ codigo    │ FK →   │ text            │ "37201"    │
 │ cor_nome  │        │ text            │ "PRETO"    │
@@ -217,6 +235,7 @@ Uma linha por combinação variante+tamanho. É a tabela mais quente.
 
 ```
 ┌───────────┬────────┬─────────────────┬────────────┐
+│ empresa_id│ FK →   │ uuid            │ ref        │ ← multi-tenant
 │ id        │ PK     │ uuid            │ auto       │
 │ variante_id│ FK →  │ uuid            │ ref        │
 │ tamanho   │        │ text            │ "37"       │
@@ -230,6 +249,7 @@ Auditoria — crítico pra diagnosticar divergências.
 
 ```
 ┌──────────────┬────────┬─────────────────┬─────────────┐
+│ empresa_id   │ FK →   │ uuid            │ ref         │ ← multi-tenant
 │ id           │ PK     │ uuid            │ auto        │
 │ estoque_id   │ FK →   │ uuid            │ ref         │
 │ qtd_anterior │        │ integer         │ 3           │
@@ -246,31 +266,51 @@ Gerenciada automaticamente pelo Supabase. Metadata customizada:
 
 ```json
 {
+  "empresa_id": "uuid-da-empresa",
   "role": "vendedora" | "gerente" | "admin",
-  "nome": "Maria da Silva",
-  "loja": "São Paulo Centro"
+  "nome": "Maria da Silva"
 }
 ```
 
 ### Regras de segurança (Row Level Security)
 
-No Supabase, configura policies em SQL:
+Helper function que resolve o `empresa_id` do usuário logado:
 
 ```sql
--- Todos leem estoque
-CREATE POLICY "Todos leem estoque" ON estoque
-  FOR SELECT USING (true);
-
--- Vendedoras editam (decrementam)
-CREATE POLICY "Vendedoras vendem" ON estoque
-  FOR UPDATE USING (auth.jwt() ->> 'role' IN ('vendedora', 'gerente', 'admin'));
-
--- Só admin altera preços
-CREATE POLICY "Admin mexe preços" ON produtos
-  FOR UPDATE USING (auth.jwt() ->> 'role' = 'admin');
+CREATE OR REPLACE FUNCTION get_empresa_id()
+RETURNS uuid AS $$
+  SELECT (auth.jwt() -> 'user_metadata' ->> 'empresa_id')::uuid;
+$$ LANGUAGE sql STABLE;
 ```
 
-Sem código no app. **Segurança aplicada direto no banco.**
+Policies em todas as tabelas:
+
+```sql
+-- Isolamento total por empresa (leitura)
+CREATE POLICY "empresa lê seus dados" ON produtos
+  FOR SELECT USING (empresa_id = get_empresa_id());
+
+CREATE POLICY "empresa lê seus dados" ON variantes
+  FOR SELECT USING (empresa_id = get_empresa_id());
+
+CREATE POLICY "empresa lê seus dados" ON estoque
+  FOR SELECT USING (empresa_id = get_empresa_id());
+
+-- Permissões por role dentro da empresa
+CREATE POLICY "vendedoras vendem" ON estoque
+  FOR UPDATE USING (
+    empresa_id = get_empresa_id()
+    AND auth.jwt() ->> 'role' IN ('vendedora', 'gerente', 'admin')
+  );
+
+CREATE POLICY "admin mexe preços" ON produtos
+  FOR UPDATE USING (
+    empresa_id = get_empresa_id()
+    AND auth.jwt() ->> 'role' = 'admin'
+  );
+```
+
+Sem código no app. **Segurança e isolamento aplicados direto no banco.**
 
 ---
 
@@ -318,9 +358,11 @@ A sincronização seria um Edge Function do Supabase que lê o Google Sheets CSV
 
 ### Fase 1 — Setup Supabase (1 dia)
 - Criar projeto Supabase
-- Criar tabelas (schema acima)
-- Configurar Auth
-- Configurar Row Level Security
+- Criar tabela `empresas` + inserir registro "Sonho dos Pés"
+- Criar tabelas `produtos`, `variantes`, `estoque`, `log_mudancas` com `empresa_id` em todas
+- Criar helper function `get_empresa_id()`
+- Configurar Auth (magic link ou email+senha)
+- Configurar Row Level Security com isolamento por empresa
 - Importar CSV atual via interface Supabase
 
 ### Fase 2 — Camada de dados no app (1-2 dias)
@@ -419,8 +461,10 @@ Itens que precisam de decisão **antes** de começar a Fase 1:
 
 ### 2. Uma loja ou várias?
 - Se forem várias, cada estoque é separado
-- Modelo de dados muda: `estoque` ganha coluna `loja_id`
+- Modelo de dados: `estoque` ganha coluna `loja_id` (além do `empresa_id` já previsto)
 - Vendedora só vê estoque da sua loja
+- **Multi-tenant (múltiplas empresas):** a fundação já está no schema (`empresa_id` em todas as
+  tabelas + RLS). A UI de gerenciamento de tenants será construída só quando surgir o segundo cliente.
 
 ### 3. Integração com caixa existente?
 - A loja tem sistema de PDV que registra vendas?

@@ -1,0 +1,192 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding-bottom: var(--spacing-xl);
+}
+
+.section + .section {
+  border-top: 1px solid var(--color-primary-whisper);
+  padding-top: var(--spacing-xl);
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+}
+
+.rowFull {
+  grid-template-columns: 1fr;
+}
+
+/* Cor card */
+.corCard {
+  background: var(--color-surface-warm);
+  border: 1px solid var(--color-primary-whisper);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.corHeader {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+}
+
+.corHeaderFields {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.corLabel {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.removeCorBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease);
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.removeCorBtn:hover {
+  background: rgba(181, 87, 74, 0.1);
+  color: var(--color-danger);
+  border-color: rgba(181, 87, 74, 0.2);
+}
+
+/* Tamanhos grid */
+.tamanhosLabel {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.tamanhosGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.tamanhoCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.tamanhoKey {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-soft);
+  letter-spacing: 0.05em;
+}
+
+.tamanhoInput {
+  width: 44px;
+  height: 36px;
+  text-align: center;
+  border: 1px solid var(--color-primary-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-body);
+  transition: border-color var(--duration-fast) var(--ease);
+  -moz-appearance: textfield;
+}
+
+.tamanhoInput::-webkit-outer-spin-button,
+.tamanhoInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.tamanhoInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.tamanhoInput.hasValue {
+  border-color: var(--color-primary);
+  background: var(--color-primary-whisper);
+  color: var(--color-primary-deep);
+}
+
+.addCorBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px dashed var(--color-primary-soft);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-primary-deep);
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease);
+}
+
+.addCorBtn:hover {
+  background: var(--color-primary-whisper);
+  border-color: var(--color-primary);
+}
+
+/* Inline text input usado nas cores */
+.inlineInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--spacing-md);
+  border: 1px solid var(--color-primary-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+  font-family: var(--font-body);
+  transition: border-color var(--duration-fast) var(--ease);
+}
+
+.inlineInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.errorText {
+  font-size: 12px;
+  color: var(--color-danger);
+  margin-top: -4px;
+}

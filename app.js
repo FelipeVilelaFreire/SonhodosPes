@@ -161,7 +161,9 @@
             startIdx = 0;
         }
 
-        const headers = rawHeaders.map(h => h.toLowerCase());
+        const headers = rawHeaders.map(h =>
+            h.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+        );
 
         const sizeColumnIndices = [];
         rawHeaders.forEach((h, idx) => {
@@ -207,8 +209,9 @@
                     categoria: col(values, 'subgrupo_produto', 'subgrupo', 'categoria'),
                     grupo: col(values, 'grupo_produto', 'grupo'),
                     referencia: col(values, 'refer_fabricante', 'referencia', 'ref'),
-                    localizacao: col(values, 'localizacao', 'local', 'endereco'),
-                    preco: parseFloat(String(col(values, 'preco_venda', 'preco', 'valor') || '0').replace(',', '.')) || 0,
+                    corredor: col(values, 'corredor', 'aisle') || undefined,
+                    prateleira: col(values, 'prateleira', 'shelf') || undefined,
+                    preco: parseFloat(String(col(values, 'preco', 'preco_venda', 'valor') || '0').replace(',', '.')) || 0,
                     cores: [],
                     _search: '',
                 });

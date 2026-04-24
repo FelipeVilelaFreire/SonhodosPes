@@ -9,8 +9,9 @@ import styles from './AppShell.module.css';
 
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Dashboard',
+  '/estoque': 'Tabela',
   '/consulta': 'Consulta',
-  '/estoque': 'Controle de Estoque',
+  '/catalogo': 'Catálogo',
   '/historico': 'Histórico',
   '/configuracoes': 'Configurações',
 };

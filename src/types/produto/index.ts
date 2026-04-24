@@ -27,6 +27,9 @@ export interface Produto {
   grupo: string;
   referencia: string;
   preco: number;
+  colecao?: string;
+  corredor?: string;
+  prateleira?: string;
   cores: Cor[];
   searchIndex: string;
 }

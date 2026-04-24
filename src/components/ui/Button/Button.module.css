@@ -105,6 +105,12 @@
   width: 100%;
 }
 
+.content {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .loading .content {
   opacity: 0;
 }

@@ -13,7 +13,10 @@ const COLUMN_ALIASES = {
   categoria: ['subgrupo_produto', 'subgrupo', 'categoria'],
   grupo: ['grupo_produto', 'grupo'],
   referencia: ['refer_fabricante', 'referencia', 'ref'],
-  preco: ['preco_venda', 'preco', 'valor'],
+  preco: ['preco', 'preco_venda', 'valor'],
+  colecao: ['colecao', 'coleção', 'collection'],
+  corredor: ['corredor', 'aisle', 'local'],
+  prateleira: ['prateleira', 'shelf'],
 } as const;
 
 type CSVRow = Record<string, string>;
@@ -65,7 +68,9 @@ export function parseErpCsv(text: string): Produto[] {
 
   const delimiter = detectDelimiter(lines[0]);
   const rawHeaders = parseLine(lines[0], delimiter).map(h => h.trim());
-  const headersLower = rawHeaders.map(h => h.toLowerCase());
+  const headersLower = rawHeaders.map(h =>
+    h.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  );
 
   const sizeColumns: Array<{ label: string; idx: number }> = [];
   rawHeaders.forEach((h, idx) => {
@@ -101,6 +106,9 @@ export function parseErpCsv(text: string): Produto[] {
     });
 
     if (!produtosByCode.has(codigo)) {
+      const colecao = findColumn(row, COLUMN_ALIASES.colecao) || undefined;
+      const corredor = findColumn(row, COLUMN_ALIASES.corredor) || undefined;
+      const prateleira = findColumn(row, COLUMN_ALIASES.prateleira) || undefined;
       produtosByCode.set(codigo, {
         codigo,
         modelo: findColumn(row, COLUMN_ALIASES.modelo),
@@ -108,6 +116,9 @@ export function parseErpCsv(text: string): Produto[] {
         grupo: findColumn(row, COLUMN_ALIASES.grupo),
         referencia: findColumn(row, COLUMN_ALIASES.referencia),
         preco: parseCurrency(findColumn(row, COLUMN_ALIASES.preco)),
+        ...(colecao && { colecao }),
+        ...(corredor && { corredor }),
+        ...(prateleira && { prateleira }),
         cores: [],
         searchIndex: '',
       });

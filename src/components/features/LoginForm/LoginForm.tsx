@@ -108,16 +108,9 @@ export default function LoginForm() {
                 Vendedora
               </button>
             </div>
-            <p className={styles.demoHint}>
-              Modo demo ativo — Supabase não configurado.<br />
-              Use os botões acima para testar cada role.
-            </p>
           </div>
         )}
 
-        <p className={styles.footer}>
-          Sonho dos Pés — Gestão v0.2.0
-        </p>
       </div>
     </div>
   );

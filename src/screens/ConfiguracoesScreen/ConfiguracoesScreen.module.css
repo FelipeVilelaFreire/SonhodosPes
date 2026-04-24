@@ -1,8 +1,16 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
-  max-width: 720px;
+  gap: var(--spacing-2xl);
+  padding-block: var(--spacing-xl);
+}
+
+@media (min-width: 768px) {
+  .wrapper { padding-block: var(--spacing-2xl); }
+}
+
+@media (min-width: 1024px) {
+  .wrapper { padding-block: var(--spacing-3xl); }
 }
 
 .tabs {
@@ -14,7 +22,7 @@
 }
 
 .tab {
-  padding: var(--spacing-md) var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-2xl);
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
@@ -38,30 +46,30 @@
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-primary-whisper);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-3xl);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-2xl);
 }
 
 .cardTitle {
   font-family: var(--font-display);
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
 }
 
 .cardSub {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-soft);
-  margin-top: calc(var(--spacing-md) * -1);
+  margin-top: calc(var(--spacing-sm) * -1);
 }
 
 .row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--spacing-md);
+  gap: var(--spacing-xl);
 }
 
 @media (min-width: 640px) {
@@ -71,15 +79,15 @@
 .infoBlock {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl);
   background: var(--color-surface-warm);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-primary-whisper);
 }
 
 .infoLabel {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -87,7 +95,7 @@
 }
 
 .infoValue {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
 }
@@ -99,34 +107,39 @@
 }
 
 .userTable th {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-soft);
   text-align: left;
-  padding: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
 }
 
 .userTable td {
-  padding: var(--spacing-md) var(--spacing-sm);
+  padding: var(--spacing-lg);
   border-bottom: 1px solid var(--color-primary-whisper);
-  font-size: 13px;
+  font-size: 14px;
   vertical-align: middle;
+}
+
+.userTable tr:last-child td {
+  border-bottom: none;
 }
 
 .actions {
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
+  padding-top: var(--spacing-md);
 }
 
 .info {
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   background: var(--color-primary-whisper);
   color: var(--color-primary-deep);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  line-height: 1.5;
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .info strong {
