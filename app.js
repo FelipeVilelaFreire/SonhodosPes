@@ -82,10 +82,12 @@
                 req.onsuccess = () => { this._db = req.result; resolve(this._db); };
                 req.onupgradeneeded = (e) => {
                     const database = e.target.result;
-                    if (database.objectStoreNames.contains(STORE_PRODUTOS)) database.deleteObjectStore(STORE_PRODUTOS);
-                    if (database.objectStoreNames.contains(STORE_META)) database.deleteObjectStore(STORE_META);
-                    database.createObjectStore(STORE_PRODUTOS, { keyPath: 'codigo' });
-                    database.createObjectStore(STORE_META, { keyPath: 'key' });
+                    if (!database.objectStoreNames.contains(STORE_PRODUTOS)) {
+                        database.createObjectStore(STORE_PRODUTOS, { keyPath: 'codigo' });
+                    }
+                    if (!database.objectStoreNames.contains(STORE_META)) {
+                        database.createObjectStore(STORE_META, { keyPath: 'key' });
+                    }
                 };
             });
         },
@@ -1167,8 +1169,16 @@
             }
         });
 
-        window.addEventListener('online', () => {
+        window.addEventListener('online', async () => {
             updateStatus(true);
+            if (!produtos.length) {
+                const url = localStorage.getItem(STORAGE_KEY_URL);
+                if (url) {
+                    try { await loadFromURL(url); showToast('Dados carregados', 'success'); }
+                    catch (_) { showToast('Conectado à internet', 'success'); }
+                    return;
+                }
+            }
             showToast('Conectado à internet', 'success');
         });
         window.addEventListener('offline', () => {
