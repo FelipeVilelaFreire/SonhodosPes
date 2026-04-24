@@ -212,7 +212,7 @@
                         const c = col(values, 'corredor');
                         const a = col(values, 'armario', 'armário');
                         const p = col(values, 'prateleira');
-                        const parts = [c && `Corredor ${c}`, a && `Armário ${a}`, p && `Prat. ${p}`].filter(Boolean);
+                        const parts = [c, a, p].filter(Boolean);
                         return parts.length ? parts.join(' · ') : col(values, 'localizacao', 'local', 'endereco');
                     })(),
                     preco: parseFloat(String(col(values, 'preco_venda', 'preco', 'preço', 'valor') || '0').replace(',', '.')) || 0,
@@ -421,8 +421,9 @@
         card.querySelector('.product-modelo').textContent = produto.modelo || 'Sem descrição';
 
         const locEl = card.querySelector('.product-localizacao');
-        if (locEl && produto.localizacao) {
-            locEl.textContent = produto.localizacao;
+        const locTextEl = card.querySelector('.product-localizacao-text');
+        if (locEl && locTextEl && produto.localizacao) {
+            locTextEl.textContent = produto.localizacao;
             locEl.hidden = false;
         }
 
