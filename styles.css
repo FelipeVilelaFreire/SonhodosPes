@@ -716,6 +716,10 @@ svg {
     word-wrap: break-word;
 }
 
+.product-localizacao-wrap {
+    margin: -10px 0 18px;
+}
+
 .product-localizacao {
     display: flex;
     align-items: center;
@@ -725,12 +729,105 @@ svg {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--color-primary-deep);
-    margin: -10px 0 18px;
+    margin: 0;
 }
 
 .product-localizacao svg {
     color: var(--color-primary-deep);
     flex-shrink: 0;
+}
+
+.loc-empty {
+    color: var(--color-text-muted, #aaa);
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.loc-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    color: var(--color-primary-deep);
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+    margin-left: 2px;
+}
+
+.product-localizacao:hover .loc-edit-btn,
+.product-localizacao-wrap:hover .loc-edit-btn {
+    opacity: 1;
+}
+
+.loc-edit-btn:hover {
+    background: var(--color-primary-whisper, #e8f0fb);
+}
+
+.loc-edit-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.loc-input {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 8px;
+    font-size: 13px;
+    border: 1.5px solid var(--color-primary-soft, #b3c9e8);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--color-text-primary, #222);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.loc-input:focus {
+    border-color: var(--color-primary-deep);
+}
+
+.loc-sep {
+    font-size: 14px;
+    color: var(--color-text-muted, #aaa);
+    flex-shrink: 0;
+}
+
+.loc-save-btn,
+.loc-cancel-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.loc-save-btn {
+    background: var(--color-primary-deep, #2d5fa6);
+    color: #fff;
+}
+
+.loc-save-btn:hover {
+    background: var(--color-primary, #3a72c4);
+}
+
+.loc-cancel-btn {
+    background: var(--color-bg-surface, #f3f4f6);
+    color: var(--color-text-muted, #888);
+}
+
+.loc-cancel-btn:hover {
+    background: #e5e7eb;
 }
 
 .product-divider {
