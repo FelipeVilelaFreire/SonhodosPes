@@ -144,8 +144,13 @@
     };
 
     function parseCSV(text) {
+        console.log('[parseCSV] Iniciando parse do CSV. Tamanho do texto:', text.length);
+        console.log('[parseCSV] Primeiros 150 caracteres:', text.substring(0, 150));
         const lines = text.trim().split(/\r?\n/);
-        if (lines.length < 2) return [];
+        if (lines.length < 2) {
+            console.log('[parseCSV] Erro: Menos de 2 linhas encontradas no CSV.');
+            return [];
+        }
 
         let delimiter = ',';
         const commas = (lines[0].match(/,/g) || []).length;
@@ -421,12 +426,80 @@
 
         card.querySelector('.product-modelo').textContent = produto.modelo || 'Sem descrição';
 
-        const locEl = card.querySelector('.product-localizacao');
-        const locTextEl = card.querySelector('.product-localizacao-text');
-        if (locEl && locTextEl && produto.localizacao) {
-            locTextEl.textContent = produto.localizacao;
-            locEl.hidden = false;
+        // Localização — sempre visível, com edição inline
+        const locEl       = card.querySelector('.product-localizacao');
+        const locTextEl   = card.querySelector('.product-localizacao-text');
+        const locEditBtn  = card.querySelector('.loc-edit-btn');
+        const locEditForm = card.querySelector('.loc-edit-form');
+        const locCorredorInput   = card.querySelector('.loc-corredor');
+        const locPrateleiraInput = card.querySelector('.loc-prateleira');
+        const locSaveBtn   = card.querySelector('.loc-save-btn');
+        const locCancelBtn = card.querySelector('.loc-cancel-btn');
+
+        function renderLocText(loc) {
+            if (loc) {
+                locTextEl.textContent = loc;
+                locTextEl.classList.remove('loc-empty');
+            } else {
+                locTextEl.textContent = 'Definir localização';
+                locTextEl.classList.add('loc-empty');
+            }
         }
+
+        renderLocText(produto.localizacao);
+
+        locEditBtn.addEventListener('click', () => {
+            const parts = (produto.localizacao || '').split('·').map(s => s.trim());
+            locCorredorInput.value   = parts[0] || '';
+            locPrateleiraInput.value = parts[1] || '';
+            locEl.hidden      = true;
+            locEditForm.hidden = false;
+            locCorredorInput.focus();
+        });
+
+        function cancelEdit() {
+            locEl.hidden       = false;
+            locEditForm.hidden = true;
+        }
+
+        async function saveLocation() {
+            const corredor   = locCorredorInput.value.trim();
+            const prateleira = locPrateleiraInput.value.trim();
+            locSaveBtn.disabled = true;
+            try {
+                const res = await fetch('/api/locations', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'X-App-Token': APP_TOKEN },
+                    body: JSON.stringify({ codigo: produto.codigo, corredor, prateleira }),
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error || 'Falha ao salvar');
+                }
+                const newLoc = [corredor, prateleira].filter(Boolean).join(' · ');
+                produto.localizacao = newLoc;
+                const stored = produtosByCode.get(produto.codigo);
+                if (stored) stored.localizacao = newLoc;
+                renderLocText(newLoc);
+                cancelEdit();
+                showToast('Localização salva ✓', 'success');
+            } catch (e) {
+                showToast(e.message || 'Erro ao salvar localização', 'error');
+            } finally {
+                locSaveBtn.disabled = false;
+            }
+        }
+
+        locSaveBtn.addEventListener('click', saveLocation);
+        locCancelBtn.addEventListener('click', cancelEdit);
+        locCorredorInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter')  { e.preventDefault(); locPrateleiraInput.focus(); }
+            if (e.key === 'Escape') cancelEdit();
+        });
+        locPrateleiraInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter')  { e.preventDefault(); saveLocation(); }
+            if (e.key === 'Escape') cancelEdit();
+        });
 
         card.querySelector('.price-value').textContent = formatPrice(produto.preco);
 
@@ -771,10 +844,13 @@
 
     async function loadFromLocalCSV() {
         try {
+            console.log('[loadFromLocalCSV] Tentando carregar:', LOCAL_CSV_PATH);
             const response = await fetch(LOCAL_CSV_PATH);
             if (!response.ok) throw new Error('HTTP ' + response.status);
             const text = await response.text();
+            console.log('[loadFromLocalCSV] Texto lido com sucesso. Tamanho:', text.length);
             const list = parseCSV(text);
+            console.log('[loadFromLocalCSV] Produtos parseados:', list.length);
             if (list.length) {
                 await db.replaceProdutos(list);
                 await db.setMeta('lastSync', Date.now());
@@ -789,11 +865,17 @@
     }
 
     async function loadFromURL(url) {
+        console.log('[loadFromURL] Iniciando download de:', url);
         const response = await fetch(url, { cache: 'no-cache', headers: { 'X-App-Token': APP_TOKEN } });
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const text = await response.text();
+        console.log('[loadFromURL] Texto lido com sucesso. Tamanho:', text.length);
         const list = parseCSV(text);
-        if (!list.length) throw new Error('CSV vazio');
+        console.log('[loadFromURL] Produtos parseados:', list.length);
+        if (!list.length) {
+            console.error('[loadFromURL] CSV vazio ou não foi possível parsear produtos.');
+            throw new Error('CSV vazio');
+        }
 
         await db.replaceProdutos(list);
         await db.setMeta('lastSync', Date.now());
@@ -1210,6 +1292,7 @@
         } catch (_) { /* config.json indisponível */ }
 
         const savedUrl = sharedUrl || localStorage.getItem(STORAGE_KEY_URL);
+        console.log('[init] URL a ser usada para carregar CSV:', savedUrl);
         if (sharedUrl) {
             localStorage.setItem(STORAGE_KEY_URL, sharedUrl);
             if (el.csvUrl) el.csvUrl.value = sharedUrl;
