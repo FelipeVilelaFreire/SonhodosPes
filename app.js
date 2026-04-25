@@ -813,13 +813,22 @@
         const list = parseCSV(text);
         if (!list.length) throw new Error('CSV vazio');
 
-        await db.replaceProdutos(list);
-        await db.setMeta('lastSync', Date.now());
-        await db.setMeta('source', 'remote');
-        await db.setMeta('url', url);
+        console.log('[loadFromURL] Iniciando salvamento no banco de dados local (IndexedDB)...');
+        try {
+            await db.replaceProdutos(list);
+            await db.setMeta('lastSync', Date.now());
+            await db.setMeta('source', 'remote');
+            await db.setMeta('url', url);
+            console.log('[loadFromURL] Dados salvos no IndexedDB com sucesso!');
+        } catch (dbErr) {
+            console.error('[loadFromURL] ERRO FATAL ao tentar salvar no IndexedDB:', dbErr);
+            throw dbErr;
+        }
+
         produtos = list;
         produtosByCode = buildIndex(list);
         await updateSyncInfo();
+        console.log('[loadFromURL] Variáveis atualizadas com sucesso! Total no footer agora é:', produtos.length);
         return list.length;
     }
 
@@ -1238,13 +1247,16 @@
         if (navigator.onLine) {
             try {
                 if (savedUrl) {
+                    console.log('[init] Chamando loadFromURL...');
                     await loadFromURL(savedUrl);
                     loaded = true;
                 } else {
+                    console.log('[init] Chamando loadFromLocalCSV...');
                     loaded = await loadFromLocalCSV();
                 }
             } catch (e) {
-                console.warn('Falha no carregamento remoto, usando cache local:', e.message);
+                console.error('[init] ERRO CAPTURADO DURANTE CARREGAMENTO:', e);
+                console.warn('Falha no carregamento remoto, tentando usar cache local...', e.message);
             }
         }
 
