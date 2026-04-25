@@ -166,6 +166,8 @@
         }
 
         const headers = rawHeaders.map(h => h.toLowerCase());
+        console.log('[parseCSV] Delimitador identificado:', delimiter);
+        console.log('[parseCSV] Cabeçalhos (primeiros 5):', headers.slice(0, 5));
 
         const sizeColumnIndices = [];
         rawHeaders.forEach((h, idx) => {
@@ -184,16 +186,23 @@
         }
 
         const byCode = new Map();
+        let countParsed = 0;
+        let reasons = { emptyLine: 0, smallLine: 0, noCode: 0 };
 
         for (let i = startIdx; i < lines.length; i++) {
             const line = lines[i].trim();
-            if (!line) continue;
+            if (!line) { reasons.emptyLine++; continue; }
 
             const values = parseCSVLine(line, delimiter);
-            if (values.length < 2) continue;
+            if (values.length < 2) { reasons.smallLine++; continue; }
 
             const produtoCodRaw = col(values, 'produto', 'codigo', 'cod', 'sku');
-            if (!produtoCodRaw) continue;
+            if (!produtoCodRaw) { 
+                if (reasons.noCode < 3) console.log(`[parseCSV debug] Linha ${i} ignorada. values[0]=${values[0]}. values.length=${values.length}`);
+                reasons.noCode++; 
+                continue; 
+            }
+            countParsed++;
 
             const codigo = String(produtoCodRaw).padStart(5, '0');
             const corNome = col(values, 'desc_cor_produto', 'cor', 'desc_cor') || 'ÚNICA';
@@ -229,6 +238,10 @@
         }
 
         const list = Array.from(byCode.values());
+        console.log(`[parseCSV] Linhas válidas lidas: ${countParsed}`);
+        console.log(`[parseCSV] Produtos únicos gerados: ${list.length}`);
+        console.log(`[parseCSV] Falhas ao ler linhas:`, reasons);
+        
         list.forEach(p => {
             p._search = buildSearchString(p);
         });
