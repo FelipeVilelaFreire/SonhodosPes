@@ -33,7 +33,7 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: 'Não autorizado' });
     }
 
-    const { codigo, corredor, prateleira } = req.body || {};
+    const { codigo, corredor, armario, prateleira } = req.body || {};
     if (!codigo) return res.status(400).json({ error: 'codigo obrigatório' });
 
     if (!SPREADSHEET_ID) {
@@ -57,15 +57,16 @@ export default async function handler(req, res) {
         const headers = rows[0].map(h => String(h).toLowerCase().trim().normalize('NFD').replace(/[̀-ͯ]/g, ''));
 
         // Encontra índices das colunas necessárias
-        const produtoIdx   = headers.findIndex(h => ['produto', 'codigo', 'cod', 'sku'].includes(h));
-        const corredorIdx  = headers.findIndex(h => h === 'corredor');
+        const produtoIdx    = headers.findIndex(h => ['produto', 'codigo', 'cod', 'sku'].includes(h));
+        const corredorIdx   = headers.findIndex(h => h === 'corredor');
+        const armarioIdx    = headers.findIndex(h => ['armario', 'armário'].includes(h));
         const prateleiraIdx = headers.findIndex(h => h === 'prateleira');
 
         if (produtoIdx === -1) {
             return res.status(400).json({ error: 'Coluna PRODUTO não encontrada na planilha' });
         }
-        if (corredorIdx === -1 && prateleiraIdx === -1) {
-            return res.status(400).json({ error: 'Nenhuma coluna CORREDOR ou PRATELEIRA encontrada. Adicione essas colunas à planilha.' });
+        if (corredorIdx === -1 && armarioIdx === -1 && prateleiraIdx === -1) {
+            return res.status(400).json({ error: 'Nenhuma coluna de localização encontrada na planilha.' });
         }
 
         const paddedCodigo = String(codigo).trim().padStart(5, '0');
@@ -83,6 +84,12 @@ export default async function handler(req, res) {
                 updates.push({
                     range: `${SHEET_NAME}!${colLetter(corredorIdx)}${sheetRow}`,
                     values: [[corredor ?? '']],
+                });
+            }
+            if (armarioIdx !== -1) {
+                updates.push({
+                    range: `${SHEET_NAME}!${colLetter(armarioIdx)}${sheetRow}`,
+                    values: [[armario ?? '']],
                 });
             }
             if (prateleiraIdx !== -1) {
@@ -106,7 +113,8 @@ export default async function handler(req, res) {
             },
         });
 
-        const rowsUpdated = updates.length / ((corredorIdx !== -1 ? 1 : 0) + (prateleiraIdx !== -1 ? 1 : 0));
+        const colsUpdated = (corredorIdx !== -1 ? 1 : 0) + (armarioIdx !== -1 ? 1 : 0) + (prateleiraIdx !== -1 ? 1 : 0);
+        const rowsUpdated = colsUpdated ? updates.length / colsUpdated : 0;
         return res.json({ ok: true, rowsUpdated });
 
     } catch (e) {

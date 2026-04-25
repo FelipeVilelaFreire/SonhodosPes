@@ -439,6 +439,7 @@
         const locEditBtn  = card.querySelector('.loc-edit-btn');
         const locEditForm = card.querySelector('.loc-edit-form');
         const locCorredorInput   = card.querySelector('.loc-corredor');
+        const locArmarioInput    = card.querySelector('.loc-armario');
         const locPrateleiraInput = card.querySelector('.loc-prateleira');
         const locSaveBtn   = card.querySelector('.loc-save-btn');
         const locCancelBtn = card.querySelector('.loc-cancel-btn');
@@ -458,7 +459,8 @@
         locEditBtn.addEventListener('click', () => {
             const parts = (produto.localizacao || '').split('·').map(s => s.trim());
             locCorredorInput.value   = parts[0] || '';
-            locPrateleiraInput.value = parts[1] || '';
+            locArmarioInput.value    = parts[1] || '';
+            locPrateleiraInput.value = parts[2] || '';
             locEl.hidden      = true;
             locEditForm.hidden = false;
             locCorredorInput.focus();
@@ -471,19 +473,20 @@
 
         async function saveLocation() {
             const corredor   = locCorredorInput.value.trim();
+            const armario    = locArmarioInput.value.trim();
             const prateleira = locPrateleiraInput.value.trim();
             locSaveBtn.disabled = true;
             try {
                 const res = await fetch('/api/locations', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'X-App-Token': APP_TOKEN },
-                    body: JSON.stringify({ codigo: produto.codigo, corredor, prateleira }),
+                    body: JSON.stringify({ codigo: produto.codigo, corredor, armario, prateleira }),
                 });
                 if (!res.ok) {
                     const err = await res.json().catch(() => ({}));
                     throw new Error(err.error || 'Falha ao salvar');
                 }
-                const newLoc = [corredor, prateleira].filter(Boolean).join(' · ');
+                const newLoc = [corredor, armario, prateleira].filter(Boolean).join(' · ');
                 produto.localizacao = newLoc;
                 const stored = produtosByCode.get(produto.codigo);
                 if (stored) stored.localizacao = newLoc;
@@ -500,6 +503,10 @@
         locSaveBtn.addEventListener('click', saveLocation);
         locCancelBtn.addEventListener('click', cancelEdit);
         locCorredorInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter')  { e.preventDefault(); locArmarioInput.focus(); }
+            if (e.key === 'Escape') cancelEdit();
+        });
+        locArmarioInput.addEventListener('keydown', e => {
             if (e.key === 'Enter')  { e.preventDefault(); locPrateleiraInput.focus(); }
             if (e.key === 'Escape') cancelEdit();
         });
