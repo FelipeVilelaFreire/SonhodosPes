@@ -144,6 +144,8 @@
     };
 
     function parseCSV(text) {
+        console.log('[parseCSV] Iniciando parse do CSV. Tamanho:', text.length);
+        console.log('[parseCSV] Primeiras letras:', text.substring(0, 100));
         const lines = text.trim().split(/\r?\n/);
         if (lines.length < 2) return [];
 
@@ -789,9 +791,12 @@
     }
 
     async function loadFromURL(url) {
+        console.log('[loadFromURL] Iniciando download da API ou URL:', url);
         const response = await fetch(url, { cache: 'no-cache', headers: { 'X-App-Token': APP_TOKEN } });
+        console.log('[loadFromURL] Resposta recebida. Status:', response.status);
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const text = await response.text();
+        console.log('[loadFromURL] Texto recebido, tamanho:', text.length);
         const list = parseCSV(text);
         if (!list.length) throw new Error('CSV vazio');
 
