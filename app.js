@@ -155,11 +155,8 @@
     };
 
     function parseCSV(text) {
-        console.log('[parseCSV] Iniciando parse do CSV. Tamanho do texto:', text.length);
-        console.log('[parseCSV] Primeiros 150 caracteres:', text.substring(0, 150));
         const lines = text.trim().split(/\r?\n/);
         if (lines.length < 2) {
-            console.log('[parseCSV] Erro: Menos de 2 linhas encontradas no CSV.');
             return [];
         }
 
@@ -854,13 +851,10 @@
 
     async function loadFromLocalCSV() {
         try {
-            console.log('[loadFromLocalCSV] Tentando carregar:', LOCAL_CSV_PATH);
             const response = await fetch(LOCAL_CSV_PATH);
             if (!response.ok) throw new Error('HTTP ' + response.status);
             const text = await response.text();
-            console.log('[loadFromLocalCSV] Texto lido com sucesso. Tamanho:', text.length);
             const list = parseCSV(text);
-            console.log('[loadFromLocalCSV] Produtos parseados:', list.length);
             if (list.length) {
                 await db.replaceProdutos(list);
                 await db.setMeta('lastSync', Date.now());
@@ -875,17 +869,11 @@
     }
 
     async function loadFromURL(url) {
-        console.log('[loadFromURL] Iniciando download de:', url);
         const response = await fetch(url, { cache: 'no-cache', headers: { 'X-App-Token': APP_TOKEN } });
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const text = await response.text();
-        console.log('[loadFromURL] Texto lido com sucesso. Tamanho:', text.length);
         const list = parseCSV(text);
-        console.log('[loadFromURL] Produtos parseados:', list.length);
-        if (!list.length) {
-            console.error('[loadFromURL] CSV vazio ou não foi possível parsear produtos.');
-            throw new Error('CSV vazio');
-        }
+        if (!list.length) throw new Error('CSV vazio');
 
         await db.replaceProdutos(list);
         await db.setMeta('lastSync', Date.now());
@@ -1302,7 +1290,6 @@
         } catch (_) { /* config.json indisponível */ }
 
         const savedUrl = sharedUrl || localStorage.getItem(STORAGE_KEY_URL);
-        console.log('[init] URL a ser usada para carregar CSV:', savedUrl);
         if (sharedUrl) {
             localStorage.setItem(STORAGE_KEY_URL, sharedUrl);
             if (el.csvUrl) el.csvUrl.value = sharedUrl;
