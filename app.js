@@ -80,7 +80,18 @@
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open(DB_NAME, DB_VERSION);
                 req.onerror = () => reject(req.error);
-                req.onsuccess = () => { this._db = req.result; resolve(this._db); };
+                req.onsuccess = () => { 
+                    this._db = req.result; 
+                    
+                    // Permite que outras abas atualizem o banco sem travar
+                    this._db.onversionchange = () => {
+                        this._db.close();
+                        this._db = null;
+                        // Pode recarregar a página se quiser forçar a atualização: window.location.reload();
+                    };
+                    
+                    resolve(this._db); 
+                };
                 req.onupgradeneeded = (e) => {
                     const database = e.target.result;
                     if (!database.objectStoreNames.contains(STORE_PRODUTOS)) {
@@ -144,8 +155,6 @@
     };
 
     function parseCSV(text) {
-        console.log('[parseCSV] Iniciando parse do CSV. Tamanho:', text.length);
-        console.log('[parseCSV] Primeiras letras:', text.substring(0, 100));
         const lines = text.trim().split(/\r?\n/);
         if (lines.length < 2) return [];
 
@@ -166,8 +175,6 @@
         }
 
         const headers = rawHeaders.map(h => h.toLowerCase());
-        console.log('[parseCSV] Delimitador identificado:', delimiter);
-        console.log('[parseCSV] Cabeçalhos (primeiros 5):', headers.slice(0, 5));
 
         const sizeColumnIndices = [];
         rawHeaders.forEach((h, idx) => {
@@ -186,23 +193,15 @@
         }
 
         const byCode = new Map();
-        let countParsed = 0;
-        let reasons = { emptyLine: 0, smallLine: 0, noCode: 0 };
-
         for (let i = startIdx; i < lines.length; i++) {
             const line = lines[i].trim();
-            if (!line) { reasons.emptyLine++; continue; }
+            if (!line) continue;
 
             const values = parseCSVLine(line, delimiter);
-            if (values.length < 2) { reasons.smallLine++; continue; }
+            if (values.length < 2) continue;
 
             const produtoCodRaw = col(values, 'produto', 'codigo', 'cod', 'sku');
-            if (!produtoCodRaw) { 
-                if (reasons.noCode < 3) console.log(`[parseCSV debug] Linha ${i} ignorada. values[0]=${values[0]}. values.length=${values.length}`);
-                reasons.noCode++; 
-                continue; 
-            }
-            countParsed++;
+            if (!produtoCodRaw) continue;
 
             const codigo = String(produtoCodRaw).padStart(5, '0');
             const corNome = col(values, 'desc_cor_produto', 'cor', 'desc_cor') || 'ÚNICA';
@@ -238,10 +237,6 @@
         }
 
         const list = Array.from(byCode.values());
-        console.log(`[parseCSV] Linhas válidas lidas: ${countParsed}`);
-        console.log(`[parseCSV] Produtos únicos gerados: ${list.length}`);
-        console.log(`[parseCSV] Falhas ao ler linhas:`, reasons);
-        
         list.forEach(p => {
             p._search = buildSearchString(p);
         });
@@ -804,31 +799,19 @@
     }
 
     async function loadFromURL(url) {
-        console.log('[loadFromURL] Iniciando download da API ou URL:', url);
         const response = await fetch(url, { cache: 'no-cache', headers: { 'X-App-Token': APP_TOKEN } });
-        console.log('[loadFromURL] Resposta recebida. Status:', response.status);
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const text = await response.text();
-        console.log('[loadFromURL] Texto recebido, tamanho:', text.length);
         const list = parseCSV(text);
         if (!list.length) throw new Error('CSV vazio');
 
-        console.log('[loadFromURL] Iniciando salvamento no banco de dados local (IndexedDB)...');
-        try {
-            await db.replaceProdutos(list);
-            await db.setMeta('lastSync', Date.now());
-            await db.setMeta('source', 'remote');
-            await db.setMeta('url', url);
-            console.log('[loadFromURL] Dados salvos no IndexedDB com sucesso!');
-        } catch (dbErr) {
-            console.error('[loadFromURL] ERRO FATAL ao tentar salvar no IndexedDB:', dbErr);
-            throw dbErr;
-        }
-
+        await db.replaceProdutos(list);
+        await db.setMeta('lastSync', Date.now());
+        await db.setMeta('source', 'remote');
+        await db.setMeta('url', url);
         produtos = list;
         produtosByCode = buildIndex(list);
         await updateSyncInfo();
-        console.log('[loadFromURL] Variáveis atualizadas com sucesso! Total no footer agora é:', produtos.length);
         return list.length;
     }
 
@@ -1247,16 +1230,13 @@
         if (navigator.onLine) {
             try {
                 if (savedUrl) {
-                    console.log('[init] Chamando loadFromURL...');
                     await loadFromURL(savedUrl);
                     loaded = true;
                 } else {
-                    console.log('[init] Chamando loadFromLocalCSV...');
                     loaded = await loadFromLocalCSV();
                 }
             } catch (e) {
-                console.error('[init] ERRO CAPTURADO DURANTE CARREGAMENTO:', e);
-                console.warn('Falha no carregamento remoto, tentando usar cache local...', e.message);
+                console.warn('Falha no carregamento remoto, usando cache local:', e.message);
             }
         }
 
