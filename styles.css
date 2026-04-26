@@ -764,6 +764,10 @@ svg {
     background: var(--color-primary-whisper, #e8f0fb);
 }
 
+.loc-edit-form[hidden] {
+    display: none;
+}
+
 .loc-edit-form {
     display: flex;
     align-items: center;
