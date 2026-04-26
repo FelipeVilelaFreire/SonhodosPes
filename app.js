@@ -476,7 +476,6 @@
             const armario    = locArmarioInput.value.trim();
             const prateleira = locPrateleiraInput.value.trim();
             const payload = { codigo: produto.codigo, corredor, armario, prateleira };
-            console.log('[saveLocation] Enviando payload:', payload);
             locSaveBtn.disabled = true;
             try {
                 const res = await fetch('/api/locations', {
@@ -484,14 +483,11 @@
                     headers: { 'Content-Type': 'application/json', 'X-App-Token': APP_TOKEN },
                     body: JSON.stringify(payload),
                 });
-                console.log('[saveLocation] Status da resposta:', res.status);
                 if (!res.ok) {
                     const err = await res.json().catch(() => ({}));
-                    console.error('[saveLocation] Erro da API:', err);
                     throw new Error(err.error || 'Falha ao salvar');
                 }
-                const data = await res.json();
-                console.log('[saveLocation] Sucesso:', data);
+                await res.json();
                 const newLoc = [corredor, armario, prateleira].filter(Boolean).join(' · ');
                 produto.localizacao = newLoc;
                 const stored = produtosByCode.get(produto.codigo);
@@ -500,7 +496,6 @@
                 cancelEdit();
                 showToast('Localização salva ✓', 'success');
             } catch (e) {
-                console.error('[saveLocation] Exceção:', e);
                 showToast(e.message || 'Erro ao salvar localização', 'error');
             } finally {
                 locSaveBtn.disabled = false;
