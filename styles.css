@@ -754,17 +754,13 @@ svg {
     padding: 2px 4px;
     border-radius: 4px;
     color: var(--color-primary-deep);
-    opacity: 0;
+    opacity: 0.5;
     transition: opacity 0.15s, background 0.15s;
     margin-left: 2px;
 }
 
-.product-localizacao:hover .loc-edit-btn,
-.product-localizacao-wrap:hover .loc-edit-btn {
-    opacity: 1;
-}
-
 .loc-edit-btn:hover {
+    opacity: 1;
     background: var(--color-primary-whisper, #e8f0fb);
 }
 

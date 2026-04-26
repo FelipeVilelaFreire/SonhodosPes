@@ -5,7 +5,14 @@ const SHEET_NAME     = process.env.SHEET_NAME || 'Sheet1';
 const APP_TOKEN      = process.env.APP_TOKEN;
 
 function getSheets() {
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+    const raw = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+    if (!raw) throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY não configurada');
+    let credentials;
+    try {
+        credentials = JSON.parse(raw);
+    } catch (e) {
+        throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY JSON inválido: ' + e.message);
+    }
     const auth = new google.auth.GoogleAuth({
         credentials,
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
