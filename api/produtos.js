@@ -1,41 +1,59 @@
+import { google } from 'googleapis';
+
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
+const SHEET_NAME     = process.env.SHEET_NAME || 'Sheet1';
+const APP_TOKEN      = process.env.APP_TOKEN;
+
+function getSheets() {
+    const raw = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+    if (!raw) throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY não configurada');
+    const credentials = JSON.parse(raw);
+    const auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    });
+    return google.sheets({ version: 'v4', auth });
+}
+
+function toCSV(rows) {
+    return rows.map(row =>
+        row.map(cell => {
+            const s = String(cell ?? '');
+            return s.includes(',') || s.includes('"') || s.includes('\n')
+                ? `"${s.replace(/"/g, '""')}"`
+                : s;
+        }).join(',')
+    ).join('\n');
+}
+
 export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).end();
 
-    const token = process.env.APP_TOKEN;
-    if (token && req.headers['x-app-token'] !== token) {
+    if (APP_TOKEN && req.headers['x-app-token'] !== APP_TOKEN) {
         return res.status(401).json({ error: 'Não autorizado' });
     }
 
-    let csvUrl = process.env.URL_TABLE;
-    if (!csvUrl) return res.status(500).json({ error: 'URL_TABLE não configurada no ambiente' });
+    if (!SPREADSHEET_ID) {
+        return res.status(500).json({ error: 'SPREADSHEET_ID não configurado no ambiente' });
+    }
 
     try {
-        const u = new URL(csvUrl);
-        if (u.pathname.endsWith('/pubhtml') || u.searchParams.get('output') !== 'csv') {
-            u.pathname = u.pathname.replace(/\/pubhtml$/, '/pub');
-            u.search = '?output=csv';
-            csvUrl = u.toString();
-        }
-    } catch (_) { /* URL inválida — vai falhar no fetch abaixo */ }
+        const sheets = getSheets();
+        const { data } = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: SHEET_NAME,
+        });
 
-    try {
-        const upstream = await fetch(csvUrl, { cache: 'no-store' });
-        if (!upstream.ok) return res.status(502).json({ error: `Sheets retornou ${upstream.status}` });
-
-        const text = await upstream.text();
-
-        if (text.trimStart().startsWith('<')) {
-            return res.status(502).json({
-                error: 'Google Sheets retornou HTML em vez de CSV',
-                hint: 'Verifique se a planilha está publicada em Arquivo → Publicar na web → formato CSV',
-                url: csvUrl,
-            });
+        const rows = data.values;
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({ error: 'Planilha vazia' });
         }
 
+        const csv = toCSV(rows);
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Cache-Control', 'no-store');
-        res.status(200).send(text);
+        return res.status(200).send(csv);
     } catch (e) {
-        res.status(502).json({ error: 'Falha ao buscar planilha', detail: e.message });
+        return res.status(500).json({ error: 'Erro ao ler planilha', detail: e.message });
     }
 }
