@@ -1334,12 +1334,12 @@
             clearStack();
         });
 
-        el.settingsBtn.addEventListener('click', openSettings);
-        el.modalClose.addEventListener('click', closeSettings);
-        el.modalBackdrop.addEventListener('click', closeSettings);
-
-        el.btnUpdate.addEventListener('click', handleUpdate);
-        el.btnSaveUrl?.addEventListener('click', handleSaveUrl);
+        // settings desativado
+        // el.settingsBtn.addEventListener('click', openSettings);
+        // el.modalClose.addEventListener('click', closeSettings);
+        // el.modalBackdrop.addEventListener('click', closeSettings);
+        // el.btnUpdate.addEventListener('click', handleUpdate);
+        // el.btnSaveUrl?.addEventListener('click', handleSaveUrl);
 
         if (el.btnClear) el.btnClear.addEventListener('click', handleClear);
         if (el.btnSetPin) el.btnSetPin.addEventListener('click', handleSetPin);
@@ -1402,7 +1402,7 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (!el.pinModal.hidden) hidePinModal();
-                else if (!el.settingsModal.hidden) closeSettings();
+                // else if (!el.settingsModal.hidden) closeSettings();
             }
         });
     }
