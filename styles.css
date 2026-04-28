@@ -694,34 +694,6 @@ svg {
     font-style: italic;
 }
 
-.stock-un-block {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    background: var(--color-surface-warm);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-primary-whisper);
-}
-
-.stock-un-label {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-}
-
-.stock-un-value {
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 600;
-    line-height: 1;
-}
-
-.stock-un-value.disponivel { color: var(--color-success, #2e7d32); }
-.stock-un-value.baixo      { color: var(--color-warning, #e65100); }
-.stock-un-value.esgotado   { color: var(--color-text-muted); }
 
 @media (max-width: 380px) {
     .stock-grid thead th {

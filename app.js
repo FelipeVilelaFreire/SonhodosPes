@@ -563,37 +563,27 @@
 
         const isPar = !produto.unidade || produto.unidade.toUpperCase() === 'PAR';
 
-        if (!isPar) {
-            // UN: exibe só quantidade total
-            let totalQtd = 0;
-            (produto.cores || []).forEach(c => { totalQtd += (c.tamanhos?.QTD || 0); });
-            const qtdEl = document.createElement('div');
-            qtdEl.className = 'stock-un-block';
-            const qtdNum = totalQtd > 0
-                ? `<span class="stock-un-value ${totalQtd <= 2 ? 'baixo' : 'disponivel'}">${totalQtd}</span>`
-                : `<span class="stock-un-value esgotado">0</span>`;
-            qtdEl.innerHTML = `<span class="stock-un-label">Qtd. em estoque</span>${qtdNum}`;
-            gridWrapper.appendChild(qtdEl);
-        } else {
-        const allSizes = collectAllSizes(produto, true).filter(s => s !== 'QTD');
+        const columns = isPar
+            ? collectAllSizes(produto, true).filter(s => s !== 'QTD')
+            : ['QTD'];
+
         const cores = (produto.cores || []).filter(c =>
-            Object.entries(c.tamanhos || {}).some(([s, q]) => s !== 'QTD' && q && q > 0)
+            columns.some(s => c.tamanhos?.[s] > 0)
         );
 
-        if (!cores.length || !allSizes.length) {
-            gridWrapper.innerHTML = '<p class="grid-empty">Sem estoque em nenhum tamanho</p>';
+        if (!cores.length || !columns.length) {
+            gridWrapper.innerHTML = '<p class="grid-empty">Sem estoque</p>';
         } else {
             const table = document.createElement('table');
             table.className = 'stock-grid';
 
             const thead = document.createElement('thead');
             const headRow = document.createElement('tr');
-
             const corner = document.createElement('th');
             corner.className = 'stock-corner';
-            corner.textContent = 'COR / TAM';
+            corner.textContent = isPar ? 'COR / TAM' : 'COR';
             headRow.appendChild(corner);
-            allSizes.forEach(s => {
+            columns.forEach(s => {
                 const th = document.createElement('th');
                 th.textContent = s;
                 headRow.appendChild(th);
@@ -609,10 +599,10 @@
                 label.textContent = cor.nome;
                 row.appendChild(label);
 
-                allSizes.forEach(s => {
+                columns.forEach(s => {
                     const cell = document.createElement('td');
                     cell.className = 'stock-cell';
-                    const qty = cor.tamanhos && cor.tamanhos[s];
+                    const qty = cor.tamanhos?.[s];
                     if (!qty || qty === 0) {
                         cell.classList.add('esgotado');
                         cell.textContent = '—';
@@ -625,22 +615,22 @@
                     }
                     row.appendChild(cell);
                 });
-
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);
-
             gridWrapper.appendChild(table);
 
             const total = getTotalStock(produto);
             if (total > 0) {
                 const totalEl = document.createElement('p');
                 totalEl.className = 'stock-total';
-                totalEl.innerHTML = `<span>${total}</span> ${total === 1 ? 'par' : 'pares'} · ${cores.length} ${cores.length === 1 ? 'cor' : 'cores'}`;
+                const unit = isPar
+                    ? `${total === 1 ? 'par' : 'pares'}`
+                    : `${total === 1 ? 'unidade' : 'unidades'}`;
+                totalEl.innerHTML = `<span>${total}</span> ${unit} · ${cores.length} ${cores.length === 1 ? 'cor' : 'cores'}`;
                 gridWrapper.appendChild(totalEl);
             }
         }
-        } // fim else PAR
 
         if (isAllSoldOut(produto)) {
             const badge = card.querySelector('.card-esgotado-badge');
