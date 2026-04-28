@@ -65,6 +65,14 @@
                     </svg>
                     Escanear QR
                 </button>
+                <button class="scan-action-btn lens-action-btn" id="lensBtn" aria-label="Buscar por imagem no Google Lens">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"/>
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M3 12h2M19 12h2M12 3v2M12 19v2"/>
+                    </svg>
+                    Google Lens
+                </button>
             </div>
             <div class="search-wrapper">
                 <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -315,6 +323,35 @@
             <p class="qr-subtitle">Aponte a câmera para o QR Code ou Código de Barras do produto</p>
             
             <div id="qr-reader" class="qr-reader"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="lensModal" hidden>
+        <div class="modal-backdrop" id="lensBackdrop"></div>
+        <div class="qr-content" role="dialog" aria-labelledby="lensTitle">
+            <button class="qr-close" id="lensClose" aria-label="Fechar câmera">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+
+            <h2 id="lensTitle" class="qr-title">Google Lens</h2>
+            <p class="qr-subtitle">Enquadre o produto e toque em capturar</p>
+
+            <div class="lens-preview-wrap">
+                <video id="lensVideo" class="lens-video" autoplay playsinline muted></video>
+                <canvas id="lensCanvas" hidden></canvas>
+            </div>
+
+            <button id="lensCaptureBtn" class="lens-capture-btn" aria-label="Capturar e buscar no Google Lens">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"/>
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M3 12h2M19 12h2M12 3v2M12 19v2"/>
+                </svg>
+                Capturar e buscar
+            </button>
         </div>
     </div>
 

@@ -45,6 +45,9 @@ pnpm-debug.log*
 
 # Arquivos de ambiente / segredos
 .env
+*-credentials.json
+*-service-account.json
+sonhoodospes-*.json
 
 # OS
 .DS_Store

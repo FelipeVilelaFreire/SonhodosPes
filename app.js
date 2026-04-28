@@ -67,6 +67,14 @@
         qrModal: document.getElementById('qrModal'),
         qrBackdrop: document.getElementById('qrBackdrop'),
         qrClose: document.getElementById('qrClose'),
+
+        lensBtn:        document.getElementById('lensBtn'),
+        lensModal:      document.getElementById('lensModal'),
+        lensBackdrop:   document.getElementById('lensBackdrop'),
+        lensClose:      document.getElementById('lensClose'),
+        lensVideo:      document.getElementById('lensVideo'),
+        lensCanvas:     document.getElementById('lensCanvas'),
+        lensCaptureBtn: document.getElementById('lensCaptureBtn'),
     };
 
     let produtos = [];
@@ -221,11 +229,17 @@
                     categoria: col(values, 'subgrupo_produto', 'subgrupo', 'categoria'),
                     grupo: col(values, 'grupo_produto', 'grupo'),
                     referencia: col(values, 'refer_fabricante', 'referencia', 'ref'),
+                    corredor:   col(values, 'corredor'),
+                    armario:    col(values, 'armario', 'armário'),
+                    prateleira: col(values, 'prateleira'),
                     localizacao: (() => {
                         const c = col(values, 'corredor');
                         const a = col(values, 'armario', 'armário');
                         const p = col(values, 'prateleira');
-                        const parts = [c, a, p].filter(Boolean);
+                        const parts = [];
+                        if (c) parts.push('Corredor ' + c);
+                        if (a) parts.push('Armário ' + a);
+                        if (p) parts.push('Prateleira ' + p);
                         return parts.length ? parts.join(' · ') : col(values, 'localizacao', 'local', 'endereco');
                     })(),
                     preco: parseFloat(String(col(values, 'preco_venda', 'preco', 'preço', 'valor') || '0').replace(',', '.')) || 0,
@@ -457,10 +471,9 @@
         renderLocText(produto.localizacao);
 
         locEditBtn.addEventListener('click', () => {
-            const parts = (produto.localizacao || '').split('·').map(s => s.trim());
-            locCorredorInput.value   = parts[0] || '';
-            locArmarioInput.value    = parts[1] || '';
-            locPrateleiraInput.value = parts[2] || '';
+            locCorredorInput.value   = produto.corredor   || '';
+            locArmarioInput.value    = produto.armario    || '';
+            locPrateleiraInput.value = produto.prateleira || '';
             locEl.hidden      = true;
             locEditForm.hidden = false;
             locCorredorInput.focus();
@@ -488,10 +501,22 @@
                     throw new Error(err.error || 'Falha ao salvar');
                 }
                 await res.json();
-                const newLoc = [corredor, armario, prateleira].filter(Boolean).join(' · ');
+                const locParts = [];
+                if (corredor)   locParts.push('Corredor ' + corredor);
+                if (armario)    locParts.push('Armário ' + armario);
+                if (prateleira) locParts.push('Prateleira ' + prateleira);
+                const newLoc = locParts.join(' · ');
                 produto.localizacao = newLoc;
+                produto.corredor    = corredor;
+                produto.armario     = armario;
+                produto.prateleira  = prateleira;
                 const stored = produtosByCode.get(produto.codigo);
-                if (stored) stored.localizacao = newLoc;
+                if (stored) {
+                    stored.localizacao = newLoc;
+                    stored.corredor    = corredor;
+                    stored.armario     = armario;
+                    stored.prateleira  = prateleira;
+                }
                 renderLocText(newLoc);
                 cancelEdit();
                 showToast('Localização salva ✓', 'success');
@@ -836,6 +861,78 @@
         if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
             html5QrcodeScanner.stop().catch(e => console.error(e));
         }
+    }
+
+    let lensStream = null;
+
+    function openLensCamera() {
+        if (!navigator.mediaDevices?.getUserMedia) {
+            showToast('Câmera não disponível neste dispositivo', 'error');
+            return;
+        }
+        el.lensModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            .then(stream => {
+                lensStream = stream;
+                el.lensVideo.srcObject = stream;
+            })
+            .catch(() => {
+                showToast('Não foi possível acessar a câmera', 'error');
+                closeLensCamera();
+            });
+    }
+
+    function closeLensCamera() {
+        el.lensModal.hidden = true;
+        document.body.style.overflow = '';
+        if (lensStream) {
+            lensStream.getTracks().forEach(t => t.stop());
+            lensStream = null;
+        }
+        el.lensVideo.srcObject = null;
+    }
+
+    function captureAndSearchLens() {
+        const video = el.lensVideo;
+        const canvas = el.lensCanvas;
+        if (!video.videoWidth) {
+            showToast('Câmera ainda carregando, tente novamente', 'error');
+            return;
+        }
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        canvas.toBlob(blob => {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `https://lens.google.com/upload?ep=ccm&s=csp&st=${Date.now()}`;
+            form.enctype = 'multipart/form-data';
+            form.target = '_blank';
+            form.style.display = 'none';
+
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.name = 'encoded_image';
+
+            const dt = new DataTransfer();
+            dt.items.add(new File([blob], 'foto.jpg', { type: 'image/jpeg' }));
+            fileInput.files = dt.files;
+
+            const contentInput = document.createElement('input');
+            contentInput.type  = 'hidden';
+            contentInput.name  = 'image_content';
+            contentInput.value = '';
+
+            form.appendChild(fileInput);
+            form.appendChild(contentInput);
+            document.body.appendChild(form);
+            form.submit();
+            setTimeout(() => form.remove(), 1000);
+
+            closeLensCamera();
+        }, 'image/jpeg', 0.92);
     }
 
     async function loadFromDB() {
@@ -1245,6 +1342,11 @@
 
         if (el.qrClose) el.qrClose.addEventListener('click', closeQrScanner);
         if (el.qrBackdrop) el.qrBackdrop.addEventListener('click', closeQrScanner);
+
+        if (el.lensBtn)        el.lensBtn.addEventListener('click', openLensCamera);
+        if (el.lensClose)      el.lensClose.addEventListener('click', closeLensCamera);
+        if (el.lensBackdrop)   el.lensBackdrop.addEventListener('click', closeLensCamera);
+        if (el.lensCaptureBtn) el.lensCaptureBtn.addEventListener('click', captureAndSearchLens);
 
         el.pinModal.addEventListener('click', (e) => {
             if (e.target === el.pinModal || e.target.closest('.pin-content')) {
