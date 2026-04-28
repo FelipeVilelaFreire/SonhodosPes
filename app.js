@@ -190,7 +190,7 @@
         const sizeColumnIndices = [];
         rawHeaders.forEach((h, idx) => {
             const trimmed = h.trim();
-            if (/^(\d{2,3}|P|M|G|GG|XG|U|UN|PP)$/i.test(trimmed)) {
+            if (/^(\d{2,3}|P|M|G|GG|XG|U|UN|PP|QTD)$/i.test(trimmed)) {
                 sizeColumnIndices.push({ label: trimmed.toUpperCase(), idx });
             }
         });
@@ -230,6 +230,7 @@
                     categoria: col(values, 'subgrupo_produto', 'subgrupo', 'categoria'),
                     grupo: col(values, 'grupo_produto', 'grupo'),
                     fabricante: col(values, 'fabricante'),
+                    unidade: col(values, 'unidade'),
                     referencia: col(values, 'refer_fabricante', 'referencia', 'ref'),
                     corredor:   col(values, 'corredor'),
                     armario:    col(values, 'armario', 'armário'),
@@ -560,9 +561,23 @@
         const gridWrapper = card.querySelector('.stock-grid-wrapper');
         gridWrapper.innerHTML = '';
 
-        const allSizes = collectAllSizes(produto, true);
+        const isPar = !produto.unidade || produto.unidade.toUpperCase() === 'PAR';
+
+        if (!isPar) {
+            // UN: exibe só quantidade total
+            let totalQtd = 0;
+            (produto.cores || []).forEach(c => { totalQtd += (c.tamanhos?.QTD || 0); });
+            const qtdEl = document.createElement('div');
+            qtdEl.className = 'stock-un-block';
+            const qtdNum = totalQtd > 0
+                ? `<span class="stock-un-value ${totalQtd <= 2 ? 'baixo' : 'disponivel'}">${totalQtd}</span>`
+                : `<span class="stock-un-value esgotado">0</span>`;
+            qtdEl.innerHTML = `<span class="stock-un-label">Qtd. em estoque</span>${qtdNum}`;
+            gridWrapper.appendChild(qtdEl);
+        } else {
+        const allSizes = collectAllSizes(produto, true).filter(s => s !== 'QTD');
         const cores = (produto.cores || []).filter(c =>
-            Object.values(c.tamanhos || {}).some(q => q && q > 0)
+            Object.entries(c.tamanhos || {}).some(([s, q]) => s !== 'QTD' && q && q > 0)
         );
 
         if (!cores.length || !allSizes.length) {
@@ -573,16 +588,14 @@
 
             const thead = document.createElement('thead');
             const headRow = document.createElement('tr');
-            const SIZE_LABELS = { 'U': 'QTD', 'UN': 'QTD', 'UNICO': 'QTD', 'ÚNICO': 'QTD' };
-            const hasOnlyQtd = allSizes.length === 1 && SIZE_LABELS[allSizes[0]];
 
             const corner = document.createElement('th');
             corner.className = 'stock-corner';
-            corner.textContent = hasOnlyQtd ? 'COR' : 'COR / TAM';
+            corner.textContent = 'COR / TAM';
             headRow.appendChild(corner);
             allSizes.forEach(s => {
                 const th = document.createElement('th');
-                th.textContent = SIZE_LABELS[s] || s;
+                th.textContent = s;
                 headRow.appendChild(th);
             });
             thead.appendChild(headRow);
@@ -627,6 +640,7 @@
                 gridWrapper.appendChild(totalEl);
             }
         }
+        } // fim else PAR
 
         if (isAllSoldOut(produto)) {
             const badge = card.querySelector('.card-esgotado-badge');
