@@ -344,8 +344,13 @@
 
         if (isAllDigits(raw)) {
             if (raw.length === 5) {
-                const exact = produtosByCode.get(raw.padStart(5, '0'));
+                const exact = produtosByCode.get(raw);
                 return exact ? [exact] : [];
+            }
+            if (raw.length > 5) {
+                const first5 = raw.slice(0, 5);
+                const exact = produtosByCode.get(first5);
+                if (exact) return [exact];
             }
             return produtos
                 .filter(p => p.codigo.startsWith(raw))
@@ -904,15 +909,20 @@
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
 
+        // Abre a janela aqui (síncrono, durante o clique) para não ser bloqueado como popup
+        const win = window.open('about:blank', '_blank');
+        if (!win) {
+            showToast('Popup bloqueado — permita popups para este site', 'error');
+            return;
+        }
+
         canvas.toBlob(blob => {
-            const form = document.createElement('form');
+            const form = win.document.createElement('form');
             form.method = 'POST';
             form.action = `https://lens.google.com/upload?ep=ccm&s=csp&st=${Date.now()}`;
             form.enctype = 'multipart/form-data';
-            form.target = '_blank';
-            form.style.display = 'none';
 
-            const fileInput = document.createElement('input');
+            const fileInput = win.document.createElement('input');
             fileInput.type = 'file';
             fileInput.name = 'encoded_image';
 
@@ -920,16 +930,15 @@
             dt.items.add(new File([blob], 'foto.jpg', { type: 'image/jpeg' }));
             fileInput.files = dt.files;
 
-            const contentInput = document.createElement('input');
+            const contentInput = win.document.createElement('input');
             contentInput.type  = 'hidden';
             contentInput.name  = 'image_content';
             contentInput.value = '';
 
             form.appendChild(fileInput);
             form.appendChild(contentInput);
-            document.body.appendChild(form);
+            win.document.body.appendChild(form);
             form.submit();
-            setTimeout(() => form.remove(), 1000);
 
             closeLensCamera();
         }, 'image/jpeg', 0.92);
