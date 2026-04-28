@@ -1004,6 +1004,32 @@ svg {
     line-height: 1;
 }
 
+.product-fornecedor {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 7px 12px;
+    background: var(--color-surface-warm);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-primary-whisper);
+    width: fit-content;
+}
+
+.product-fornecedor svg {
+    color: var(--color-primary-deep);
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.product-fornecedor-text {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-soft);
+}
+
 .intro-state,
 .empty-search {
     text-align: center;

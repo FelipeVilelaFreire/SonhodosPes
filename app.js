@@ -550,6 +550,12 @@
 
         card.querySelector('.price-value').textContent = formatPrice(produto.preco);
 
+        const fornecedorEl = card.querySelector('.product-fornecedor');
+        if (produto.grupo) {
+            card.querySelector('.product-fornecedor-text').textContent = produto.grupo;
+            fornecedorEl.hidden = false;
+        }
+
         const gridWrapper = card.querySelector('.stock-grid-wrapper');
         gridWrapper.innerHTML = '';
 
