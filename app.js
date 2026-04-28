@@ -229,6 +229,7 @@
                     modelo: col(values, 'desc_produto', 'modelo', 'nome', 'descricao'),
                     categoria: col(values, 'subgrupo_produto', 'subgrupo', 'categoria'),
                     grupo: col(values, 'grupo_produto', 'grupo'),
+                    fabricante: col(values, 'fabricante'),
                     referencia: col(values, 'refer_fabricante', 'referencia', 'ref'),
                     corredor:   col(values, 'corredor'),
                     armario:    col(values, 'armario', 'armário'),
@@ -551,8 +552,8 @@
         card.querySelector('.price-value').textContent = formatPrice(produto.preco);
 
         const fornecedorEl = card.querySelector('.product-fornecedor');
-        if (produto.grupo) {
-            card.querySelector('.product-fornecedor-text').textContent = produto.grupo;
+        if (produto.fabricante) {
+            card.querySelector('.product-fornecedor-text').textContent = produto.fabricante;
             fornecedorEl.hidden = false;
         }
 
