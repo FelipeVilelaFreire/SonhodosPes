@@ -1619,6 +1619,12 @@ svg {
 }
 
 
+.lens-content {
+    width: 95%;
+    max-width: 600px;
+    padding: 24px 16px;
+}
+
 .lens-preview-wrap {
     width: 100%;
     border-radius: var(--radius-md);
