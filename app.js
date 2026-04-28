@@ -68,6 +68,7 @@
         qrBackdrop: document.getElementById('qrBackdrop'),
         qrClose: document.getElementById('qrClose'),
 
+        installBtn:     document.getElementById('installBtn'),
         lensBtn:        document.getElementById('lensBtn'),
         lensModal:      document.getElementById('lensModal'),
         lensBackdrop:   document.getElementById('lensBackdrop'),
@@ -1352,6 +1353,16 @@
         if (el.qrClose) el.qrClose.addEventListener('click', closeQrScanner);
         if (el.qrBackdrop) el.qrBackdrop.addEventListener('click', closeQrScanner);
 
+        if (el.installBtn) el.installBtn.addEventListener('click', async () => {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            const { outcome } = await deferredInstallPrompt.userChoice;
+            if (outcome === 'accepted') {
+                deferredInstallPrompt = null;
+                el.installBtn.hidden = true;
+            }
+        });
+
         if (el.lensBtn)        el.lensBtn.addEventListener('click', openLensCamera);
         if (el.lensClose)      el.lensClose.addEventListener('click', closeLensCamera);
         if (el.lensBackdrop)   el.lensBackdrop.addEventListener('click', closeLensCamera);
@@ -1446,6 +1457,19 @@
             });
         }
     }
+
+    let deferredInstallPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        if (el.installBtn) el.installBtn.hidden = false;
+    });
+
+    window.addEventListener('appinstalled', () => {
+        deferredInstallPrompt = null;
+        if (el.installBtn) el.installBtn.hidden = true;
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
