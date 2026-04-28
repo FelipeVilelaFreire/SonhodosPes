@@ -899,7 +899,7 @@
         el.lensVideo.srcObject = null;
     }
 
-    function captureAndSearchLens() {
+    async function captureAndSearchLens() {
         const video = el.lensVideo;
         const canvas = el.lensCanvas;
         if (!video.videoWidth) {
@@ -910,39 +910,53 @@
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
 
-        // Abre a janela aqui (síncrono, durante o clique) para não ser bloqueado como popup
-        const win = window.open('about:blank', '_blank');
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+        const file = new File([blob], 'foto.jpg', { type: 'image/jpeg' });
+
+        // Android Chrome: abre compartilhamento nativo — Google Lens aparece como opção
+        if (navigator.canShare?.({ files: [file] })) {
+            try {
+                await navigator.share({ files: [file] });
+                closeLensCamera();
+                return;
+            } catch (e) {
+                if (e.name === 'AbortError') { closeLensCamera(); return; }
+                // se falhar por outro motivo, cai no fallback abaixo
+            }
+        }
+
+        // Fallback: form POST para Google Lens submetido do documento principal
+        const win = window.open('', 'lens_tab');
         if (!win) {
-            showToast('Popup bloqueado — permita popups para este site', 'error');
+            showToast('Permita popups para este site', 'error');
             return;
         }
 
-        canvas.toBlob(blob => {
-            const form = win.document.createElement('form');
-            form.method = 'POST';
-            form.action = `https://lens.google.com/upload?ep=ccm&s=csp&st=${Date.now()}`;
-            form.enctype = 'multipart/form-data';
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `https://lens.google.com/upload?ep=ccm&s=csp&st=${Date.now()}`;
+        form.enctype = 'multipart/form-data';
+        form.target = 'lens_tab';
+        form.style.display = 'none';
 
-            const fileInput = win.document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.name = 'encoded_image';
+        const fi = document.createElement('input');
+        fi.type = 'file';
+        fi.name = 'encoded_image';
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fi.files = dt.files;
 
-            const dt = new DataTransfer();
-            dt.items.add(new File([blob], 'foto.jpg', { type: 'image/jpeg' }));
-            fileInput.files = dt.files;
+        const ci = document.createElement('input');
+        ci.type = 'hidden';
+        ci.name = 'image_content';
+        ci.value = '';
 
-            const contentInput = win.document.createElement('input');
-            contentInput.type  = 'hidden';
-            contentInput.name  = 'image_content';
-            contentInput.value = '';
-
-            form.appendChild(fileInput);
-            form.appendChild(contentInput);
-            win.document.body.appendChild(form);
-            form.submit();
-
-            closeLensCamera();
-        }, 'image/jpeg', 0.92);
+        form.appendChild(fi);
+        form.appendChild(ci);
+        document.body.appendChild(form);
+        form.submit();
+        setTimeout(() => form.remove(), 1000);
+        closeLensCamera();
     }
 
     async function loadFromDB() {
