@@ -1106,18 +1106,21 @@ svg {
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    box-shadow: 0 4px 16px rgba(26,115,232,0.35);
-    transition: background 0.2s var(--ease), transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(26,115,232,0.25);
+    opacity: 0.55;
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
     white-space: nowrap;
 }
 
-.lens-fab:hover {
-    background: #1557b0;
-    box-shadow: 0 6px 20px rgba(26,115,232,0.45);
+.lens-fab:hover,
+.lens-fab:focus-visible {
+    opacity: 1;
+    box-shadow: 0 6px 20px rgba(26,115,232,0.4);
 }
 
 .lens-fab:active {
     transform: scale(0.95);
+    opacity: 1;
 }
 
 .last-sync {

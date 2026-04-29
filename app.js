@@ -870,94 +870,54 @@
         }
     }
 
-    let lensStream = null;
+    function openLensSearch() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'environment';
+        input.style.display = 'none';
+        document.body.appendChild(input);
 
-    function openLensCamera() {
-        if (!navigator.mediaDevices?.getUserMedia) {
-            showToast('Câmera não disponível neste dispositivo', 'error');
-            return;
-        }
-        el.lensModal.hidden = false;
-        document.body.style.overflow = 'hidden';
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => {
-                lensStream = stream;
-                el.lensVideo.srcObject = stream;
-            })
-            .catch(() => {
-                showToast('Não foi possível acessar a câmera', 'error');
-                closeLensCamera();
-            });
-    }
+        input.onchange = () => {
+            const file = input.files?.[0];
+            input.remove();
+            if (!file) return;
 
-    function closeLensCamera() {
-        el.lensModal.hidden = true;
-        document.body.style.overflow = '';
-        if (lensStream) {
-            lensStream.getTracks().forEach(t => t.stop());
-            lensStream = null;
-        }
-        el.lensVideo.srcObject = null;
-    }
-
-    async function captureAndSearchLens() {
-        const video = el.lensVideo;
-        const canvas = el.lensCanvas;
-        if (!video.videoWidth) {
-            showToast('Câmera ainda carregando, tente novamente', 'error');
-            return;
-        }
-        canvas.width  = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
-        const file = new File([blob], 'foto.jpg', { type: 'image/jpeg' });
-
-        // Android Chrome: abre compartilhamento nativo — Google Lens aparece como opção
-        if (navigator.canShare?.({ files: [file] })) {
-            try {
-                await navigator.share({ files: [file] });
-                closeLensCamera();
+            // Android Chrome: share sheet nativo — Google Lens aparece como opção
+            if (navigator.canShare?.({ files: [file] })) {
+                navigator.share({ files: [file] }).catch(() => {});
                 return;
-            } catch (e) {
-                if (e.name === 'AbortError') { closeLensCamera(); return; }
-                // se falhar por outro motivo, cai no fallback abaixo
             }
-        }
 
-        // Fallback: form POST para Google Lens submetido do documento principal
-        const win = window.open('', 'lens_tab');
-        if (!win) {
-            showToast('Permita popups para este site', 'error');
-            return;
-        }
+            // Fallback: form POST para Google Lens
+            // onchange mantém contexto de gesture — target="_blank" funciona
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `https://lens.google.com/upload?ep=ccm&s=csp&st=${Date.now()}`;
+            form.enctype = 'multipart/form-data';
+            form.target = '_blank';
+            form.style.display = 'none';
 
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `https://lens.google.com/upload?ep=ccm&s=csp&st=${Date.now()}`;
-        form.enctype = 'multipart/form-data';
-        form.target = 'lens_tab';
-        form.style.display = 'none';
+            const fi = document.createElement('input');
+            fi.type = 'file';
+            fi.name = 'encoded_image';
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fi.files = dt.files;
 
-        const fi = document.createElement('input');
-        fi.type = 'file';
-        fi.name = 'encoded_image';
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        fi.files = dt.files;
+            const ci = document.createElement('input');
+            ci.type = 'hidden';
+            ci.name = 'image_content';
+            ci.value = '';
 
-        const ci = document.createElement('input');
-        ci.type = 'hidden';
-        ci.name = 'image_content';
-        ci.value = '';
+            form.appendChild(fi);
+            form.appendChild(ci);
+            document.body.appendChild(form);
+            form.submit();
+            setTimeout(() => form.remove(), 1000);
+        };
 
-        form.appendChild(fi);
-        form.appendChild(ci);
-        document.body.appendChild(form);
-        form.submit();
-        setTimeout(() => form.remove(), 1000);
-        closeLensCamera();
+        input.click();
     }
 
     async function loadFromDB() {
@@ -1378,10 +1338,7 @@
             }
         });
 
-        if (el.lensBtn)        el.lensBtn.addEventListener('click', openLensCamera);
-        if (el.lensClose)      el.lensClose.addEventListener('click', closeLensCamera);
-        if (el.lensBackdrop)   el.lensBackdrop.addEventListener('click', closeLensCamera);
-        if (el.lensCaptureBtn) el.lensCaptureBtn.addEventListener('click', captureAndSearchLens);
+        if (el.lensBtn) el.lensBtn.addEventListener('click', openLensSearch);
 
         el.pinModal.addEventListener('click', (e) => {
             if (e.target === el.pinModal || e.target.closest('.pin-content')) {
