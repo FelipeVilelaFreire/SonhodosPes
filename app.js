@@ -871,6 +871,15 @@
     }
 
     function openLensSearch() {
+        const isAndroid = /android/i.test(navigator.userAgent);
+        const isIOS     = /iPad|iPhone|iPod/i.test(navigator.userAgent);
+
+        // iOS: Google Lens não aparece no share sheet — abre lens.google.com diretamente
+        if (isIOS) {
+            window.open('https://lens.google.com/', '_blank');
+            return;
+        }
+
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
@@ -883,14 +892,13 @@
             input.remove();
             if (!file) return;
 
-            // Android Chrome: share sheet nativo — Google Lens aparece como opção
-            if (navigator.canShare?.({ files: [file] })) {
+            // Android: share sheet nativo — Google Lens aparece como opção
+            if (isAndroid && navigator.canShare?.({ files: [file] })) {
                 navigator.share({ files: [file] }).catch(() => {});
                 return;
             }
 
-            // Fallback: form POST para Google Lens
-            // onchange mantém contexto de gesture — target="_blank" funciona
+            // Desktop: form POST direto para Google Lens (abre em nova aba com a foto)
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = `https://lens.google.com/upload?ep=ccm&s=csp&st=${Date.now()}`;
