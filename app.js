@@ -620,16 +620,6 @@
             table.appendChild(tbody);
             gridWrapper.appendChild(table);
 
-            const total = getTotalStock(produto);
-            if (total > 0) {
-                const totalEl = document.createElement('p');
-                totalEl.className = 'stock-total';
-                const unit = isPar
-                    ? `${total === 1 ? 'par' : 'pares'}`
-                    : `${total === 1 ? 'unidade' : 'unidades'}`;
-                totalEl.innerHTML = `<span>${total}</span> ${unit} · ${cores.length} ${cores.length === 1 ? 'cor' : 'cores'}`;
-                gridWrapper.appendChild(totalEl);
-            }
         }
 
         if (isAllSoldOut(produto)) {
