@@ -521,12 +521,41 @@
 
         const CHIPS_VISIBLE = 9;
 
+        // Campo de busca de chips
+        const searchWrap = document.createElement('div');
+        searchWrap.className = 'filter-search-wrap';
+        const searchIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        searchIcon.setAttribute('class', 'filter-search-icon');
+        searchIcon.setAttribute('width', '14'); searchIcon.setAttribute('height', '14');
+        searchIcon.setAttribute('viewBox', '0 0 24 24'); searchIcon.setAttribute('fill', 'none');
+        searchIcon.setAttribute('stroke', 'currentColor'); searchIcon.setAttribute('stroke-width', '2.5');
+        searchIcon.setAttribute('stroke-linecap', 'round'); searchIcon.setAttribute('stroke-linejoin', 'round');
+        searchIcon.innerHTML = '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>';
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'filter-search';
+        searchInput.placeholder = 'Buscar cor ou categoria…';
+        searchInput.autocomplete = 'off';
+        searchInput.spellcheck = false;
+        searchWrap.append(searchIcon, searchInput);
+        body.appendChild(searchWrap);
+
         function buildChipsSection(label, list, activeList, onToggle) {
             if (!list.length) return null;
             const section = document.createElement('div');
+
+            const headerRow = document.createElement('div');
+            headerRow.className = 'filter-section-header';
             const title = document.createElement('p');
             title.className = 'filter-section-title';
             title.textContent = label;
+            const collapseBtn = document.createElement('button');
+            collapseBtn.type = 'button';
+            collapseBtn.className = 'filter-section-collapse';
+            collapseBtn.textContent = 'ver menos';
+            collapseBtn.hidden = true;
+            headerRow.append(title, collapseBtn);
+
             const chips = document.createElement('div');
             chips.className = 'filter-chips' + (list.length > CHIPS_VISIBLE ? ' collapsed' : '');
 
@@ -543,7 +572,7 @@
                 chips.appendChild(chip);
             });
 
-            section.append(title, chips);
+            section.append(headerRow, chips);
 
             if (list.length > CHIPS_VISIBLE) {
                 const expandBtn = document.createElement('button');
@@ -552,7 +581,13 @@
                 expandBtn.textContent = `+ ${list.length - CHIPS_VISIBLE} mais`;
                 expandBtn.addEventListener('click', () => {
                     chips.classList.remove('collapsed');
-                    expandBtn.remove();
+                    expandBtn.hidden = true;
+                    collapseBtn.hidden = false;
+                });
+                collapseBtn.addEventListener('click', () => {
+                    chips.classList.add('collapsed');
+                    collapseBtn.hidden = true;
+                    expandBtn.hidden = false;
                 });
                 section.appendChild(expandBtn);
             }
@@ -573,6 +608,34 @@
             else { activeFilters.categorias = activeFilters.categorias.filter(v => v !== cat); }
         });
         if (catsSection) body.appendChild(catsSection);
+
+        // Busca em tempo real nos chips
+        searchInput.addEventListener('input', () => {
+            const query = normalize(searchInput.value);
+            const allChipGroups = body.querySelectorAll('.filter-chips');
+            const allExpandBtns = body.querySelectorAll('.filter-chips-expand');
+            const allCollapseBtns = body.querySelectorAll('.filter-section-collapse');
+
+            if (!query) {
+                allChipGroups.forEach(g => {
+                    if (g.dataset.wasCollapsed === '1') g.classList.add('collapsed');
+                    delete g.dataset.wasCollapsed;
+                    g.querySelectorAll('.filter-chip').forEach(c => c.style.display = '');
+                });
+                allExpandBtns.forEach(btn => { btn.hidden = btn.dataset.wasHidden === '1'; delete btn.dataset.wasHidden; });
+                allCollapseBtns.forEach(btn => { btn.hidden = btn.dataset.wasHidden === '1'; delete btn.dataset.wasHidden; });
+            } else {
+                allChipGroups.forEach(g => {
+                    g.dataset.wasCollapsed = g.classList.contains('collapsed') ? '1' : '0';
+                    g.classList.remove('collapsed');
+                    g.querySelectorAll('.filter-chip').forEach(chip => {
+                        chip.style.display = normalize(chip.textContent).includes(query) ? '' : 'none';
+                    });
+                });
+                allExpandBtns.forEach(btn => { btn.dataset.wasHidden = btn.hidden ? '1' : '0'; btn.hidden = true; });
+                allCollapseBtns.forEach(btn => { btn.dataset.wasHidden = btn.hidden ? '1' : '0'; btn.hidden = true; });
+            }
+        });
     }
 
     function clearActiveFilters() {
