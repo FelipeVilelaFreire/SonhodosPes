@@ -461,14 +461,9 @@
     function updateFilterApplyCount() {
         if (!el.filterApply) return;
         const count = applyFilters(produtos).length;
-        const MAX = 20;
-        if (count === 0) {
-            el.filterApply.textContent = 'Sem resultados';
-        } else if (count > MAX) {
-            el.filterApply.textContent = `Ver ${MAX} de ${count} cards`;
-        } else {
-            el.filterApply.textContent = `Ver ${count} card${count !== 1 ? 's' : ''}`;
-        }
+        el.filterApply.textContent = count > 0
+            ? `Ver ${count} card${count !== 1 ? 's' : ''}`
+            : 'Sem resultados';
         el.filterApply.disabled = count === 0;
     }
 
@@ -681,7 +676,6 @@
 
     function showFilterBrowse() {
         const results = applyFilters(produtos);
-        const MAX = 20;
 
         const header = document.createElement('div');
         header.className = 'filter-browse-header';
@@ -689,12 +683,6 @@
         label.className = 'filter-browse-label';
         label.textContent = `${results.length} produto${results.length !== 1 ? 's' : ''} encontrados`;
         header.appendChild(label);
-        if (results.length > MAX) {
-            const more = document.createElement('span');
-            more.className = 'filter-browse-more';
-            more.textContent = `mostrando ${MAX}`;
-            header.appendChild(more);
-        }
 
         const list = document.createElement('div');
         list.className = 'filter-browse-list';
@@ -705,7 +693,7 @@
             empty.textContent = 'Nenhum produto com esses filtros';
             list.appendChild(empty);
         } else {
-            results.slice(0, MAX).forEach(produto => {
+            results.forEach(produto => {
                 const card = renderCard(produto);
                 // close remove the browse card, not from the stack
                 const closeBtn = card.querySelector('.card-close');
