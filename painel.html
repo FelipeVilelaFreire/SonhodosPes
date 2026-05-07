@@ -9,374 +9,120 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     [hidden] { display: none !important; }
 
-    body {
-      font-family: var(--font-body);
-      background: var(--color-bg);
-      color: var(--color-text);
-      min-height: 100dvh;
-      -webkit-font-smoothing: antialiased;
-    }
+    body { font-family: var(--font-body); background: var(--color-bg); color: var(--color-text); min-height: 100dvh; -webkit-font-smoothing: antialiased; }
 
-    /* ── Header ──────────────────────────────────────── */
-    .hdr {
-      background: var(--color-surface);
-      border-bottom: 1px solid var(--color-primary-whisper);
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
-    .hdr-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      max-width: 640px;
-      margin: 0 auto;
-      padding: 14px 16px;
-    }
-    .hdr-title {
-      font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--color-text);
-    }
-    .hdr-sub {
-      font-size: 11px;
-      color: var(--color-text-muted);
-      margin-top: 1px;
-    }
-    .btn-refresh {
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--color-text-soft);
-      padding: 8px 12px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--color-primary-whisper);
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
+    /* ── Header ── */
+    .hdr { background: var(--color-surface); border-bottom: 1px solid var(--color-primary-whisper); position: sticky; top: 0; z-index: 20; }
+    .hdr-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 640px; margin: 0 auto; padding: 14px 16px; }
+    .hdr-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+    .hdr-brand-top { display: flex; align-items: center; gap: 8px; }
+    .hdr-logo-img { width: 28px; height: 28px; object-fit: contain; }
+    .hdr-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--color-primary-deep); letter-spacing: 0.01em; }
+    .hdr-ornament { display: flex; align-items: center; gap: 5px; padding-left: 2px; }
+    .hdr-ornament span { display: block; width: 20px; height: 1px; background: var(--color-primary); opacity: 0.45; }
+    .hdr-ornament svg { color: var(--color-primary); opacity: 0.6; }
+    .hdr-sub { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-muted); padding-left: 2px; }
+    .btn-refresh { flex-shrink: 0; display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-soft); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-primary-whisper); background: transparent; cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
     .btn-refresh:active { background: var(--color-primary-whisper); }
     .btn-refresh.loading svg { animation: spin 0.65s linear infinite; }
-
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Layout ──────────────────────────────────────── */
-    .main {
-      padding: 16px 16px 72px;
-      max-width: 640px;
-      margin: 0 auto;
-    }
+    /* ── Layout ── */
+    .main { padding: 16px 16px 72px; max-width: 640px; margin: 0 auto; }
 
-    /* ── State ───────────────────────────────────────── */
-    .state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 20px;
-      text-align: center;
-      gap: 14px;
-      color: var(--color-text-muted);
-    }
+    /* ── State ── */
+    .state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center; gap: 14px; color: var(--color-text-muted); }
     .state h3 { font-size: 16px; font-weight: 500; color: var(--color-text-soft); }
     .state p  { font-size: 13px; max-width: 260px; line-height: 1.6; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--color-primary-whisper); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.65s linear infinite; }
 
-    .spinner {
-      width: 36px;
-      height: 36px;
-      border: 3px solid var(--color-primary-whisper);
-      border-top-color: var(--color-primary);
-      border-radius: 50%;
-      animation: spin 0.65s linear infinite;
-    }
-
-    /* ── Metric cards ────────────────────────────────── */
-    .metrics {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
+    /* ── Metric cards ── */
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     @media (min-width: 480px) { .metrics { grid-template-columns: repeat(4, 1fr); } }
-
-    .metric {
-      background: var(--color-surface);
-      border-radius: var(--radius-lg);
-      padding: 16px 12px 14px;
-      text-align: center;
-      box-shadow: var(--shadow-sm);
-    }
-    .metric-val {
-      font-family: var(--font-display);
-      font-size: 30px;
-      font-weight: 700;
-      color: var(--color-primary-deep);
-      line-height: 1;
-    }
+    .metric { background: var(--color-surface); border-radius: var(--radius-lg); padding: 16px 12px 14px; text-align: center; box-shadow: var(--shadow-sm); }
+    .metric-val { font-family: var(--font-display); font-size: 30px; font-weight: 700; color: var(--color-primary-deep); line-height: 1; }
     .metric-val.sm { font-size: 16px; margin-top: 4px; }
-    .metric-lbl {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--color-text-muted);
-      margin-top: 6px;
-    }
+    .metric-lbl { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); margin-top: 6px; }
 
-    /* ── Section card ────────────────────────────────── */
-    .section {
-      background: var(--color-surface);
-      border-radius: var(--radius-xl);
-      padding: 18px 16px 20px;
-      margin-bottom: 14px;
-      box-shadow: var(--shadow-sm);
-    }
-    .section-ttl {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--color-text-soft);
-      margin-bottom: 20px;
-    }
+    /* ── Tab bar ── */
+    .tab-bar { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn { flex-shrink: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-muted); padding: 8px 14px; border-radius: 99px; border: 1.5px solid var(--color-primary-whisper); background: transparent; cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+    .tab-btn:active { background: var(--color-primary-whisper); }
+    .tab-btn.on { background: var(--color-primary-deep); border-color: var(--color-primary-deep); color: #fff; }
 
-    /* ── Chart ───────────────────────────────────────── */
-    .chart-body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 22px;
-    }
+    /* ── Section card ── */
+    .section { background: var(--color-surface); border-radius: var(--radius-xl); padding: 18px 16px 20px; margin-bottom: 14px; box-shadow: var(--shadow-sm); }
+    .section-ttl { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-text-soft); margin-bottom: 20px; }
 
-    .pie-wrap {
-      width: 100%;
-      max-width: 280px;
-      flex-shrink: 0;
-      align-self: center;
-    }
-
-    #pieChart {
-      display: block;
-      width: 100%;
-      height: auto;
-      cursor: default;
-      filter: drop-shadow(0 6px 18px rgba(100,55,15,0.14));
-    }
-
-    .pie-slice {
-      cursor: pointer;
-      transition: transform 0.22s cubic-bezier(0.34,1.4,0.64,1), opacity 0.14s;
-      transform-box: fill-box;
-      transform-origin: center;
-    }
+    /* ── Pie chart ── */
+    .chart-body { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+    .pie-wrap { width: 100%; max-width: 280px; flex-shrink: 0; align-self: center; }
+    .pie-svg { display: block; width: 100%; height: auto; cursor: default; filter: drop-shadow(0 6px 18px rgba(100,55,15,0.14)); }
+    .pie-slice { cursor: pointer; transition: transform 0.22s cubic-bezier(0.34,1.4,0.64,1), opacity 0.14s; transform-box: fill-box; transform-origin: center; }
     .pie-slice:hover  { opacity: 0.85; transform: scale(1.04); }
     .pie-slice.active { transform: scale(1.07); filter: drop-shadow(0 3px 9px rgba(0,0,0,0.22)); }
     .pie-slice.dim    { opacity: 0.2; transform: scale(0.98); }
 
-    /* ── Legend ──────────────────────────────────────── */
-    .legend {
-      flex: 1;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .leg-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.12s;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .leg-item:active,
-    .leg-item:hover { background: var(--color-primary-whisper); }
+    /* ── Legend ── */
+    .legend { flex: 1; width: 100%; display: flex; flex-direction: column; gap: 2px; }
+    .leg-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; cursor: pointer; transition: background 0.12s; -webkit-tap-highlight-color: transparent; user-select: none; }
+    .leg-item:hover, .leg-item:active { background: var(--color-primary-whisper); }
     .leg-item.active { background: var(--color-primary-whisper); }
     .leg-item.dim    { opacity: 0.32; }
+    .leg-dot   { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .leg-name  { flex: 1; font-size: 13px; font-weight: 500; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .leg-count { font-size: 13px; font-weight: 700; color: var(--color-text-soft); min-width: 24px; text-align: right; }
+    .leg-pct   { font-size: 11px; color: var(--color-text-muted); min-width: 30px; text-align: right; }
 
-    .leg-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-    }
-    .leg-name {
-      flex: 1;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--color-text);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .leg-count {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--color-text-soft);
-      min-width: 24px;
-      text-align: right;
-    }
-    .leg-pct {
-      font-size: 11px;
-      color: var(--color-text-muted);
-      min-width: 30px;
-      text-align: right;
-    }
+    /* ── Bar chart ── */
+    .bar-list { display: flex; flex-direction: column; gap: 6px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; cursor: pointer; transition: background 0.12s; -webkit-tap-highlight-color: transparent; user-select: none; }
+    .bar-row:hover, .bar-row:active { background: var(--color-primary-whisper); }
+    .bar-row.active { background: var(--color-primary-whisper); }
+    .bar-row.dim { opacity: 0.28; }
+    .bar-label { width: 84px; font-size: 12px; font-weight: 600; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; line-height: 1.3; }
+    .bar-track { flex: 1; height: 9px; background: var(--color-primary-whisper); border-radius: 99px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; transition: width 0.55s cubic-bezier(0.34,1.1,0.64,1); }
+    .bar-val   { font-size: 12px; font-weight: 700; color: var(--color-text-soft); min-width: 30px; text-align: right; flex-shrink: 0; }
+    .no-data-msg { color: var(--color-text-muted); font-size: 13px; text-align: center; padding: 24px 0; line-height: 1.9; }
 
-    /* ── Product section ─────────────────────────────── */
-    .prod-hdr {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      gap: 8px;
-    }
-    .prod-hdr-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .prod-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--color-text);
-    }
-    .prod-badge {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--color-primary);
-      background: color-mix(in srgb, var(--color-primary) 12%, transparent);
-      padding: 2px 9px;
-      border-radius: 99px;
-    }
-    .prod-close {
-      flex-shrink: 0;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: var(--color-primary-whisper);
-      color: var(--color-text-soft);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.12s;
-      -webkit-tap-highlight-color: transparent;
-    }
+    /* ── Product section ── */
+    .prod-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
+    .prod-hdr-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .prod-title { font-size: 15px; font-weight: 700; color: var(--color-text); }
+    .prod-badge { font-size: 10px; font-weight: 700; color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 12%, transparent); padding: 2px 9px; border-radius: 99px; }
+    .prod-close { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--color-primary-whisper); color: var(--color-text-soft); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.12s; -webkit-tap-highlight-color: transparent; }
     .prod-close:active { background: var(--color-primary-soft); }
-
-    .sort-row {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 14px;
-      flex-wrap: wrap;
-    }
-    .sort-chip {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--color-text-muted);
-      padding: 6px 13px;
-      border-radius: 99px;
-      border: 1px solid var(--color-primary-whisper);
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.12s;
-      -webkit-tap-highlight-color: transparent;
-    }
+    .sort-row { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+    .sort-chip { font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-text-muted); padding: 6px 13px; border-radius: 99px; border: 1px solid var(--color-primary-whisper); background: transparent; cursor: pointer; transition: all 0.12s; -webkit-tap-highlight-color: transparent; }
     .sort-chip:active { background: var(--color-primary-whisper); }
-    .sort-chip.on {
-      background: var(--color-primary-deep);
-      border-color: var(--color-primary-deep);
-      color: #fff;
-    }
-
-    .prod-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .pc {
-      border: 1px solid var(--color-primary-whisper);
-      border-radius: var(--radius-md);
-      padding: 11px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      transition: box-shadow 0.12s, transform 0.12s;
-    }
+    .sort-chip.on { background: var(--color-primary-deep); border-color: var(--color-primary-deep); color: #fff; }
+    .prod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pc { border: 1px solid var(--color-primary-whisper); border-radius: var(--radius-md); padding: 11px 12px; display: flex; flex-direction: column; gap: 3px; transition: box-shadow 0.12s, transform 0.12s; }
     .pc:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
-
-    .pc-cod {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      color: var(--color-text-muted);
-    }
-    .pc-nome {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--color-text);
-      line-height: 1.3;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .pc-bot {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-top: 5px;
-      gap: 4px;
-    }
-    .pc-cat {
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      color: var(--color-text-soft);
-      background: var(--color-primary-whisper);
-      padding: 2px 6px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 55%;
-    }
-    .pc-price {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--color-primary-deep);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
+    .pc-cod   { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; color: var(--color-text-muted); }
+    .pc-nome  { font-size: 12px; font-weight: 600; color: var(--color-text); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .pc-bot   { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 5px; gap: 4px; }
+    .pc-cat   { font-size: 9px; font-weight: 700; letter-spacing: 0.04em; color: var(--color-text-soft); background: var(--color-primary-whisper); padding: 2px 6px; border-radius: 4px; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+    .pc-price { font-size: 13px; font-weight: 700; color: var(--color-primary-deep); white-space: nowrap; flex-shrink: 0; }
   </style>
 </head>
 <body>
 
 <header class="hdr">
   <div class="hdr-inner">
-    <div>
-      <div class="hdr-title">Métricas de Estoque</div>
-      <div class="hdr-sub" id="hSub">Sonho dos Pés</div>
+    <div class="hdr-brand">
+      <div class="hdr-brand-top">
+        <img src="logo.svg" alt="Sonho dos Pés" class="hdr-logo-img">
+        <div class="hdr-title">Sonho dos Pés</div>
+      </div>
+      <div class="hdr-ornament" aria-hidden="true">
+        <span></span>
+        <svg width="6" height="6" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="2"/></svg>
+        <span></span>
+      </div>
+      <div class="hdr-sub">Métricas de Estoque</div>
     </div>
     <button class="btn-refresh" id="btnRefresh">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -401,26 +147,28 @@
 
     <div class="metrics" id="metrics"></div>
 
-    <div class="section">
-      <p class="section-ttl">Distribuição por Grupo</p>
-      <div class="chart-body">
-        <div class="pie-wrap">
-          <svg id="pieChart" viewBox="0 0 240 240"></svg>
-        </div>
-        <div class="legend" id="legend"></div>
-      </div>
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn on" data-tab="cat">Categoria</button>
+      <button class="tab-btn"    data-tab="grp">Grupos</button>
+      <button class="tab-btn"    data-tab="tam">Tamanhos</button>
+      <button class="tab-btn"    data-tab="preco">Preços</button>
+      <button class="tab-btn"    data-tab="marca">Marcas</button>
+    </div>
+
+    <div class="section" id="chartSection">
+      <p class="section-ttl" id="chartTitle">Por Categoria</p>
+      <div id="chartBody"></div>
     </div>
 
     <div class="section" id="prodSection" hidden>
       <div class="prod-hdr">
         <div class="prod-hdr-left">
-          <span class="prod-title"  id="prodTitle"></span>
-          <span class="prod-badge"  id="prodBadge"></span>
+          <span class="prod-title" id="prodTitle"></span>
+          <span class="prod-badge" id="prodBadge"></span>
         </div>
         <button class="prod-close" id="prodClose">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
       </div>
@@ -439,6 +187,7 @@
   const DB_NAME = 'sonhodospes';
   const DB_VER  = 2;
   const STORE   = 'produtos';
+  const SIZES   = ['34','35','36','37','38','39','40'];
 
   const COLORS = [
     '#c8904a','#6b4226','#a06830','#e8b070','#4a2c10',
@@ -446,29 +195,33 @@
     '#7a5030','#ddb870','#522008','#c07840','#9a6848',
   ];
 
+  const TAB_TITLES = {
+    cat:   'Por Categoria',
+    grp:   'Por Grupo',
+    tam:   'Estoque por Tamanho',
+    preco: 'Por Faixa de Preço',
+    marca: 'Por Marca (Top 10)',
+  };
+
   const $ = id => document.getElementById(id);
 
   function fmtR$(v) {
     if (!v || v === 0) return '—';
-    return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   // ── IndexedDB ─────────────────────────────────────────────────────────────
   function readIDB() {
     return new Promise(resolve => {
-      // 3s timeout so a stale IDB never blocks the dashboard
       const timer = setTimeout(() => resolve([]), 3000);
       let done = false;
       function finish(val) {
-        if (done) return;
-        done = true;
-        clearTimeout(timer);
-        resolve(val);
+        if (done) return; done = true; clearTimeout(timer); resolve(val);
       }
       try {
         const req = indexedDB.open(DB_NAME, DB_VER);
-        req.onerror        = () => finish([]);
-        req.onupgradeneeded = () => finish([]);   // DB just created — no data yet
+        req.onerror         = () => finish([]);
+        req.onupgradeneeded = () => finish([]);
         req.onsuccess = () => {
           const db = req.result;
           if (!db.objectStoreNames.contains(STORE)) return finish([]);
@@ -481,7 +234,7 @@
     });
   }
 
-  // ── CSV parser (mirrors app.js) ───────────────────────────────────────────
+  // ── CSV parser ────────────────────────────────────────────────────────────
   function parseCSV(text) {
     const lines = text.trim().split(/\r?\n/);
     if (lines.length < 2) return [];
@@ -527,105 +280,110 @@
       const cod = String(raw).padStart(5, '0');
       if (!map.has(cod)) {
         map.set(cod, {
-          codigo:    cod,
-          modelo:    col(v, 'desc_produto', 'modelo', 'nome', 'descricao'),
-          categoria: col(v, 'subgrupo_produto', 'subgrupo', 'categoria'),
-          grupo:     col(v, 'grupo_produto', 'grupo'),
-          preco:     parseFloat(String(col(v, 'preco_venda', 'preco', 'preço', 'valor') || '0').replace(',', '.')) || 0,
-          cores:     [],
+          codigo:     cod,
+          modelo:     col(v, 'desc_produto', 'modelo', 'nome', 'descricao'),
+          categoria:  col(v, 'subgrupo_produto', 'subgrupo', 'categoria'),
+          grupo:      col(v, 'grupo_produto', 'grupo'),
+          preco:      parseFloat(String(col(v, 'preco_venda', 'preco', 'preço', 'valor') || '0').replace(',', '.')) || 0,
+          unidade:    col(v, 'unidade') || 'PAR',
+          fabricante: col(v, 'fabricante', 'fabricante_produto') || '',
+          cores: [], qtd: 0,
+          s34: 0, s35: 0, s36: 0, s37: 0, s38: 0, s39: 0, s40: 0,
         });
       }
       const p = map.get(cod);
       const cor = col(v, 'desc_cor_produto', 'cor', 'desc_cor') || 'ÚNICA';
       if (!p.cores.includes(cor)) p.cores.push(cor);
+      SIZES.forEach(s => {
+        const val = parseFloat(String(col(v, s) || '0').replace(',', '.')) || 0;
+        p['s' + s] += val;
+      });
+      p.qtd += parseFloat(String(col(v, 'qtd', 'qtde', 'quantidade') || '0').replace(',', '.')) || 0;
     }
     return Array.from(map.values());
   }
 
-  // ── Pie helpers ───────────────────────────────────────────────────────────
+  // ── SVG helpers ───────────────────────────────────────────────────────────
   function polar(deg, r, cx, cy) {
     const rad = (deg - 90) * Math.PI / 180;
     return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
   }
   function slicePath(sa, ea, r, ir, cx, cy) {
     if (ea - sa >= 360) ea = sa + 359.9;
-    const [x1, y1] = polar(sa, r,  cx, cy);
-    const [x2, y2] = polar(ea, r,  cx, cy);
-    const [x3, y3] = polar(ea, ir, cx, cy);
-    const [x4, y4] = polar(sa, ir, cx, cy);
+    const [x1,y1] = polar(sa, r,  cx, cy);
+    const [x2,y2] = polar(ea, r,  cx, cy);
+    const [x3,y3] = polar(ea, ir, cx, cy);
+    const [x4,y4] = polar(sa, ir, cx, cy);
     const lg = ea - sa > 180 ? 1 : 0;
     return `M${x1} ${y1} A${r} ${r} 0 ${lg} 1 ${x2} ${y2} L${x3} ${y3} A${ir} ${ir} 0 ${lg} 0 ${x4} ${y4}Z`;
   }
 
-  // ── App state ─────────────────────────────────────────────────────────────
-  let groups     = [];
-  let activeGrp  = null;
-  let sortMode   = 'name';
+  // ── State ─────────────────────────────────────────────────────────────────
+  let tabDatas  = {};
+  let activeTab = 'cat';
+  let activeKey = null;
+  let sortMode  = 'name';
 
-  function setActive(nome) {
-    activeGrp = activeGrp === nome ? null : nome;
-    $('pieChart').querySelectorAll('.pie-slice').forEach(s => {
-      const mine = s.dataset.g === activeGrp;
-      s.classList.toggle('active', mine);
-      s.classList.toggle('dim', activeGrp !== null && !mine);
-    });
-    $('legend').querySelectorAll('.leg-item').forEach(i => {
-      const mine = i.dataset.g === activeGrp;
-      i.classList.toggle('active', mine);
-      i.classList.toggle('dim', activeGrp !== null && !mine);
-    });
-    if (activeGrp) openProducts(activeGrp);
-    else $('prodSection').hidden = true;
-  }
-
-  // ── Render dashboard ──────────────────────────────────────────────────────
-  function render(prods, src) {
-    const total = prods.length;
-    const gMap  = {};
-    let vars = 0, pSum = 0, pN = 0;
-
-    for (const p of prods) {
-      const g = (p.grupo || p.categoria || 'Sem grupo').toUpperCase().trim() || 'SEM GRUPO';
-      (gMap[g] = gMap[g] || []).push(p);
-      vars += (p.cores || []).length;
-      if (p.preco > 0) { pSum += p.preco; pN++; }
+  // ── Compute tab data ──────────────────────────────────────────────────────
+  function computeTabDatas(prods) {
+    function group(keyFn) {
+      const m = {};
+      for (const p of prods) {
+        const k = (keyFn(p) || 'Sem grupo').toUpperCase().trim();
+        (m[k] = m[k] || []).push(p);
+      }
+      return Object.entries(m).map(([n, ps]) => ({ n, ps })).sort((a, b) => b.ps.length - a.ps.length);
     }
 
-    groups = Object.entries(gMap)
-      .map(([n, ps]) => ({ n, ps, c: ps.length }))
-      .sort((a, b) => b.c - a.c);
+    tabDatas.cat = group(p => p.categoria || p.grupo);
+    tabDatas.grp = group(p => p.grupo || p.categoria);
 
-    const avg = pN > 0 ? pSum / pN : 0;
+    tabDatas.tam = SIZES.map(s => {
+      const total = prods.reduce((sum, p) => sum + (p['s' + s] || 0), 0);
+      const ps    = prods.filter(p => (p['s' + s] || 0) > 0);
+      return { n: s, total, ps };
+    });
 
-    // Metric cards
-    $('metrics').innerHTML = [
-      { v: total,       l: 'Produtos' },
-      { v: groups.length, l: 'Grupos' },
-      { v: vars,        l: 'Variantes' },
-      { v: fmtR$(avg),  l: 'Preço médio', sm: true },
-    ].map(m =>
-      `<div class="metric">
-         <div class="metric-val${m.sm ? ' sm' : ''}">${m.v}</div>
-         <div class="metric-lbl">${m.l}</div>
-       </div>`
-    ).join('');
+    const brackets = [
+      { n: 'Até R$ 100',   test: p => p.preco > 0 && p.preco <= 100 },
+      { n: 'R$ 101 – 200', test: p => p.preco > 100 && p.preco <= 200 },
+      { n: 'R$ 201 – 400', test: p => p.preco > 200 && p.preco <= 400 },
+      { n: 'Acima R$ 400', test: p => p.preco > 400 },
+      { n: 'Sem preço',    test: p => !p.preco || p.preco === 0 },
+    ];
+    tabDatas.preco = brackets.map(b => ({ n: b.n, ps: prods.filter(b.test) })).filter(d => d.ps.length > 0);
 
-    // Pie chart
+    const mMap = {};
+    for (const p of prods) {
+      const k = (p.fabricante || '').trim() || 'Sem marca';
+      (mMap[k] = mMap[k] || []).push(p);
+    }
+    tabDatas.marca = Object.entries(mMap).map(([n, ps]) => ({ n, ps })).sort((a, b) => b.ps.length - a.ps.length).slice(0, 10);
+  }
+
+  // ── Render pie ────────────────────────────────────────────────────────────
+  function renderPie(data, container) {
+    const total = data.reduce((s, d) => s + d.ps.length, 0);
     const CX = 120, CY = 120, R = 108, IR = 46;
     const ns  = 'http://www.w3.org/2000/svg';
-    const svg = $('pieChart');
-    svg.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'chart-body';
 
-    const leg = $('legend');
-    leg.innerHTML = '';
+    const pieWrap = document.createElement('div');
+    pieWrap.className = 'pie-wrap';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 240 240');
+    svg.className = 'pie-svg';
+
+    const leg = document.createElement('div');
+    leg.className = 'legend';
 
     let ang = 0;
-    groups.forEach((g, i) => {
-      const pct   = g.c / total;
+    data.forEach((d, i) => {
+      const pct   = d.ps.length / total;
       const sweep = pct * 360;
       const color = COLORS[i % COLORS.length];
-      const sa = ang, ea = ang + sweep;
-      ang = ea;
+      const sa = ang, ea = ang + sweep; ang = ea;
 
       const path = document.createElementNS(ns, 'path');
       path.setAttribute('d', slicePath(sa, ea, R, IR, CX, CY));
@@ -633,48 +391,152 @@
       path.setAttribute('stroke', 'var(--color-bg)');
       path.setAttribute('stroke-width', '2.5');
       path.setAttribute('class', 'pie-slice');
-      path.dataset.g = g.n;
+      path.dataset.k = d.n;
       svg.appendChild(path);
 
       const item = document.createElement('div');
       item.className = 'leg-item';
-      item.dataset.g = g.n;
+      item.dataset.k = d.n;
       item.innerHTML =
         `<span class="leg-dot" style="background:${color}"></span>` +
-        `<span class="leg-name" title="${g.n}">${g.n}</span>` +
-        `<span class="leg-count">${g.c}</span>` +
+        `<span class="leg-name" title="${d.n}">${d.n}</span>` +
+        `<span class="leg-count">${d.ps.length}</span>` +
         `<span class="leg-pct">${(pct * 100).toFixed(0)}%</span>`;
       leg.appendChild(item);
     });
 
-    // Donut center
-    function svgText(x, y, fs, fw, fill, txt) {
+    function svgTxt(x, y, fs, fw, fill, txt) {
       const t = document.createElementNS(ns, 'text');
       t.setAttribute('x', x); t.setAttribute('y', y);
       t.setAttribute('text-anchor', 'middle');
       t.setAttribute('fill', fill);
       t.setAttribute('font-size', fs);
       t.setAttribute('font-weight', fw);
-      t.textContent = txt;
-      return t;
+      t.textContent = txt; return t;
     }
-    svg.appendChild(svgText(CX, CY - 5,  '30', '700', 'var(--color-text)',       String(total)));
-    svg.appendChild(svgText(CX, CY + 16, '12', '400', 'var(--color-text-muted)', 'produtos'));
+    svg.appendChild(svgTxt(CX, CY - 5,  '30', '700', 'var(--color-text)',       String(total)));
+    svg.appendChild(svgTxt(CX, CY + 16, '12', '400', 'var(--color-text-muted)', 'produtos'));
 
-    // Events (assigned directly to avoid duplicate listeners on refresh)
-    svg.onclick = e => { const s = e.target.closest('.pie-slice'); if (s) setActive(s.dataset.g); };
-    leg.onclick = e => { const i = e.target.closest('.leg-item');  if (i) setActive(i.dataset.g); };
+    svg.onclick = e => { const s = e.target.closest('.pie-slice'); if (s) selectKey(s.dataset.k); };
+    leg.onclick = e => { const i = e.target.closest('.leg-item');  if (i) selectKey(i.dataset.k); };
 
-    $('hSub').textContent = `${total} produtos · ${src === 'api' ? 'planilha online' : 'cache local'}`;
+    pieWrap.appendChild(svg);
+    wrap.appendChild(pieWrap);
+    wrap.appendChild(leg);
+    container.appendChild(wrap);
+  }
+
+  // ── Render bars ───────────────────────────────────────────────────────────
+  function renderBars(data, tab, container) {
+    let hasData;
+    if (tab === 'tam') {
+      hasData = data.some(d => d.total > 0);
+    } else if (tab === 'marca') {
+      hasData = data.some(d => d.n !== 'Sem marca' && d.ps.length > 0);
+    } else {
+      hasData = data && data.length > 0;
+    }
+
+    if (!hasData) {
+      container.innerHTML = '<p class="no-data-msg">Dados não disponíveis no cache.<br>Toque em <strong>Atualizar</strong> para carregar.</p>';
+      return;
+    }
+
+    const maxVal = Math.max(...data.map(d => tab === 'tam' ? d.total : d.ps.length), 1);
+    const list = document.createElement('div');
+    list.className = 'bar-list';
+
+    data.forEach((d, i) => {
+      const val = tab === 'tam' ? d.total : d.ps.length;
+      if (val === 0) return;
+      const pct   = (val / maxVal) * 100;
+      const color = COLORS[i % COLORS.length];
+
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.dataset.k = d.n;
+      row.innerHTML =
+        `<div class="bar-label" title="${d.n}">${d.n}</div>` +
+        `<div class="bar-track"><div class="bar-fill" style="width:0%;background:${color}"></div></div>` +
+        `<div class="bar-val">${val}</div>`;
+      list.appendChild(row);
+
+      setTimeout(() => { row.querySelector('.bar-fill').style.width = pct + '%'; }, i * 45 + 20);
+      row.onclick = () => selectKey(d.n);
+    });
+
+    container.appendChild(list);
+  }
+
+  // ── Switch tab ────────────────────────────────────────────────────────────
+  function renderTab(tab) {
+    activeKey = null;
+    $('prodSection').hidden = true;
+    $('chartTitle').textContent = TAB_TITLES[tab];
+    const body = $('chartBody');
+    body.innerHTML = '';
+    if (tab === 'grp') renderPie(tabDatas.grp, body);
+    else renderBars(tabDatas[tab], tab, body);
+  }
+
+  // ── Selection ─────────────────────────────────────────────────────────────
+  function selectKey(key) {
+    activeKey = activeKey === key ? null : key;
+    const body = $('chartBody');
+    body.querySelectorAll('.pie-slice').forEach(s => {
+      s.classList.toggle('active', s.dataset.k === activeKey);
+      s.classList.toggle('dim', activeKey !== null && s.dataset.k !== activeKey);
+    });
+    body.querySelectorAll('.leg-item').forEach(i => {
+      i.classList.toggle('active', i.dataset.k === activeKey);
+      i.classList.toggle('dim', activeKey !== null && i.dataset.k !== activeKey);
+    });
+    body.querySelectorAll('.bar-row').forEach(r => {
+      r.classList.toggle('active', r.dataset.k === activeKey);
+      r.classList.toggle('dim', activeKey !== null && r.dataset.k !== activeKey);
+    });
+
+    if (activeKey) {
+      const d = tabDatas[activeTab].find(x => x.n === activeKey);
+      if (d) openProducts(d.n, d.ps);
+    } else {
+      $('prodSection').hidden = true;
+    }
+  }
+
+  // ── Render dashboard ──────────────────────────────────────────────────────
+  function render(prods) {
+    computeTabDatas(prods);
+
+    const total = prods.length;
+    const vars  = prods.reduce((s, p) => s + (p.cores || []).length, 0);
+    let pSum = 0, pN = 0;
+    for (const p of prods) { if (p.preco > 0) { pSum += p.preco; pN++; } }
+    const avg = pN > 0 ? pSum / pN : 0;
+
+    $('metrics').innerHTML = [
+      { v: total,               l: 'Produtos' },
+      { v: vars,                l: 'Variantes' },
+      { v: tabDatas.cat.length, l: 'Categorias' },
+      { v: fmtR$(avg),          l: 'Preço médio', sm: true },
+    ].map(m =>
+      `<div class="metric">
+         <div class="metric-val${m.sm ? ' sm' : ''}">${m.v}</div>
+         <div class="metric-lbl">${m.l}</div>
+       </div>`
+    ).join('');
+
+    activeTab = 'cat';
+    activeKey = null;
+    $('tabBar').querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('on', b.dataset.tab === 'cat'));
+    renderTab('cat');
   }
 
   // ── Product list ──────────────────────────────────────────────────────────
-  function openProducts(nome) {
-    const g = groups.find(x => x.n === nome);
-    if (!g) return;
-    $('prodTitle').textContent = nome;
-    $('prodBadge').textContent = `${g.c} produto${g.c !== 1 ? 's' : ''}`;
-    buildSortRow(g.ps);
+  function openProducts(label, ps) {
+    $('prodTitle').textContent = label;
+    $('prodBadge').textContent = `${ps.length} produto${ps.length !== 1 ? 's' : ''}`;
+    buildSortRow(ps);
     $('prodSection').hidden = false;
     setTimeout(() => $('prodSection').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
   }
@@ -717,10 +579,19 @@
   }
 
   $('prodClose').onclick = () => {
-    activeGrp = null;
-    $('pieChart').querySelectorAll('.pie-slice').forEach(s => s.classList.remove('active', 'dim'));
-    $('legend').querySelectorAll('.leg-item').forEach(i => i.classList.remove('active', 'dim'));
+    activeKey = null;
+    $('chartBody').querySelectorAll('.pie-slice, .leg-item, .bar-row').forEach(el => {
+      el.classList.remove('active', 'dim');
+    });
     $('prodSection').hidden = true;
+  };
+
+  $('tabBar').onclick = e => {
+    const btn = e.target.closest('.tab-btn');
+    if (!btn || btn.dataset.tab === activeTab) return;
+    activeTab = btn.dataset.tab;
+    $('tabBar').querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('on', b === btn));
+    renderTab(activeTab);
   };
 
   // ── Load ──────────────────────────────────────────────────────────────────
@@ -730,12 +601,9 @@
     $('content').hidden    = true;
   }
 
-  // Wraps the full data pipeline — IDB + fetch + parse + render
   async function doLoad(force) {
-    let prods = [], src = 'cache';
-
+    let prods = [];
     if (!force) prods = await readIDB();
-
     if (!prods || prods.length === 0) {
       const url = localStorage.getItem('sdp:csvUrl') || '/api/produtos';
       const res = await fetch(url, { headers: { 'X-App-Token': TOKEN } });
@@ -743,12 +611,9 @@
       const csv = await res.text();
       if (!csv || csv.trim().startsWith('{')) throw new Error('Resposta inválida — abra o app principal para sincronizar');
       prods = parseCSV(csv);
-      src   = 'api';
     }
-
     if (!prods || prods.length === 0) throw new Error('Planilha vazia ou sem dados reconhecíveis');
-
-    render(prods, src);
+    render(prods);
     $('stateEl').hidden = true;
     $('content').hidden = false;
   }
@@ -756,15 +621,10 @@
   async function load(force = false) {
     showState('<div class="spinner"></div><h3>Carregando dados…</h3>');
     $('btnRefresh').classList.add('loading');
-
-    // Race the full pipeline against a 15s hard timeout.
-    // This covers every await (IDB, fetch headers, fetch body, render)
-    // so the spinner can NEVER stay forever.
     let timeoutId;
     const timeout = new Promise((_, rej) => {
       timeoutId = setTimeout(() => rej(new Error('Tempo esgotado (15s) — verifique a conexão')), 15000);
     });
-
     try {
       await Promise.race([doLoad(force), timeout]);
       clearTimeout(timeoutId);
