@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/sdp-metricas-9x7k2m", "destination": "/painel.html" }
+  ]
+}
