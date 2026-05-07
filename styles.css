@@ -2044,6 +2044,12 @@ svg {
     margin-bottom: 10px;
 }
 
+.filter-section-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .filter-section-title {
     font-size: 10px;
     font-weight: 600;
@@ -2051,6 +2057,17 @@ svg {
     text-transform: uppercase;
     color: var(--color-text-soft);
     margin-bottom: 0;
+}
+
+.filter-section-count {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+    padding: 1px 6px;
+    border-radius: 99px;
+    text-transform: lowercase;
+    letter-spacing: 0;
 }
 
 .filter-section-collapse {

@@ -461,9 +461,14 @@
     function updateFilterApplyCount() {
         if (!el.filterApply) return;
         const count = applyFilters(produtos).length;
-        el.filterApply.textContent = count > 0
-            ? `Ver ${count} produto${count !== 1 ? 's' : ''}`
-            : 'Sem resultados';
+        const MAX = 20;
+        if (count === 0) {
+            el.filterApply.textContent = 'Sem resultados';
+        } else if (count > MAX) {
+            el.filterApply.textContent = `Ver ${MAX} de ${count} cards`;
+        } else {
+            el.filterApply.textContent = `Ver ${count} card${count !== 1 ? 's' : ''}`;
+        }
         el.filterApply.disabled = count === 0;
     }
 
@@ -546,15 +551,25 @@
 
             const headerRow = document.createElement('div');
             headerRow.className = 'filter-section-header';
+
+            const titleWrap = document.createElement('div');
+            titleWrap.className = 'filter-section-title-wrap';
             const title = document.createElement('p');
             title.className = 'filter-section-title';
             title.textContent = label;
+            const countBadge = document.createElement('span');
+            countBadge.className = 'filter-section-count';
+            const initCount = activeList.length;
+            countBadge.textContent = `${initCount} selecionada${initCount !== 1 ? 's' : ''}`;
+            countBadge.hidden = initCount === 0;
+            titleWrap.append(title, countBadge);
+
             const collapseBtn = document.createElement('button');
             collapseBtn.type = 'button';
             collapseBtn.className = 'filter-section-collapse';
             collapseBtn.textContent = 'ver menos';
             collapseBtn.hidden = true;
-            headerRow.append(title, collapseBtn);
+            headerRow.append(titleWrap, collapseBtn);
 
             const chips = document.createElement('div');
             chips.className = 'filter-chips' + (list.length > CHIPS_VISIBLE ? ' collapsed' : '');
@@ -567,6 +582,9 @@
                 chip.addEventListener('click', () => {
                     chip.classList.toggle('active');
                     onToggle(value, chip.classList.contains('active'));
+                    const n = activeList.length;
+                    countBadge.textContent = `${n} selecionada${n !== 1 ? 's' : ''}`;
+                    countBadge.hidden = n === 0;
                     updateFilterApplyCount();
                 });
                 chips.appendChild(chip);
@@ -764,6 +782,10 @@
                 rerenderStack();
                 updateSortBtn();
                 closeSortModal();
+                if (opt.key !== 'default') showToast(`Ordenado: ${opt.label}`, 'success');
+                requestAnimationFrame(() => {
+                    el.stack.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
             });
             el.sortOptions.appendChild(btn);
         });
