@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Métricas · Sonho dos Pés</title>
   <link rel="stylesheet" href="styles.css">
   <style>
@@ -12,40 +12,41 @@
       font-family: var(--font-body);
       background: var(--color-bg);
       color: var(--color-text);
-      min-height: 100vh;
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
     }
 
-    .dash-header {
+    /* ── Header ──────────────────────────────────────── */
+    .hdr {
       background: var(--color-surface);
       border-bottom: 1px solid var(--color-primary-whisper);
-      padding: 16px 20px;
+      padding: 14px 16px;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 20;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
     }
-
-    .dash-header-text {}
-    .dash-title {
+    .hdr-title {
       font-family: var(--font-display);
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
       color: var(--color-text);
     }
-    .dash-subtitle {
+    .hdr-sub {
       font-size: 11px;
       color: var(--color-text-muted);
-      margin-top: 2px;
+      margin-top: 1px;
     }
-
-    .dash-refresh {
+    .btn-refresh {
+      flex-shrink: 0;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
       color: var(--color-text-soft);
@@ -55,19 +56,22 @@
       background: transparent;
       cursor: pointer;
       transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .dash-refresh:hover { background: var(--color-primary-whisper); color: var(--color-text); }
-    .dash-refresh svg { transition: transform 0.4s; }
-    .dash-refresh.loading svg { animation: spin 0.7s linear infinite; }
+    .btn-refresh:active { background: var(--color-primary-whisper); }
+    .btn-refresh.loading svg { animation: spin 0.65s linear infinite; }
 
-    .dash-main {
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Layout ──────────────────────────────────────── */
+    .main {
+      padding: 16px 14px 72px;
       max-width: 820px;
       margin: 0 auto;
-      padding: 20px 16px 60px;
     }
 
-    /* Loading / error */
-    .state-center {
+    /* ── State ───────────────────────────────────────── */
+    .state {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -77,163 +81,191 @@
       gap: 14px;
       color: var(--color-text-muted);
     }
-    .state-center h3 { font-size: 16px; color: var(--color-text-soft); font-weight: 500; }
-    .state-center p { font-size: 13px; max-width: 280px; line-height: 1.5; }
+    .state h3 { font-size: 16px; font-weight: 500; color: var(--color-text-soft); }
+    .state p  { font-size: 13px; max-width: 260px; line-height: 1.6; }
 
     .spinner {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       border: 3px solid var(--color-primary-whisper);
       border-top-color: var(--color-primary);
       border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      animation: spin 0.65s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Summary cards */
-    .metrics-row {
+    /* ── Metric cards ────────────────────────────────── */
+    .metrics {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 14px;
     }
-    @media (min-width: 480px) { .metrics-row { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 480px) { .metrics { grid-template-columns: repeat(4, 1fr); } }
 
-    .metric-card {
+    .metric {
       background: var(--color-surface);
       border-radius: var(--radius-lg);
-      padding: 14px 16px;
+      padding: 16px 12px 14px;
       text-align: center;
       box-shadow: var(--shadow-sm);
     }
-    .metric-value {
+    .metric-val {
       font-family: var(--font-display);
       font-size: 30px;
       font-weight: 700;
       color: var(--color-primary-deep);
       line-height: 1;
     }
-    .metric-value.sm { font-size: 18px; }
-    .metric-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--color-text-muted);
-      margin-top: 5px;
-    }
-
-    /* Chart section */
-    .dash-section {
-      background: var(--color-surface);
-      border-radius: var(--radius-xl);
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: var(--shadow-sm);
-    }
-    .section-label {
-      font-size: 10px;
+    .metric-val.sm { font-size: 16px; margin-top: 4px; }
+    .metric-lbl {
+      font-size: 9px;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── Section card ────────────────────────────────── */
+    .section {
+      background: var(--color-surface);
+      border-radius: var(--radius-xl);
+      padding: 18px 16px 20px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+    .section-ttl {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
       color: var(--color-text-soft);
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
-    /* Pie + legend layout */
-    .chart-layout {
+    /* ── Chart ───────────────────────────────────────── */
+    .chart-body {
       display: flex;
-      gap: 24px;
+      flex-direction: column;
       align-items: center;
-      flex-wrap: wrap;
+      gap: 22px;
     }
-    .pie-wrap { flex: 0 0 auto; }
+    @media (min-width: 560px) {
+      .chart-body { flex-direction: row; align-items: center; }
+    }
 
-    #pieChart { display: block; cursor: default; }
+    .pie-wrap {
+      width: 100%;
+      max-width: 270px;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    @media (min-width: 560px) { .pie-wrap { width: 230px; } }
+
+    #pieChart {
+      display: block;
+      width: 100%;
+      height: auto;
+      cursor: default;
+      filter: drop-shadow(0 6px 18px rgba(100,55,15,0.14));
+    }
 
     .pie-slice {
       cursor: pointer;
-      transition: opacity 0.15s, transform 0.15s;
-      transform-origin: 90px 90px;
+      transition: transform 0.22s cubic-bezier(0.34,1.4,0.64,1), opacity 0.14s;
+      transform-box: fill-box;
+      transform-origin: center;
     }
-    .pie-slice:hover { opacity: 0.85; transform: scale(1.03); }
-    .pie-slice.dimmed { opacity: 0.3; }
+    .pie-slice:hover  { opacity: 0.85; transform: scale(1.04); }
+    .pie-slice.active { transform: scale(1.07); filter: drop-shadow(0 3px 9px rgba(0,0,0,0.22)); }
+    .pie-slice.dim    { opacity: 0.2; transform: scale(0.98); }
 
+    /* ── Legend ──────────────────────────────────────── */
     .legend {
       flex: 1;
-      min-width: 180px;
+      width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      max-height: 260px;
-      overflow-y: auto;
+      gap: 2px;
     }
-    .legend-item {
+
+    .leg-item {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 10px;
       cursor: pointer;
-      padding: 7px 8px;
-      border-radius: 8px;
       transition: background 0.12s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-    .legend-item:hover { background: var(--color-primary-whisper); }
-    .legend-item.active { background: var(--color-primary-whisper); }
-    .legend-item.dimmed { opacity: 0.45; }
+    .leg-item:active,
+    .leg-item:hover { background: var(--color-primary-whisper); }
+    .leg-item.active { background: var(--color-primary-whisper); }
+    .leg-item.dim    { opacity: 0.32; }
 
-    .legend-dot {
-      width: 10px;
-      height: 10px;
+    .leg-dot {
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
-    .legend-name {
+    .leg-name {
       flex: 1;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 500;
       color: var(--color-text);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .legend-count {
-      font-size: 12px;
+    .leg-count {
+      font-size: 13px;
       font-weight: 700;
       color: var(--color-text-soft);
       min-width: 24px;
       text-align: right;
     }
-    .legend-pct {
-      font-size: 10px;
+    .leg-pct {
+      font-size: 11px;
       color: var(--color-text-muted);
       min-width: 30px;
       text-align: right;
     }
 
-    /* Product list section */
-    .prod-section-header {
+    /* ── Product section ─────────────────────────────── */
+    .prod-hdr {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+      gap: 8px;
     }
-    .prod-section-title {
-      font-size: 14px;
-      font-weight: 600;
+    .prod-hdr-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .prod-title {
+      font-size: 15px;
+      font-weight: 700;
       color: var(--color-text);
     }
-    .prod-section-badge {
+    .prod-badge {
       font-size: 10px;
       font-weight: 700;
       color: var(--color-primary);
       background: color-mix(in srgb, var(--color-primary) 12%, transparent);
-      padding: 2px 8px;
+      padding: 2px 9px;
       border-radius: 99px;
-      margin-left: 8px;
     }
-    .prod-section-close {
-      width: 28px;
-      height: 28px;
+    .prod-close {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       background: var(--color-primary-whisper);
       color: var(--color-text-soft);
@@ -242,101 +274,111 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
       transition: background 0.12s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .prod-section-close:hover { background: var(--color-primary-soft); }
+    .prod-close:active { background: var(--color-primary-soft); }
 
-    .prod-sort-row {
+    .sort-row {
       display: flex;
       gap: 6px;
       margin-bottom: 14px;
       flex-wrap: wrap;
     }
-    .prod-sort-btn {
+    .sort-chip {
       font-size: 10px;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--color-text-muted);
-      padding: 5px 10px;
-      border-radius: 6px;
+      padding: 6px 13px;
+      border-radius: 99px;
       border: 1px solid var(--color-primary-whisper);
       background: transparent;
       cursor: pointer;
       transition: all 0.12s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .prod-sort-btn:hover { background: var(--color-primary-whisper); color: var(--color-text); }
-    .prod-sort-btn.active {
-      background: var(--color-primary);
-      border-color: var(--color-primary);
+    .sort-chip:active { background: var(--color-primary-whisper); }
+    .sort-chip.on {
+      background: var(--color-primary-deep);
+      border-color: var(--color-primary-deep);
       color: #fff;
     }
 
     .prod-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 10px;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
-    .prod-card {
+    @media (min-width: 460px) { .prod-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 640px) { .prod-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    .pc {
       border: 1px solid var(--color-primary-whisper);
       border-radius: var(--radius-md);
-      padding: 12px 14px;
+      padding: 11px 12px;
       display: flex;
       flex-direction: column;
       gap: 3px;
       transition: box-shadow 0.12s, transform 0.12s;
     }
-    .prod-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
-    .prod-card-codigo {
+    .pc:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+    .pc-cod {
       font-size: 9px;
       font-weight: 700;
       letter-spacing: 0.12em;
       color: var(--color-text-muted);
-      text-transform: uppercase;
     }
-    .prod-card-nome {
-      font-size: 13px;
+    .pc-nome {
+      font-size: 12px;
       font-weight: 600;
       color: var(--color-text);
       line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
-    .prod-card-row {
+    .pc-bot {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-end;
       margin-top: 5px;
+      gap: 4px;
     }
-    .prod-card-cat {
+    .pc-cat {
       font-size: 9px;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
       color: var(--color-text-soft);
       background: var(--color-primary-whisper);
-      padding: 2px 7px;
+      padding: 2px 6px;
       border-radius: 4px;
       text-transform: uppercase;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      max-width: 60%;
+      max-width: 55%;
     }
-    .prod-card-price {
-      font-size: 14px;
+    .pc-price {
+      font-size: 13px;
       font-weight: 700;
       color: var(--color-primary-deep);
+      white-space: nowrap;
       flex-shrink: 0;
     }
   </style>
 </head>
 <body>
 
-<header class="dash-header">
-  <div class="dash-header-text">
-    <div class="dash-title">Métricas de Estoque</div>
-    <div class="dash-subtitle" id="dashSubtitle">carregando…</div>
+<header class="hdr">
+  <div>
+    <div class="hdr-title">Métricas de Estoque</div>
+    <div class="hdr-sub" id="hSub">Sonho dos Pés</div>
   </div>
-  <button class="dash-refresh" id="btnRefresh" aria-label="Atualizar dados">
+  <button class="btn-refresh" id="btnRefresh">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
       <path d="M21 3v5h-5"/>
@@ -347,51 +389,57 @@
   </button>
 </header>
 
-<main class="dash-main" id="dashMain">
-  <div class="state-center" id="loadingState">
+<main class="main">
+
+  <div id="stateEl" class="state">
     <div class="spinner"></div>
     <h3>Carregando dados…</h3>
   </div>
 
-  <div id="dashContent" hidden>
-    <div class="metrics-row" id="metricsRow"></div>
+  <div id="content" hidden>
 
-    <div class="dash-section">
-      <p class="section-label">Distribuição por Grupo</p>
-      <div class="chart-layout">
+    <div class="metrics" id="metrics"></div>
+
+    <div class="section">
+      <p class="section-ttl">Distribuição por Grupo</p>
+      <div class="chart-body">
         <div class="pie-wrap">
-          <svg id="pieChart" width="180" height="180" viewBox="0 0 180 180"></svg>
+          <svg id="pieChart" viewBox="0 0 240 240"></svg>
         </div>
         <div class="legend" id="legend"></div>
       </div>
     </div>
 
-    <div class="dash-section" id="productSection" hidden>
-      <div class="prod-section-header">
-        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
-          <span class="prod-section-title" id="prodSectionTitle"></span>
-          <span class="prod-section-badge" id="prodSectionBadge"></span>
+    <div class="section" id="prodSection" hidden>
+      <div class="prod-hdr">
+        <div class="prod-hdr-left">
+          <span class="prod-title"  id="prodTitle"></span>
+          <span class="prod-badge"  id="prodBadge"></span>
         </div>
-        <button class="prod-section-close" id="prodSectionClose" aria-label="Fechar">
+        <button class="prod-close" id="prodClose">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
       </div>
-      <div class="prod-sort-row" id="prodSortRow"></div>
+      <div class="sort-row"  id="sortRow"></div>
       <div class="prod-grid" id="prodGrid"></div>
     </div>
+
   </div>
 </main>
 
 <script>
 (async () => {
-  const APP_TOKEN   = 'sdp-4K9mX2rP7nQ1wL5j';
-  const DB_NAME     = 'sonhodospes';
-  const DB_VERSION  = 2;
-  const STORE_PRODS = 'produtos';
+  'use strict';
 
-  const PALETTE = [
+  const TOKEN   = 'sdp-4K9mX2rP7nQ1wL5j';
+  const DB_NAME = 'sonhodospes';
+  const DB_VER  = 2;
+  const STORE   = 'produtos';
+
+  const COLORS = [
     '#c8904a','#6b4226','#a06830','#e8b070','#4a2c10',
     '#d4a060','#8b5e3c','#3c1e08','#b8783c','#f0c880',
     '#7a5030','#ddb870','#522008','#c07840','#9a6848',
@@ -399,325 +447,333 @@
 
   const $ = id => document.getElementById(id);
 
-  function fmtPrice(v) {
+  function fmtR$(v) {
     if (!v || v === 0) return '—';
-    return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  // ── IndexedDB read ────────────────────────────────────────────────────────
-  function loadIDB() {
-    return new Promise((resolve) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onerror = () => resolve([]);
-      req.onupgradeneeded = () => resolve([]);
-      req.onsuccess = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains(STORE_PRODS)) return resolve([]);
-        const tx = db.transaction(STORE_PRODS, 'readonly');
-        const all = tx.objectStore(STORE_PRODS).getAll();
-        all.onsuccess = () => resolve(all.result || []);
-        all.onerror  = () => resolve([]);
-      };
+  // ── IndexedDB ─────────────────────────────────────────────────────────────
+  function readIDB() {
+    return new Promise(resolve => {
+      // 3s timeout so a stale IDB never blocks the dashboard
+      const timer = setTimeout(() => resolve([]), 3000);
+      let done = false;
+      function finish(val) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve(val);
+      }
+      try {
+        const req = indexedDB.open(DB_NAME, DB_VER);
+        req.onerror        = () => finish([]);
+        req.onupgradeneeded = () => finish([]);   // DB just created — no data yet
+        req.onsuccess = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(STORE)) return finish([]);
+          const tx  = db.transaction(STORE, 'readonly');
+          const all = tx.objectStore(STORE).getAll();
+          all.onsuccess = () => finish(all.result || []);
+          all.onerror   = () => finish([]);
+        };
+      } catch (e) { finish([]); }
     });
   }
 
-  // ── Minimal CSV parser (mirrors app.js) ──────────────────────────────────
+  // ── CSV parser (mirrors app.js) ───────────────────────────────────────────
   function parseCSV(text) {
     const lines = text.trim().split(/\r?\n/);
     if (lines.length < 2) return [];
-    const c = s => (s.match(/,/g)||[]).length;
-    const sc = s => (s.match(/;/g)||[]).length;
-    const tc = s => (s.match(/\t/g)||[]).length;
-    const delim = tc(lines[0]) > c(lines[0]) && tc(lines[0]) > sc(lines[0]) ? '\t'
-                : sc(lines[0]) > c(lines[0]) ? ';' : ',';
+    const cnt = (s, c) => (s.match(new RegExp('\\' + c, 'g')) || []).length;
+    const delim = cnt(lines[0], '\t') > cnt(lines[0], ',') ? '\t'
+                : cnt(lines[0], ';')  > cnt(lines[0], ',') ? ';' : ',';
 
-    function parseLine(line) {
+    function parseLine(l) {
       const r = []; let cur = '', inQ = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ=!inQ; }
-        else if (ch === delim && !inQ) { r.push(cur); cur=''; }
-        else cur += ch;
+      for (let i = 0; i < l.length; i++) {
+        const c = l[i];
+        if (c === '"') {
+          if (inQ && l[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ;
+        } else if (c === delim && !inQ) { r.push(cur); cur = ''; }
+        else cur += c;
       }
       r.push(cur); return r;
     }
 
-    let rawH = parseLine(lines[0]).map(h=>h.trim());
+    let rawH = parseLine(lines[0]).map(h => h.trim());
     let start = 1;
-    if (/^\d+$/.test(rawH[0]) && !rawH.some(h=>h.toLowerCase()==='produto')) {
-      rawH = "PRODUTO,COR_PRODUTO,Coleção,QTDE_CONTAGEM,CONTAGEM,DIFERENCA_TOTAL,U,34,35,36,37,38,39,40,P,M,G,GG,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20,Q21,Q22,Q23,Q24,Q25,Q26,Q27,Q28,Q29,Q30,Q31,Q32,Q33,Q34,Q35,Q36,Q37,Q38,Q39,Q40,Q41,Q42,Q43,Q44,Q45,Q46,Q47,Q48,S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12,S13,S14,S15,S16,S17,S18,S19,S20,S21,S22,S23,S24,S25,S26,S27,S28,S29,S30,S31,S32,S33,S34,S35,S36,S37,S38,S39,S40,S41,S42,S43,S44,S45,S46,S47,S48,DESC_PRODUTO,GRUPO_PRODUTO,SUBGRUPO_PRODUTO,GRADE,UNIDADE,PESO,REVENDA,DESC_COR_PRODUTO,COR_SORTIDA,COR_FABRICANTE,REFER_FABRICANTE,D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13,D14,D15,D16,D17,D18,D19,D20,D21,D22,D23,D24,D25,D26,D27,D28,D29,D30,D31,D32,D33,D34,D35,D36,D37,D38,D39,D40,D41,D42,D43,D44,D45,D46,D47,D48,PONTEIRO_PRECO_TAM,VARIA_PRECO_COR,VARIA_PRECO_TAM,CUSTO_REPOSICAO1,CUSTO_REPOSICAO2,CUSTO_REPOSICAO3,CUSTO_REPOSICAO4,CUSTO_MEDIO1,CUSTO_MEDIO2,CUSTO_MEDIO3,CUSTO_MEDIO4,CUSTO4_A_VALORIZAR,CUSTO3_A_VALORIZAR,CUSTO2_A_VALORIZAR,CUSTO1_A_VALORIZAR,VALOR_CONTAGEM_DIFERENCA,ESTOQUE_CONTAGEM,ES1,ES2,ES3,ES4,ES5,ES6,ES7,ES8,ES9,ES10,ES11,ES12,ES13,ES14,ES15,ES16,ES17,ES18,ES19,ES20,ES21,ES22,ES23,ES24,ES25,ES26,ES27,ES28,ES29,ES30,ES31,ES32,ES33,ES34,ES35,ES36,ES37,ES38,ES39,ES40,ES41,ES42,ES43,ES44,ES45,ES46,ES47,ES48,DIFERENCA,PRECO_VENDA".split(',');
+    if (/^\d+$/.test(rawH[0]) && !rawH.some(h => h.toLowerCase() === 'produto')) {
+      rawH = 'PRODUTO,COR_PRODUTO,Coleção,QTDE_CONTAGEM,CONTAGEM,DIFERENCA_TOTAL,U,34,35,36,37,38,39,40,P,M,G,GG,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20,Q21,Q22,Q23,Q24,Q25,Q26,Q27,Q28,Q29,Q30,Q31,Q32,Q33,Q34,Q35,Q36,Q37,Q38,Q39,Q40,Q41,Q42,Q43,Q44,Q45,Q46,Q47,Q48,S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12,S13,S14,S15,S16,S17,S18,S19,S20,S21,S22,S23,S24,S25,S26,S27,S28,S29,S30,S31,S32,S33,S34,S35,S36,S37,S38,S39,S40,S41,S42,S43,S44,S45,S46,S47,S48,DESC_PRODUTO,GRUPO_PRODUTO,SUBGRUPO_PRODUTO,GRADE,UNIDADE,PESO,REVENDA,DESC_COR_PRODUTO,COR_SORTIDA,COR_FABRICANTE,REFER_FABRICANTE,D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13,D14,D15,D16,D17,D18,D19,D20,D21,D22,D23,D24,D25,D26,D27,D28,D29,D30,D31,D32,D33,D34,D35,D36,D37,D38,D39,D40,D41,D42,D43,D44,D45,D46,D47,D48,PONTEIRO_PRECO_TAM,VARIA_PRECO_COR,VARIA_PRECO_TAM,CUSTO_REPOSICAO1,CUSTO_REPOSICAO2,CUSTO_REPOSICAO3,CUSTO_REPOSICAO4,CUSTO_MEDIO1,CUSTO_MEDIO2,CUSTO_MEDIO3,CUSTO_MEDIO4,CUSTO4_A_VALORIZAR,CUSTO3_A_VALORIZAR,CUSTO2_A_VALORIZAR,CUSTO1_A_VALORIZAR,VALOR_CONTAGEM_DIFERENCA,ESTOQUE_CONTAGEM,ES1,ES2,ES3,ES4,ES5,ES6,ES7,ES8,ES9,ES10,ES11,ES12,ES13,ES14,ES15,ES16,ES17,ES18,ES19,ES20,ES21,ES22,ES23,ES24,ES25,ES26,ES27,ES28,ES29,ES30,ES31,ES32,ES33,ES34,ES35,ES36,ES37,ES38,ES39,ES40,ES41,ES42,ES43,ES44,ES45,ES46,ES47,ES48,DIFERENCA,PRECO_VENDA'.split(',');
       start = 0;
     }
-    const headers = rawH.map(h=>h.toLowerCase());
+    const hdrs = rawH.map(h => h.toLowerCase());
     function col(row, ...names) {
-      for (const n of names) { const i=headers.indexOf(n.toLowerCase()); if(i!==-1&&row[i]) return row[i].trim(); }
+      for (const n of names) {
+        const i = hdrs.indexOf(n.toLowerCase());
+        if (i !== -1 && row[i]) return row[i].trim();
+      }
       return '';
     }
+
     const map = new Map();
     for (let i = start; i < lines.length; i++) {
-      const line = lines[i].trim(); if(!line) continue;
-      const v = parseLine(line); if(v.length<2) continue;
-      const raw = col(v,'produto','codigo','cod','sku'); if(!raw) continue;
-      const codigo = String(raw).padStart(5,'0');
-      if (!map.has(codigo)) map.set(codigo, {
-        codigo,
-        modelo:    col(v,'desc_produto','modelo','nome','descricao'),
-        categoria: col(v,'subgrupo_produto','subgrupo','categoria'),
-        grupo:     col(v,'grupo_produto','grupo'),
-        preco:     parseFloat(String(col(v,'preco_venda','preco','preço','valor')||'0').replace(',','.'))||0,
-        cores:     [],
-      });
-      const p = map.get(codigo);
-      const cor = col(v,'desc_cor_produto','cor','desc_cor')||'ÚNICA';
+      const line = lines[i].trim();
+      if (!line) continue;
+      const v = parseLine(line);
+      if (v.length < 2) continue;
+      const raw = col(v, 'produto', 'codigo', 'cod', 'sku');
+      if (!raw) continue;
+      const cod = String(raw).padStart(5, '0');
+      if (!map.has(cod)) {
+        map.set(cod, {
+          codigo:    cod,
+          modelo:    col(v, 'desc_produto', 'modelo', 'nome', 'descricao'),
+          categoria: col(v, 'subgrupo_produto', 'subgrupo', 'categoria'),
+          grupo:     col(v, 'grupo_produto', 'grupo'),
+          preco:     parseFloat(String(col(v, 'preco_venda', 'preco', 'preço', 'valor') || '0').replace(',', '.')) || 0,
+          cores:     [],
+        });
+      }
+      const p = map.get(cod);
+      const cor = col(v, 'desc_cor_produto', 'cor', 'desc_cor') || 'ÚNICA';
       if (!p.cores.includes(cor)) p.cores.push(cor);
     }
     return Array.from(map.values());
   }
 
-  // ── Load data ─────────────────────────────────────────────────────────────
-  async function loadData() {
-    let prods = await loadIDB();
-    let source = 'cache';
-    if (!prods || prods.length === 0) {
-      const url = localStorage.getItem('sdp:csvUrl') || '/api/produtos';
-      const res = await fetch(url, { headers: { 'X-App-Token': APP_TOKEN } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      prods = parseCSV(await res.text());
-      source = 'api';
-    }
-    return { prods, source };
+  // ── Pie helpers ───────────────────────────────────────────────────────────
+  function polar(deg, r, cx, cy) {
+    const rad = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+  }
+  function slicePath(sa, ea, r, ir, cx, cy) {
+    if (ea - sa >= 360) ea = sa + 359.9;
+    const [x1, y1] = polar(sa, r,  cx, cy);
+    const [x2, y2] = polar(ea, r,  cx, cy);
+    const [x3, y3] = polar(ea, ir, cx, cy);
+    const [x4, y4] = polar(sa, ir, cx, cy);
+    const lg = ea - sa > 180 ? 1 : 0;
+    return `M${x1} ${y1} A${r} ${r} 0 ${lg} 1 ${x2} ${y2} L${x3} ${y3} A${ir} ${ir} 0 ${lg} 0 ${x4} ${y4}Z`;
   }
 
-  // ── Pie chart ─────────────────────────────────────────────────────────────
-  function polar(angle, r, cx, cy) {
-    const rad = (angle - 90) * Math.PI / 180;
-    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  // ── App state ─────────────────────────────────────────────────────────────
+  let groups     = [];
+  let activeGrp  = null;
+  let sortMode   = 'name';
+
+  function setActive(nome) {
+    activeGrp = activeGrp === nome ? null : nome;
+    $('pieChart').querySelectorAll('.pie-slice').forEach(s => {
+      const mine = s.dataset.g === activeGrp;
+      s.classList.toggle('active', mine);
+      s.classList.toggle('dim', activeGrp !== null && !mine);
+    });
+    $('legend').querySelectorAll('.leg-item').forEach(i => {
+      const mine = i.dataset.g === activeGrp;
+      i.classList.toggle('active', mine);
+      i.classList.toggle('dim', activeGrp !== null && !mine);
+    });
+    if (activeGrp) openProducts(activeGrp);
+    else $('prodSection').hidden = true;
   }
 
-  function arcPath(sa, ea, r, ir, cx, cy) {
-    if (ea - sa >= 360) ea = sa + 359.99;
-    const p1 = polar(sa, r, cx, cy), p2 = polar(ea, r, cx, cy);
-    const p3 = polar(ea, ir, cx, cy), p4 = polar(sa, ir, cx, cy);
-    const large = ea - sa > 180 ? 1 : 0;
-    return `M${p1.x} ${p1.y} A${r} ${r} 0 ${large} 1 ${p2.x} ${p2.y} L${p3.x} ${p3.y} A${ir} ${ir} 0 ${large} 0 ${p4.x} ${p4.y}Z`;
-  }
-
-  // ── Main render ───────────────────────────────────────────────────────────
-  let activeGroup = null;
-  let currentProds = [];
-  let gruposArr = [];
-  let prodSort = 'name';
-
-  function renderDashboard(prods, source) {
-    currentProds = prods;
+  // ── Render dashboard ──────────────────────────────────────────────────────
+  function render(prods, src) {
     const total = prods.length;
-    const gruposMap = {};
-    let totalVariantes = 0;
-    let precoSum = 0, precoN = 0;
+    const gMap  = {};
+    let vars = 0, pSum = 0, pN = 0;
 
     for (const p of prods) {
       const g = (p.grupo || p.categoria || 'Sem grupo').toUpperCase().trim() || 'SEM GRUPO';
-      if (!gruposMap[g]) gruposMap[g] = [];
-      gruposMap[g].push(p);
-      totalVariantes += (p.cores || []).length;
-      if (p.preco > 0) { precoSum += p.preco; precoN++; }
+      (gMap[g] = gMap[g] || []).push(p);
+      vars += (p.cores || []).length;
+      if (p.preco > 0) { pSum += p.preco; pN++; }
     }
 
-    gruposArr = Object.entries(gruposMap)
-      .map(([nome, ps]) => ({ nome, prods: ps, count: ps.length }))
-      .sort((a, b) => b.count - a.count);
+    groups = Object.entries(gMap)
+      .map(([n, ps]) => ({ n, ps, c: ps.length }))
+      .sort((a, b) => b.c - a.c);
 
-    const precoMedio = precoN > 0 ? precoSum / precoN : 0;
+    const avg = pN > 0 ? pSum / pN : 0;
 
-    // Metrics
-    $('metricsRow').innerHTML = [
-      { v: total,                    l: 'Produtos' },
-      { v: gruposArr.length,         l: 'Grupos' },
-      { v: totalVariantes,           l: 'Variantes' },
-      { v: fmtPrice(precoMedio), l: 'Preço médio', sm: true },
-    ].map(m => `
-      <div class="metric-card">
-        <div class="metric-value${m.sm?' sm':''}">${m.v}</div>
-        <div class="metric-label">${m.l}</div>
-      </div>
-    `).join('');
+    // Metric cards
+    $('metrics').innerHTML = [
+      { v: total,       l: 'Produtos' },
+      { v: groups.length, l: 'Grupos' },
+      { v: vars,        l: 'Variantes' },
+      { v: fmtR$(avg),  l: 'Preço médio', sm: true },
+    ].map(m =>
+      `<div class="metric">
+         <div class="metric-val${m.sm ? ' sm' : ''}">${m.v}</div>
+         <div class="metric-lbl">${m.l}</div>
+       </div>`
+    ).join('');
 
-    // Pie
-    const svgEl   = $('pieChart');
-    const legendEl = $('legend');
-    const CX = 90, CY = 90, R = 78, IR = 32;
-    svgEl.innerHTML = '';
-    legendEl.innerHTML = '';
+    // Pie chart
+    const CX = 120, CY = 120, R = 108, IR = 46;
+    const ns  = 'http://www.w3.org/2000/svg';
+    const svg = $('pieChart');
+    svg.innerHTML = '';
 
-    let angle = 0;
-    gruposArr.forEach((g, i) => {
-      const pct = g.count / total;
+    const leg = $('legend');
+    leg.innerHTML = '';
+
+    let ang = 0;
+    groups.forEach((g, i) => {
+      const pct   = g.c / total;
       const sweep = pct * 360;
-      const color = PALETTE[i % PALETTE.length];
-      const sa = angle, ea = angle + sweep;
-      angle = ea;
+      const color = COLORS[i % COLORS.length];
+      const sa = ang, ea = ang + sweep;
+      ang = ea;
 
-      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d', arcPath(sa, ea, R, IR, CX, CY));
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', slicePath(sa, ea, R, IR, CX, CY));
       path.setAttribute('fill', color);
+      path.setAttribute('stroke', 'var(--color-bg)');
+      path.setAttribute('stroke-width', '2.5');
       path.setAttribute('class', 'pie-slice');
-      path.dataset.group = g.nome;
-      svgEl.appendChild(path);
+      path.dataset.g = g.n;
+      svg.appendChild(path);
 
       const item = document.createElement('div');
-      item.className = 'legend-item';
-      item.dataset.group = g.nome;
-      item.innerHTML = `
-        <span class="legend-dot" style="background:${color}"></span>
-        <span class="legend-name" title="${g.nome}">${g.nome}</span>
-        <span class="legend-count">${g.count}</span>
-        <span class="legend-pct">${(pct*100).toFixed(0)}%</span>
-      `;
-      legendEl.appendChild(item);
+      item.className = 'leg-item';
+      item.dataset.g = g.n;
+      item.innerHTML =
+        `<span class="leg-dot" style="background:${color}"></span>` +
+        `<span class="leg-name" title="${g.n}">${g.n}</span>` +
+        `<span class="leg-count">${g.c}</span>` +
+        `<span class="leg-pct">${(pct * 100).toFixed(0)}%</span>`;
+      leg.appendChild(item);
     });
 
-    // Donut center label
-    const ns = 'http://www.w3.org/2000/svg';
-    const tBig = document.createElementNS(ns,'text');
-    tBig.setAttribute('x', CX); tBig.setAttribute('y', CY - 5);
-    tBig.setAttribute('text-anchor','middle');
-    tBig.setAttribute('fill','var(--color-text)');
-    tBig.setAttribute('font-size','22'); tBig.setAttribute('font-weight','700');
-    tBig.setAttribute('font-family','var(--font-display)');
-    tBig.textContent = total;
-    const tSml = document.createElementNS(ns,'text');
-    tSml.setAttribute('x', CX); tSml.setAttribute('y', CY + 13);
-    tSml.setAttribute('text-anchor','middle');
-    tSml.setAttribute('fill','var(--color-text-muted)');
-    tSml.setAttribute('font-size','9');
-    tSml.textContent = 'produtos';
-    svgEl.appendChild(tBig); svgEl.appendChild(tSml);
+    // Donut center
+    function svgText(x, y, fs, fw, fill, txt) {
+      const t = document.createElementNS(ns, 'text');
+      t.setAttribute('x', x); t.setAttribute('y', y);
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('fill', fill);
+      t.setAttribute('font-size', fs);
+      t.setAttribute('font-weight', fw);
+      t.textContent = txt;
+      return t;
+    }
+    svg.appendChild(svgText(CX, CY - 5,  '30', '700', 'var(--color-text)',       String(total)));
+    svg.appendChild(svgText(CX, CY + 16, '12', '400', 'var(--color-text-muted)', 'produtos'));
 
-    $('dashSubtitle').textContent = `${total} produtos · fonte: ${source === 'api' ? 'planilha' : 'cache local'}`;
+    // Events (assigned directly to avoid duplicate listeners on refresh)
+    svg.onclick = e => { const s = e.target.closest('.pie-slice'); if (s) setActive(s.dataset.g); };
+    leg.onclick = e => { const i = e.target.closest('.leg-item');  if (i) setActive(i.dataset.g); };
 
-    // Interaction
-    svgEl.addEventListener('click', e => {
-      const s = e.target.closest('.pie-slice');
-      if (s) toggleGroup(s.dataset.group);
-    });
-    legendEl.addEventListener('click', e => {
-      const it = e.target.closest('.legend-item');
-      if (it) toggleGroup(it.dataset.group);
-    });
+    $('hSub').textContent = `${total} produtos · ${src === 'api' ? 'planilha online' : 'cache local'}`;
   }
 
-  function toggleGroup(nome) {
-    activeGroup = activeGroup === nome ? null : nome;
-    updateActiveState();
-    if (activeGroup) openProductList(activeGroup);
-    else $('productSection').hidden = true;
-  }
-
-  function updateActiveState() {
-    $('pieChart').querySelectorAll('.pie-slice').forEach(s => {
-      s.classList.toggle('dimmed', activeGroup !== null && s.dataset.group !== activeGroup);
-    });
-    $('legend').querySelectorAll('.legend-item').forEach(i => {
-      i.classList.toggle('active', i.dataset.group === activeGroup);
-      i.classList.toggle('dimmed', activeGroup !== null && i.dataset.group !== activeGroup);
-    });
-  }
-
-  function sortedProds(prods) {
-    const s = [...prods];
-    if (prodSort === 'price-desc') return s.sort((a,b) => b.preco - a.preco);
-    if (prodSort === 'price-asc')  return s.sort((a,b) => a.preco - b.preco);
-    return s.sort((a,b) => (a.modelo||'').localeCompare(b.modelo||'','pt-BR'));
-  }
-
-  function openProductList(nome) {
-    const g = gruposArr.find(x => x.nome === nome);
+  // ── Product list ──────────────────────────────────────────────────────────
+  function openProducts(nome) {
+    const g = groups.find(x => x.n === nome);
     if (!g) return;
+    $('prodTitle').textContent = nome;
+    $('prodBadge').textContent = `${g.c} produto${g.c !== 1 ? 's' : ''}`;
+    buildSortRow(g.ps);
+    $('prodSection').hidden = false;
+    setTimeout(() => $('prodSection').scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  }
 
-    $('prodSectionTitle').textContent = nome;
-    $('prodSectionBadge').textContent = `${g.count} produto${g.count!==1?'s':''}`;
-
-    // Sort buttons
-    const sortRow = $('prodSortRow');
-    const sortOpts = [
-      { key: 'name',       label: 'A → Z' },
-      { key: 'price-desc', label: 'Maior preço' },
-      { key: 'price-asc',  label: 'Menor preço' },
+  function buildSortRow(ps) {
+    const opts = [
+      { k: 'name',       l: 'A → Z' },
+      { k: 'price-desc', l: 'Maior preço' },
+      { k: 'price-asc',  l: 'Menor preço' },
     ];
-    sortRow.innerHTML = sortOpts.map(o =>
-      `<button class="prod-sort-btn${prodSort===o.key?' active':''}" data-sort="${o.key}">${o.label}</button>`
+    $('sortRow').innerHTML = opts.map(o =>
+      `<button class="sort-chip${sortMode === o.k ? ' on' : ''}" data-k="${o.k}">${o.l}</button>`
     ).join('');
-    sortRow.querySelectorAll('.prod-sort-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        prodSort = btn.dataset.sort;
-        sortRow.querySelectorAll('.prod-sort-btn').forEach(b => b.classList.toggle('active', b===btn));
-        renderProductGrid(g.prods);
-      });
+    $('sortRow').querySelectorAll('.sort-chip').forEach(b => {
+      b.onclick = () => {
+        sortMode = b.dataset.k;
+        $('sortRow').querySelectorAll('.sort-chip').forEach(x => x.classList.toggle('on', x === b));
+        buildGrid(ps);
+      };
     });
-
-    renderProductGrid(g.prods);
-    $('productSection').hidden = false;
-    setTimeout(() => $('productSection').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    buildGrid(ps);
   }
 
-  function renderProductGrid(prods) {
-    $('prodGrid').innerHTML = sortedProds(prods).map(p => `
-      <div class="prod-card">
-        <div class="prod-card-codigo">${p.codigo}</div>
-        <div class="prod-card-nome">${p.modelo || 'Sem descrição'}</div>
-        <div class="prod-card-row">
-          <span class="prod-card-cat">${p.categoria || p.grupo || '—'}</span>
-          <span class="prod-card-price">${fmtPrice(p.preco)}</span>
-        </div>
-      </div>
-    `).join('');
+  function buildGrid(ps) {
+    const sorted = [...ps].sort((a, b) =>
+      sortMode === 'price-desc' ? b.preco - a.preco :
+      sortMode === 'price-asc'  ? a.preco - b.preco :
+      (a.modelo || '').localeCompare(b.modelo || '', 'pt-BR')
+    );
+    $('prodGrid').innerHTML = sorted.map(p =>
+      `<div class="pc">
+         <div class="pc-cod">${p.codigo}</div>
+         <div class="pc-nome">${p.modelo || 'Sem descrição'}</div>
+         <div class="pc-bot">
+           <span class="pc-cat">${p.categoria || p.grupo || '—'}</span>
+           <span class="pc-price">${fmtR$(p.preco)}</span>
+         </div>
+       </div>`
+    ).join('');
   }
 
-  $('prodSectionClose').addEventListener('click', () => {
-    activeGroup = null;
-    updateActiveState();
-    $('productSection').hidden = true;
-  });
+  $('prodClose').onclick = () => {
+    activeGrp = null;
+    $('pieChart').querySelectorAll('.pie-slice').forEach(s => s.classList.remove('active', 'dim'));
+    $('legend').querySelectorAll('.leg-item').forEach(i => i.classList.remove('active', 'dim'));
+    $('prodSection').hidden = true;
+  };
 
-  // ── Init + refresh ────────────────────────────────────────────────────────
-  async function init(forceApi = false) {
-    $('loadingState').hidden = false;
-    $('dashContent').hidden = true;
-    $('loadingState').innerHTML = '<div class="spinner"></div><h3>Carregando dados…</h3>';
+  // ── Load ──────────────────────────────────────────────────────────────────
+  function showState(html) {
+    $('stateEl').innerHTML = html;
+    $('stateEl').hidden    = false;
+    $('content').hidden    = true;
+  }
+
+  async function load(force = false) {
+    showState('<div class="spinner"></div><h3>Carregando dados…</h3>');
     $('btnRefresh').classList.add('loading');
 
     try {
-      let prods, source;
-      if (forceApi) {
+      let prods = [], src = 'cache';
+
+      // Try IDB first (unless forced refresh)
+      if (!force) prods = await readIDB();
+
+      // Always fetch from API if IDB empty or forced
+      if (!prods || prods.length === 0) {
         const url = localStorage.getItem('sdp:csvUrl') || '/api/produtos';
-        const res = await fetch(url, { headers: { 'X-App-Token': APP_TOKEN } });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        prods = parseCSV(await res.text());
-        source = 'api';
-      } else {
-        ({ prods, source } = await loadData());
+        const res = await fetch(url, { headers: { 'X-App-Token': TOKEN } });
+        if (!res.ok) throw new Error(`Servidor retornou ${res.status}`);
+        const csv = await res.text();
+        if (!csv || csv.trim().startsWith('{')) throw new Error('Resposta inválida da API');
+        prods = parseCSV(csv);
+        src   = 'api';
       }
 
-      if (!prods || prods.length === 0) throw new Error('Sem dados');
-      renderDashboard(prods, source);
-      $('loadingState').hidden = true;
-      $('dashContent').hidden = false;
-    } catch (e) {
-      $('loadingState').innerHTML = `
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-text-muted)">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <h3>Não foi possível carregar</h3>
-        <p>Abra o app principal primeiro para sincronizar, ou verifique a conexão.</p>
-      `;
+      if (!prods || prods.length === 0) throw new Error('Planilha vazia ou sem dados reconhecíveis');
+
+      render(prods, src);
+      $('stateEl').hidden = true;
+      $('content').hidden = false;
+
+    } catch (err) {
+      showState(
+        `<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-text-muted)">
+           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+         </svg>
+         <h3>Não foi possível carregar</h3>
+         <p>${err.message}</p>
+         <p style="margin-top:6px;font-size:11px;color:var(--color-text-muted)">
+           Abra o app principal primeiro para sincronizar o cache, ou verifique a conexão.
+         </p>`
+      );
     } finally {
       $('btnRefresh').classList.remove('loading');
     }
   }
 
-  $('btnRefresh').addEventListener('click', () => init(true));
-
-  init();
+  $('btnRefresh').onclick = () => load(true);
+  load();
 })();
 </script>
 </body>
