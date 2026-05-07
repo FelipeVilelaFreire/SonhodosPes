@@ -472,6 +472,108 @@ svg {
     color: var(--color-danger);
 }
 
+.stack-header-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-soft);
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s var(--ease);
+}
+
+.btn-sort:hover {
+    background: var(--color-primary-whisper);
+    color: var(--color-text);
+}
+
+.btn-sort.sort-active {
+    color: var(--color-primary-deep);
+    background: var(--color-primary-whisper);
+}
+
+.sort-sheet {
+    max-height: 60vh;
+}
+
+.sort-options {
+    padding: 4px 0 calc(8px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+}
+
+.sort-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 20px;
+    gap: 16px;
+    text-align: left;
+    transition: background 0.15s var(--ease);
+}
+
+.sort-option:hover {
+    background: var(--color-primary-whisper);
+}
+
+.sort-option-text {
+    flex: 1;
+}
+
+.sort-option-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.sort-option.active .sort-option-label {
+    font-weight: 600;
+    color: var(--color-primary-deep);
+}
+
+.sort-option-sub {
+    display: block;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+
+.sort-option-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--color-primary-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s var(--ease);
+    color: transparent;
+}
+
+.sort-option.active .sort-option-check {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+
+@media (min-width: 641px) {
+    .sort-sheet {
+        max-width: 380px;
+    }
+}
+
 .stack {
     display: flex;
     flex-direction: column;

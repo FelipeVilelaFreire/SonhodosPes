@@ -86,12 +86,19 @@
         filterClear:    document.getElementById('filterClear'),
         filterApply:    document.getElementById('filterApply'),
         filterBrowse:   document.getElementById('filterBrowse'),
+
+        sortBtn:        document.getElementById('sortBtn'),
+        sortModal:      document.getElementById('sortModal'),
+        sortBackdrop:   document.getElementById('sortBackdrop'),
+        sortClose:      document.getElementById('sortClose'),
+        sortOptions:    document.getElementById('sortOptions'),
     };
 
     let produtos = [];
     let produtosByCode = new Map();
     let stack = [];
     let activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [] };
+    let activeSort = 'default';
 
     const db = {
         _db: null,
@@ -640,6 +647,81 @@
         el.introState.hidden = true;
     }
 
+    // ── Sort ────────────────────────────────────────────────────────────────
+
+    const SORT_OPTIONS = [
+        { key: 'default',    label: 'Padrão',       sub: 'ordem de consulta' },
+        { key: 'price-desc', label: 'Maior preço',   sub: 'mais caro primeiro' },
+        { key: 'price-asc',  label: 'Menor preço',   sub: 'mais barato primeiro' },
+        { key: 'name-asc',   label: 'A → Z',         sub: 'nome do produto' },
+        { key: 'name-desc',  label: 'Z → A',         sub: 'nome do produto' },
+    ];
+
+    function sortedStack() {
+        const s = [...stack];
+        switch (activeSort) {
+            case 'price-desc': return s.sort((a, b) => b.preco - a.preco);
+            case 'price-asc':  return s.sort((a, b) => a.preco - b.preco);
+            case 'name-asc':   return s.sort((a, b) => (a.modelo || '').localeCompare(b.modelo || '', 'pt-BR'));
+            case 'name-desc':  return s.sort((a, b) => (b.modelo || '').localeCompare(a.modelo || '', 'pt-BR'));
+            default:           return s;
+        }
+    }
+
+    function rerenderStack() {
+        el.stack.innerHTML = '';
+        sortedStack().forEach(p => el.stack.appendChild(renderCard(p)));
+    }
+
+    function updateSortBtn() {
+        if (el.sortBtn) el.sortBtn.classList.toggle('sort-active', activeSort !== 'default');
+    }
+
+    function buildSortUI() {
+        el.sortOptions.innerHTML = '';
+        SORT_OPTIONS.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'sort-option' + (activeSort === opt.key ? ' active' : '');
+
+            const text = document.createElement('div');
+            text.className = 'sort-option-text';
+            const lbl = document.createElement('span');
+            lbl.className = 'sort-option-label';
+            lbl.textContent = opt.label;
+            const sub = document.createElement('span');
+            sub.className = 'sort-option-sub';
+            sub.textContent = opt.sub;
+            text.append(lbl, sub);
+
+            const check = document.createElement('span');
+            check.className = 'sort-option-check';
+            check.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+            btn.append(text, check);
+            btn.addEventListener('click', () => {
+                activeSort = opt.key;
+                rerenderStack();
+                updateSortBtn();
+                closeSortModal();
+            });
+            el.sortOptions.appendChild(btn);
+        });
+    }
+
+    function openSortModal() {
+        buildSortUI();
+        el.sortModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSortModal() {
+        el.sortModal.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    // ── End Sort ─────────────────────────────────────────────────────────────
+
     // ── End Filter ───────────────────────────────────────────────────────────
 
     function updateStatus(isOnline) {
@@ -903,8 +985,12 @@
         }
 
         stack.unshift(produto);
-        const card = renderCard(produto);
-        el.stack.insertBefore(card, el.stack.firstChild);
+        if (activeSort !== 'default') {
+            rerenderStack();
+        } else {
+            const card = renderCard(produto);
+            el.stack.insertBefore(card, el.stack.firstChild);
+        }
 
         updateStackUI();
     }
@@ -1603,6 +1689,10 @@
 
         if (el.lensBtn) el.lensBtn.addEventListener('click', openLensSearch);
 
+        if (el.sortBtn) el.sortBtn.addEventListener('click', openSortModal);
+        if (el.sortClose) el.sortClose.addEventListener('click', closeSortModal);
+        if (el.sortBackdrop) el.sortBackdrop.addEventListener('click', closeSortModal);
+
         if (el.filterBtn) el.filterBtn.addEventListener('click', openFilterModal);
         if (el.filterClose) el.filterClose.addEventListener('click', closeFilterModal);
         if (el.filterBackdrop) el.filterBackdrop.addEventListener('click', closeFilterModal);
@@ -1653,7 +1743,8 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                if (!el.filterModal.hidden) closeFilterModal();
+                if (!el.sortModal.hidden) closeSortModal();
+                else if (!el.filterModal.hidden) closeFilterModal();
                 else if (!el.pinModal.hidden) hidePinModal();
                 // else if (!el.settingsModal.hidden) closeSettings();
             }

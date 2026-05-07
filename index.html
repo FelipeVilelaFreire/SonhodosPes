@@ -117,7 +117,16 @@
         <main class="app-main">
             <div class="stack-header" id="stackHeader" hidden>
                 <span class="stack-count" id="stackCount">0 consultas</span>
-                <button class="btn-clear-all" id="btnClearAll">Limpar tudo</button>
+                <div class="stack-header-right">
+                    <button class="btn-sort" id="sortBtn" aria-label="Ordenar consultas">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m3 16 4 4 4-4"/><path d="M7 20V4"/>
+                            <path d="m21 8-4-4-4 4"/><path d="M17 4v16"/>
+                        </svg>
+                        Ordenar
+                    </button>
+                    <button class="btn-clear-all" id="btnClearAll">Limpar tudo</button>
+                </div>
             </div>
 
             <section class="stack" id="stack"></section>
@@ -323,6 +332,23 @@
     </button>
 
     <!-- lens modal removido — usa input[type=file][capture=environment] nativo -->
+
+    <div class="filter-modal" id="sortModal" hidden>
+        <div class="filter-backdrop" id="sortBackdrop"></div>
+        <div class="filter-sheet sort-sheet" role="dialog" aria-labelledby="sortTitle">
+            <div class="filter-handle" aria-hidden="true"></div>
+            <div class="filter-header">
+                <h2 id="sortTitle" class="filter-title">Ordenar por</h2>
+                <button class="filter-close" id="sortClose" aria-label="Fechar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="sort-options" id="sortOptions"></div>
+        </div>
+    </div>
 
     <div class="filter-modal" id="filterModal" hidden>
         <div class="filter-backdrop" id="filterBackdrop"></div>
