@@ -731,59 +731,57 @@
     $('content').hidden    = true;
   }
 
+  // Wraps the full data pipeline — IDB + fetch + parse + render
+  async function doLoad(force) {
+    let prods = [], src = 'cache';
+
+    if (!force) prods = await readIDB();
+
+    if (!prods || prods.length === 0) {
+      const url = localStorage.getItem('sdp:csvUrl') || '/api/produtos';
+      const res = await fetch(url, { headers: { 'X-App-Token': TOKEN } });
+      if (!res.ok) throw new Error(`API retornou ${res.status} — verifique o token ou a planilha`);
+      const csv = await res.text();
+      if (!csv || csv.trim().startsWith('{')) throw new Error('Resposta inválida — abra o app principal para sincronizar');
+      prods = parseCSV(csv);
+      src   = 'api';
+    }
+
+    if (!prods || prods.length === 0) throw new Error('Planilha vazia ou sem dados reconhecíveis');
+
+    render(prods, src);
+    $('stateEl').hidden = true;
+    $('content').hidden = false;
+  }
+
   async function load(force = false) {
     showState('<div class="spinner"></div><h3>Carregando dados…</h3>');
     $('btnRefresh').classList.add('loading');
 
+    // Race the full pipeline against a 15s hard timeout.
+    // This covers every await (IDB, fetch headers, fetch body, render)
+    // so the spinner can NEVER stay forever.
+    let timeoutId;
+    const timeout = new Promise((_, rej) => {
+      timeoutId = setTimeout(() => rej(new Error('Tempo esgotado (15s) — verifique a conexão')), 15000);
+    });
+
     try {
-      let prods = [], src = 'cache';
-
-      // Try IDB first (unless forced refresh)
-      if (!force) prods = await readIDB();
-
-      // Always fetch from API if IDB empty or forced
-      if (!prods || prods.length === 0) {
-        const url  = localStorage.getItem('sdp:csvUrl') || '/api/produtos';
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 12000);
-        let res;
-        try {
-          res = await fetch(url, { headers: { 'X-App-Token': TOKEN }, signal: ctrl.signal });
-        } catch (e) {
-          throw new Error(e.name === 'AbortError' ? 'Tempo esgotado (>12s) ao buscar dados' : `Falha de rede: ${e.message}`);
-        } finally {
-          clearTimeout(timer);
-        }
-        if (!res.ok) throw new Error(`API retornou erro ${res.status}`);
-        const csv = await res.text();
-        if (!csv || csv.trim().startsWith('{')) throw new Error('Resposta inválida da API — tente reabrir o app principal');
-        prods = parseCSV(csv);
-        src   = 'api';
-      }
-
-      if (!prods || prods.length === 0) throw new Error('Planilha vazia ou sem dados reconhecíveis');
-
-      try {
-        render(prods, src);
-      } catch (renderErr) {
-        console.error('[painel] render error:', renderErr);
-        throw new Error(`Erro ao renderizar: ${renderErr.message}`);
-      }
-      $('stateEl').hidden = true;
-      $('content').hidden = false;
-
+      await Promise.race([doLoad(force), timeout]);
+      clearTimeout(timeoutId);
     } catch (err) {
-      console.error('[painel] load error:', err);
+      clearTimeout(timeoutId);
+      console.error('[painel]', err);
       showState(
         `<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-text-muted)">
            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
          </svg>
          <h3>Não foi possível carregar</h3>
-         <p>${err.message}</p>
+         <p>${String(err.message || err)}</p>
          <p style="margin-top:6px;font-size:11px;color:var(--color-text-muted)">
            Abra o app principal para sincronizar o cache, ou verifique a conexão.
          </p>
-         <button onclick="load(true)" style="margin-top:12px;padding:10px 20px;border-radius:99px;background:var(--color-primary);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;">
+         <button onclick="window.load(true)" style="margin-top:14px;padding:10px 22px;border-radius:99px;background:var(--color-primary);color:#fff;font-size:12px;font-weight:700;border:none;cursor:pointer;letter-spacing:.04em">
            Tentar novamente
          </button>`
       );
@@ -793,7 +791,7 @@
   }
 
   $('btnRefresh').onclick = () => load(true);
-  window.load = load;   // expose for error-state retry button
+  window.load = load;
   load();
 })();
 </script>
