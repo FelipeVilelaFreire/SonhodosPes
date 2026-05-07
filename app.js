@@ -471,7 +471,7 @@
             const cat = p.categoria || p.grupo;
             if (cat) catsSet.add(cat);
             for (const c of (p.cores || [])) {
-                if (c.nome && c.nome !== 'ÚNICA') coresSet.add(c.nome);
+                if (c.nome && c.nome !== 'ÚNICA' && !/^\d+$/.test(c.nome.trim())) coresSet.add(c.nome);
             }
         }
 
@@ -596,7 +596,7 @@
 
     function showFilterBrowse() {
         const results = applyFilters(produtos);
-        const MAX = 30;
+        const MAX = 20;
 
         const header = document.createElement('div');
         header.className = 'filter-browse-header';
@@ -621,45 +621,16 @@
             list.appendChild(empty);
         } else {
             results.slice(0, MAX).forEach(produto => {
-                const item = document.createElement('button');
-                item.type = 'button';
-                item.className = 'autocomplete-item';
-                item.dataset.codigo = produto.codigo;
-                const soldOut = isAllSoldOut(produto);
-                if (soldOut) item.classList.add('is-esgotado');
-
-                const leftCol = document.createElement('div');
-                leftCol.className = 'ac-left';
-                const codigoEl = document.createElement('span');
-                codigoEl.className = 'ac-codigo';
-                codigoEl.textContent = produto.codigo;
-                const modeloEl = document.createElement('span');
-                modeloEl.className = 'ac-modelo';
-                modeloEl.textContent = produto.modelo;
-                const marcaEl = document.createElement('span');
-                marcaEl.className = 'ac-marca';
-                const coresStr = (produto.cores || []).map(c => c.nome).join(' · ');
-                const cat = produto.categoria || produto.grupo || '';
-                marcaEl.textContent = coresStr ? `${cat} · ${coresStr}` : cat;
-                leftCol.append(codigoEl, modeloEl, marcaEl);
-
-                const rightCol = document.createElement('div');
-                rightCol.className = 'ac-right';
-                if (soldOut) {
-                    const tag = document.createElement('span');
-                    tag.className = 'ac-tag-esgotado';
-                    tag.textContent = 'Esgotado';
-                    rightCol.appendChild(tag);
-                } else {
-                    const precoEl = document.createElement('span');
-                    precoEl.className = 'ac-preco';
-                    precoEl.textContent = formatPrice(produto.preco);
-                    rightCol.appendChild(precoEl);
-                }
-
-                item.append(leftCol, rightCol);
-                item.addEventListener('click', () => addToStack(produto));
-                list.appendChild(item);
+                const card = renderCard(produto);
+                // close remove the browse card, not from the stack
+                const closeBtn = card.querySelector('.card-close');
+                const newCloseBtn = closeBtn.cloneNode(true);
+                closeBtn.replaceWith(newCloseBtn);
+                newCloseBtn.addEventListener('click', () => {
+                    card.classList.add('removing');
+                    setTimeout(() => card.remove(), 300);
+                });
+                list.appendChild(card);
             });
         }
 
