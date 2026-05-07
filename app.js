@@ -519,63 +519,60 @@
             updateFilterApplyCount();
         });
 
-        // Cores
-        const coresList = [...coresSet].sort();
-        if (coresList.length > 0) {
+        const CHIPS_VISIBLE = 9;
+
+        function buildChipsSection(label, list, activeList, onToggle) {
+            if (!list.length) return null;
             const section = document.createElement('div');
             const title = document.createElement('p');
             title.className = 'filter-section-title';
-            title.textContent = 'Cor';
+            title.textContent = label;
             const chips = document.createElement('div');
-            chips.className = 'filter-chips';
-            coresList.forEach(cor => {
+            chips.className = 'filter-chips' + (list.length > CHIPS_VISIBLE ? ' collapsed' : '');
+
+            list.forEach(value => {
                 const chip = document.createElement('button');
                 chip.type = 'button';
-                chip.className = 'filter-chip' + (activeFilters.cores.includes(cor) ? ' active' : '');
-                chip.textContent = cor;
+                chip.className = 'filter-chip' + (activeList.includes(value) ? ' active' : '');
+                chip.textContent = value;
                 chip.addEventListener('click', () => {
                     chip.classList.toggle('active');
-                    if (chip.classList.contains('active')) {
-                        if (!activeFilters.cores.includes(cor)) activeFilters.cores.push(cor);
-                    } else {
-                        activeFilters.cores = activeFilters.cores.filter(v => v !== cor);
-                    }
+                    onToggle(value, chip.classList.contains('active'));
                     updateFilterApplyCount();
                 });
                 chips.appendChild(chip);
             });
+
             section.append(title, chips);
-            body.appendChild(section);
+
+            if (list.length > CHIPS_VISIBLE) {
+                const expandBtn = document.createElement('button');
+                expandBtn.type = 'button';
+                expandBtn.className = 'filter-chips-expand';
+                expandBtn.textContent = `+ ${list.length - CHIPS_VISIBLE} mais`;
+                expandBtn.addEventListener('click', () => {
+                    chips.classList.remove('collapsed');
+                    expandBtn.remove();
+                });
+                section.appendChild(expandBtn);
+            }
+
+            return section;
         }
 
-        // Categorias
+        const coresList = [...coresSet].sort();
+        const coresSection = buildChipsSection('Cor', coresList, activeFilters.cores, (cor, add) => {
+            if (add) { if (!activeFilters.cores.includes(cor)) activeFilters.cores.push(cor); }
+            else { activeFilters.cores = activeFilters.cores.filter(v => v !== cor); }
+        });
+        if (coresSection) body.appendChild(coresSection);
+
         const catsList = [...catsSet].sort();
-        if (catsList.length > 0) {
-            const section = document.createElement('div');
-            const title = document.createElement('p');
-            title.className = 'filter-section-title';
-            title.textContent = 'Categoria';
-            const chips = document.createElement('div');
-            chips.className = 'filter-chips';
-            catsList.forEach(cat => {
-                const chip = document.createElement('button');
-                chip.type = 'button';
-                chip.className = 'filter-chip' + (activeFilters.categorias.includes(cat) ? ' active' : '');
-                chip.textContent = cat;
-                chip.addEventListener('click', () => {
-                    chip.classList.toggle('active');
-                    if (chip.classList.contains('active')) {
-                        if (!activeFilters.categorias.includes(cat)) activeFilters.categorias.push(cat);
-                    } else {
-                        activeFilters.categorias = activeFilters.categorias.filter(v => v !== cat);
-                    }
-                    updateFilterApplyCount();
-                });
-                chips.appendChild(chip);
-            });
-            section.append(title, chips);
-            body.appendChild(section);
-        }
+        const catsSection = buildChipsSection('Categoria', catsList, activeFilters.categorias, (cat, add) => {
+            if (add) { if (!activeFilters.categorias.includes(cat)) activeFilters.categorias.push(cat); }
+            else { activeFilters.categorias = activeFilters.categorias.filter(v => v !== cat); }
+        });
+        if (catsSection) body.appendChild(catsSection);
     }
 
     function clearActiveFilters() {
