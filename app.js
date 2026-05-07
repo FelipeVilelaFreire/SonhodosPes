@@ -76,11 +76,22 @@
         lensVideo:      document.getElementById('lensVideo'),
         lensCanvas:     document.getElementById('lensCanvas'),
         lensCaptureBtn: document.getElementById('lensCaptureBtn'),
+
+        filterBtn:      document.getElementById('filterBtn'),
+        filterBadge:    document.getElementById('filterBadge'),
+        filterModal:    document.getElementById('filterModal'),
+        filterBackdrop: document.getElementById('filterBackdrop'),
+        filterClose:    document.getElementById('filterClose'),
+        filterBody:     document.getElementById('filterBody'),
+        filterClear:    document.getElementById('filterClear'),
+        filterApply:    document.getElementById('filterApply'),
+        filterBrowse:   document.getElementById('filterBrowse'),
     };
 
     let produtos = [];
     let produtosByCode = new Map();
     let stack = [];
+    let activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [] };
 
     const db = {
         _db: null,
@@ -399,6 +410,267 @@
         }, 2800);
     }
 
+    // ── Filter ──────────────────────────────────────────────────────────────
+
+    function hasActiveFilters() {
+        return activeFilters.priceMin !== null || activeFilters.priceMax !== null ||
+               activeFilters.cores.length > 0 || activeFilters.categorias.length > 0;
+    }
+
+    function countActiveFilters() {
+        let n = 0;
+        if (activeFilters.priceMin !== null || activeFilters.priceMax !== null) n++;
+        if (activeFilters.cores.length) n++;
+        if (activeFilters.categorias.length) n++;
+        return n;
+    }
+
+    function applyFilters(list) {
+        if (!hasActiveFilters()) return list;
+        return list.filter(p => {
+            if (activeFilters.priceMin !== null && p.preco < activeFilters.priceMin) return false;
+            if (activeFilters.priceMax !== null && p.preco > activeFilters.priceMax) return false;
+            if (activeFilters.cores.length) {
+                const pCores = (p.cores || []).map(c => c.nome);
+                if (!activeFilters.cores.some(fc => pCores.includes(fc))) return false;
+            }
+            if (activeFilters.categorias.length) {
+                const cat = p.categoria || p.grupo || '';
+                if (!activeFilters.categorias.includes(cat)) return false;
+            }
+            return true;
+        });
+    }
+
+    function updateFilterBadge() {
+        const n = countActiveFilters();
+        if (el.filterBadge) {
+            el.filterBadge.textContent = n;
+            el.filterBadge.hidden = n === 0;
+        }
+        if (el.filterBtn) el.filterBtn.classList.toggle('filter-active', n > 0);
+    }
+
+    function updateFilterApplyCount() {
+        if (!el.filterApply) return;
+        const count = applyFilters(produtos).length;
+        el.filterApply.textContent = count > 0
+            ? `Ver ${count} produto${count !== 1 ? 's' : ''}`
+            : 'Sem resultados';
+        el.filterApply.disabled = count === 0;
+    }
+
+    function buildFilterUI() {
+        if (!el.filterBody) return;
+        const body = el.filterBody;
+        body.innerHTML = '';
+
+        const coresSet = new Set();
+        const catsSet = new Set();
+        for (const p of produtos) {
+            const cat = p.categoria || p.grupo;
+            if (cat) catsSet.add(cat);
+            for (const c of (p.cores || [])) {
+                if (c.nome && c.nome !== 'ÚNICA') coresSet.add(c.nome);
+            }
+        }
+
+        // Preço
+        const priceSection = document.createElement('div');
+        const priceTitle = document.createElement('p');
+        priceTitle.className = 'filter-section-title';
+        priceTitle.textContent = 'Preço';
+        const priceRow = document.createElement('div');
+        priceRow.className = 'filter-price-row';
+        const minInput = document.createElement('input');
+        minInput.type = 'number';
+        minInput.className = 'filter-price-input';
+        minInput.placeholder = 'Mín R$';
+        minInput.min = '0';
+        minInput.step = '10';
+        if (activeFilters.priceMin !== null) minInput.value = activeFilters.priceMin;
+        const sep = document.createElement('span');
+        sep.className = 'filter-price-sep';
+        sep.textContent = '—';
+        const maxInput = document.createElement('input');
+        maxInput.type = 'number';
+        maxInput.className = 'filter-price-input';
+        maxInput.placeholder = 'Máx R$';
+        maxInput.min = '0';
+        maxInput.step = '10';
+        if (activeFilters.priceMax !== null) maxInput.value = activeFilters.priceMax;
+        priceRow.append(minInput, sep, maxInput);
+        priceSection.append(priceTitle, priceRow);
+        body.appendChild(priceSection);
+
+        minInput.addEventListener('input', () => {
+            activeFilters.priceMin = minInput.value !== '' ? parseFloat(minInput.value) : null;
+            updateFilterApplyCount();
+        });
+        maxInput.addEventListener('input', () => {
+            activeFilters.priceMax = maxInput.value !== '' ? parseFloat(maxInput.value) : null;
+            updateFilterApplyCount();
+        });
+
+        // Cores
+        const coresList = [...coresSet].sort();
+        if (coresList.length > 0) {
+            const section = document.createElement('div');
+            const title = document.createElement('p');
+            title.className = 'filter-section-title';
+            title.textContent = 'Cor';
+            const chips = document.createElement('div');
+            chips.className = 'filter-chips';
+            coresList.forEach(cor => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'filter-chip' + (activeFilters.cores.includes(cor) ? ' active' : '');
+                chip.textContent = cor;
+                chip.addEventListener('click', () => {
+                    chip.classList.toggle('active');
+                    if (chip.classList.contains('active')) {
+                        if (!activeFilters.cores.includes(cor)) activeFilters.cores.push(cor);
+                    } else {
+                        activeFilters.cores = activeFilters.cores.filter(v => v !== cor);
+                    }
+                    updateFilterApplyCount();
+                });
+                chips.appendChild(chip);
+            });
+            section.append(title, chips);
+            body.appendChild(section);
+        }
+
+        // Categorias
+        const catsList = [...catsSet].sort();
+        if (catsList.length > 0) {
+            const section = document.createElement('div');
+            const title = document.createElement('p');
+            title.className = 'filter-section-title';
+            title.textContent = 'Categoria';
+            const chips = document.createElement('div');
+            chips.className = 'filter-chips';
+            catsList.forEach(cat => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'filter-chip' + (activeFilters.categorias.includes(cat) ? ' active' : '');
+                chip.textContent = cat;
+                chip.addEventListener('click', () => {
+                    chip.classList.toggle('active');
+                    if (chip.classList.contains('active')) {
+                        if (!activeFilters.categorias.includes(cat)) activeFilters.categorias.push(cat);
+                    } else {
+                        activeFilters.categorias = activeFilters.categorias.filter(v => v !== cat);
+                    }
+                    updateFilterApplyCount();
+                });
+                chips.appendChild(chip);
+            });
+            section.append(title, chips);
+            body.appendChild(section);
+        }
+    }
+
+    function clearActiveFilters() {
+        activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [] };
+        updateFilterBadge();
+        if (!el.consultaInput.value.trim()) {
+            el.filterBrowse.hidden = true;
+            if (!stack.length) el.introState.hidden = false;
+        } else {
+            handleInput();
+        }
+    }
+
+    function openFilterModal() {
+        buildFilterUI();
+        updateFilterApplyCount();
+        el.filterModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFilterModal() {
+        el.filterModal.hidden = true;
+        document.body.style.overflow = '';
+    }
+
+    function showFilterBrowse() {
+        const results = applyFilters(produtos);
+        const MAX = 30;
+
+        const header = document.createElement('div');
+        header.className = 'filter-browse-header';
+        const label = document.createElement('span');
+        label.className = 'filter-browse-label';
+        label.textContent = `${results.length} produto${results.length !== 1 ? 's' : ''} encontrados`;
+        header.appendChild(label);
+        if (results.length > MAX) {
+            const more = document.createElement('span');
+            more.className = 'filter-browse-more';
+            more.textContent = `mostrando ${MAX}`;
+            header.appendChild(more);
+        }
+
+        const list = document.createElement('div');
+        list.className = 'filter-browse-list';
+
+        if (results.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'filter-browse-empty';
+            empty.textContent = 'Nenhum produto com esses filtros';
+            list.appendChild(empty);
+        } else {
+            results.slice(0, MAX).forEach(produto => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'autocomplete-item';
+                item.dataset.codigo = produto.codigo;
+                const soldOut = isAllSoldOut(produto);
+                if (soldOut) item.classList.add('is-esgotado');
+
+                const leftCol = document.createElement('div');
+                leftCol.className = 'ac-left';
+                const codigoEl = document.createElement('span');
+                codigoEl.className = 'ac-codigo';
+                codigoEl.textContent = produto.codigo;
+                const modeloEl = document.createElement('span');
+                modeloEl.className = 'ac-modelo';
+                modeloEl.textContent = produto.modelo;
+                const marcaEl = document.createElement('span');
+                marcaEl.className = 'ac-marca';
+                const coresStr = (produto.cores || []).map(c => c.nome).join(' · ');
+                const cat = produto.categoria || produto.grupo || '';
+                marcaEl.textContent = coresStr ? `${cat} · ${coresStr}` : cat;
+                leftCol.append(codigoEl, modeloEl, marcaEl);
+
+                const rightCol = document.createElement('div');
+                rightCol.className = 'ac-right';
+                if (soldOut) {
+                    const tag = document.createElement('span');
+                    tag.className = 'ac-tag-esgotado';
+                    tag.textContent = 'Esgotado';
+                    rightCol.appendChild(tag);
+                } else {
+                    const precoEl = document.createElement('span');
+                    precoEl.className = 'ac-preco';
+                    precoEl.textContent = formatPrice(produto.preco);
+                    rightCol.appendChild(precoEl);
+                }
+
+                item.append(leftCol, rightCol);
+                item.addEventListener('click', () => addToStack(produto));
+                list.appendChild(item);
+            });
+        }
+
+        el.filterBrowse.innerHTML = '';
+        el.filterBrowse.append(header, list);
+        el.filterBrowse.hidden = false;
+        el.introState.hidden = true;
+    }
+
+    // ── End Filter ───────────────────────────────────────────────────────────
+
     function updateStatus(isOnline) {
         el.statusIndicator.classList.remove('online', 'offline');
         el.statusIndicator.classList.add(isOnline ? 'online' : 'offline');
@@ -694,10 +966,15 @@
             el.stackHeader.hidden = false;
             el.stackCount.textContent = count === 1 ? '1 consulta' : `${count} consultas`;
             el.introState.hidden = true;
+            el.filterBrowse.hidden = true;
         } else {
             el.stackHeader.hidden = true;
             if (!el.consultaInput.value.trim()) {
-                el.introState.hidden = false;
+                if (hasActiveFilters()) {
+                    showFilterBrowse();
+                } else {
+                    el.introState.hidden = false;
+                }
             }
         }
     }
@@ -780,7 +1057,13 @@
         el.autocomplete.hidden = true;
         el.autocomplete.innerHTML = '';
         el.emptySearch.hidden = true;
-        if (!stack.length) el.introState.hidden = false;
+        if (!stack.length) {
+            if (hasActiveFilters()) {
+                showFilterBrowse();
+            } else {
+                el.introState.hidden = false;
+            }
+        }
     }
 
     function clearInput() {
@@ -793,6 +1076,7 @@
     function handleInput() {
         const value = el.consultaInput.value;
         el.clearBtn.hidden = !value;
+        el.filterBrowse.hidden = true;
 
         if (!value.trim()) {
             hideAutocomplete();
@@ -809,7 +1093,7 @@
             }
         }
 
-        const results = searchProdutos(value);
+        const results = applyFilters(searchProdutos(value));
         renderAutocomplete(results, value);
     }
 
@@ -817,7 +1101,7 @@
         const value = el.consultaInput.value.trim();
         if (!value) return;
 
-        const results = searchProdutos(value);
+        const results = applyFilters(searchProdutos(value));
         if (results.length > 0) {
             addToStack(results[0]);
             clearInput();
@@ -1348,6 +1632,23 @@
 
         if (el.lensBtn) el.lensBtn.addEventListener('click', openLensSearch);
 
+        if (el.filterBtn) el.filterBtn.addEventListener('click', openFilterModal);
+        if (el.filterClose) el.filterClose.addEventListener('click', closeFilterModal);
+        if (el.filterBackdrop) el.filterBackdrop.addEventListener('click', closeFilterModal);
+        if (el.filterClear) el.filterClear.addEventListener('click', () => {
+            clearActiveFilters();
+            closeFilterModal();
+        });
+        if (el.filterApply) el.filterApply.addEventListener('click', () => {
+            closeFilterModal();
+            updateFilterBadge();
+            if (!el.consultaInput.value.trim() && !stack.length) {
+                showFilterBrowse();
+            } else if (el.consultaInput.value.trim()) {
+                handleInput();
+            }
+        });
+
         el.pinModal.addEventListener('click', (e) => {
             if (e.target === el.pinModal || e.target.closest('.pin-content')) {
                 el.pinInput.focus();
@@ -1381,7 +1682,8 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                if (!el.pinModal.hidden) hidePinModal();
+                if (!el.filterModal.hidden) closeFilterModal();
+                else if (!el.pinModal.hidden) hidePinModal();
                 // else if (!el.settingsModal.hidden) closeSettings();
             }
         });

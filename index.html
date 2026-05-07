@@ -62,18 +62,32 @@
         <section class="search-section" id="searchSection">
             <div class="search-header">
                 <label for="consultaInput" class="search-label">Buscar produto</label>
-                <button class="scan-action-btn" id="scanBtn" aria-label="Escanear QR Code">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                        <rect x="7" y="7" width="3" height="3"/>
-                        <rect x="14" y="7" width="3" height="3"/>
-                        <rect x="7" y="14" width="3" height="3"/>
-                        <rect x="14" y="14" width="3" height="3"/>
-                        <path d="M12 7v10"/>
-                        <path d="M7 12h10"/>
-                    </svg>
-                    Escanear QR
-                </button>
+                <div class="search-header-actions">
+                    <button class="scan-action-btn" id="filterBtn" aria-label="Filtrar produtos">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                            <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                            <line x1="1" y1="14" x2="7" y2="14"/>
+                            <line x1="9" y1="8" x2="15" y2="8"/>
+                            <line x1="17" y1="16" x2="23" y2="16"/>
+                        </svg>
+                        Filtros
+                        <span class="filter-badge" id="filterBadge" hidden>0</span>
+                    </button>
+                    <button class="scan-action-btn" id="scanBtn" aria-label="Escanear QR Code">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <rect x="7" y="7" width="3" height="3"/>
+                            <rect x="14" y="7" width="3" height="3"/>
+                            <rect x="7" y="14" width="3" height="3"/>
+                            <rect x="14" y="14" width="3" height="3"/>
+                            <path d="M12 7v10"/>
+                            <path d="M7 12h10"/>
+                        </svg>
+                        Escanear QR
+                    </button>
+                </div>
             </div>
             <div class="search-wrapper">
                 <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -108,6 +122,8 @@
             </div>
 
             <section class="stack" id="stack"></section>
+
+            <section class="filter-browse" id="filterBrowse" hidden></section>
 
             <section class="intro-state" id="introState">
                 <div class="intro-icon" aria-hidden="true">
@@ -308,6 +324,27 @@
     </button>
 
     <!-- lens modal removido — usa input[type=file][capture=environment] nativo -->
+
+    <div class="filter-modal" id="filterModal" hidden>
+        <div class="filter-backdrop" id="filterBackdrop"></div>
+        <div class="filter-sheet" role="dialog" aria-labelledby="filterTitle">
+            <div class="filter-handle" aria-hidden="true"></div>
+            <div class="filter-header">
+                <h2 id="filterTitle" class="filter-title">Filtros</h2>
+                <button class="filter-close" id="filterClose" aria-label="Fechar filtros">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="filter-body" id="filterBody"></div>
+            <div class="filter-footer">
+                <button class="btn-secondary filter-clear-btn" id="filterClear">Limpar</button>
+                <button class="btn-primary filter-apply-btn" id="filterApply">Ver produtos</button>
+            </div>
+        </div>
+    </div>
 
     <div class="toast" id="toast" hidden></div>
 
