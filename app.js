@@ -476,7 +476,7 @@
         const catsSet = new Set();
         for (const p of produtos) {
             const cat = p.categoria || p.grupo;
-            if (cat) catsSet.add(cat);
+            if (cat && !/^\d+$/.test(String(cat).trim())) catsSet.add(cat);
             for (const c of (p.cores || [])) {
                 if (c.nome && c.nome !== 'ÚNICA' && !/^\d+$/.test(c.nome.trim())) coresSet.add(c.nome);
             }
