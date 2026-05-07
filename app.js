@@ -735,8 +735,19 @@
     }
 
     function rerenderStack() {
+        const sorted = sortedStack();
         el.stack.innerHTML = '';
-        sortedStack().forEach(p => el.stack.appendChild(renderCard(p)));
+        sorted.forEach((p, i) => {
+            const card = renderCard(p);
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(-10px)';
+            el.stack.appendChild(card);
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                card.style.opacity = '';
+                card.style.transform = '';
+            }, i * 50);
+        });
     }
 
     function updateSortBtn() {
@@ -767,10 +778,23 @@
             btn.append(text, check);
             btn.addEventListener('click', () => {
                 activeSort = opt.key;
+                const sorted = sortedStack();
                 rerenderStack();
                 updateSortBtn();
                 closeSortModal();
-                if (opt.key !== 'default') showToast(`Ordenado: ${opt.label}`, 'success');
+                if (opt.key !== 'default' && sorted.length > 0) {
+                    let detail = '';
+                    if (opt.key.includes('price')) {
+                        const first = sorted[0].preco;
+                        const last  = sorted[sorted.length - 1].preco;
+                        detail = ` · R$${first.toFixed(0)} → R$${last.toFixed(0)}`;
+                    } else {
+                        const first = (sorted[0].modelo || '').slice(0, 10);
+                        const last  = (sorted[sorted.length - 1].modelo || '').slice(0, 10);
+                        detail = ` · ${first} → ${last}`;
+                    }
+                    showToast(`${opt.label}${detail}`, 'success');
+                }
                 requestAnimationFrame(() => {
                     el.stack.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 });
