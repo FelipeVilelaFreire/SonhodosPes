@@ -885,19 +885,11 @@
 
         card.querySelector('.product-codigo').textContent = produto.codigo;
 
-        const categoriaBadgeEl = card.querySelector('.product-categoria-badge');
-        const categoriaTextEl = card.querySelector('.product-categoria-text');
-        const catValue = produto.categoria || produto.grupo || '';
-        if (catValue && categoriaBadgeEl) {
-            categoriaTextEl.textContent = catValue;
-            categoriaBadgeEl.hidden = false;
-        }
-
         card.querySelector('.product-modelo').textContent = produto.modelo || 'Sem descrição';
 
         const colecaoEl = card.querySelector('.product-colecao');
         if (produto.colecao) {
-            colecaoEl.querySelector('span').textContent = produto.colecao;
+            colecaoEl.querySelector('.product-colecao-text').textContent = produto.colecao;
             colecaoEl.hidden = false;
         }
 

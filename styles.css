@@ -842,26 +842,6 @@ svg {
     word-wrap: break-word;
 }
 
-.product-colecao {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 11px 4px 8px;
-    background: linear-gradient(135deg, var(--color-primary-whisper), var(--color-primary-soft));
-    border: 1px solid var(--color-primary);
-    border-radius: var(--radius-lg);
-    color: var(--color-primary-deep);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    margin: -10px 0 16px;
-}
-
-.product-colecao svg {
-    flex-shrink: 0;
-    opacity: 0.75;
-}
 
 .product-localizacao-wrap {
     margin: -10px 0 18px;
@@ -1146,7 +1126,7 @@ svg {
     width: fit-content;
 }
 
-.product-categoria-badge {
+.product-colecao {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1157,13 +1137,13 @@ svg {
     width: fit-content;
 }
 
-.product-categoria-badge svg {
+.product-colecao svg {
     color: var(--color-primary-deep);
     flex-shrink: 0;
     opacity: 0.7;
 }
 
-.product-categoria-label {
+.product-colecao-label {
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.08em;
@@ -1171,7 +1151,7 @@ svg {
     color: var(--color-text-muted);
 }
 
-.product-categoria-text {
+.product-colecao-text {
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.06em;
