@@ -1120,7 +1120,13 @@
 
     function clearStack() {
         stack = [];
+        el.filterBrowse.innerHTML = '';
+        el.filterBrowse.hidden = true;
         const cards = el.stack.querySelectorAll('.product-card');
+        if (!cards.length) {
+            updateStackUI();
+            return;
+        }
         cards.forEach((c, i) => {
             setTimeout(() => c.classList.add('removing'), i * 40);
         });
@@ -1143,6 +1149,8 @@
                 if (hasActiveFilters()) {
                     showFilterBrowse();
                 } else {
+                    el.filterBrowse.innerHTML = '';
+                    el.filterBrowse.hidden = true;
                     el.introState.hidden = false;
                 }
             }
