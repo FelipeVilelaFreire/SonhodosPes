@@ -1768,10 +1768,14 @@
 
         el.btnClearAll.addEventListener('click', () => {
             if (stack.length > 1 && !confirm(`Remover as ${stack.length} consultas da tela?`)) return;
-            clearStack();
-            clearInput();
             activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [], colecoes: [] };
             updateFilterBadge();
+            el.consultaInput.value = '';
+            el.clearBtn.hidden = true;
+            hideAutocomplete();
+            el.emptySearch.hidden = true;
+            el.filterBrowse.hidden = true;
+            clearStack();
         });
 
         // settings desativado
