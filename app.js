@@ -885,8 +885,13 @@
 
         card.querySelector('.product-codigo').textContent = produto.codigo;
 
-        const categoriaEl = card.querySelector('.product-categoria');
-        if (categoriaEl) categoriaEl.textContent = produto.categoria || produto.grupo || '';
+        const categoriaBadgeEl = card.querySelector('.product-categoria-badge');
+        const categoriaTextEl = card.querySelector('.product-categoria-text');
+        const catValue = produto.categoria || produto.grupo || '';
+        if (catValue && categoriaBadgeEl) {
+            categoriaTextEl.textContent = catValue;
+            categoriaBadgeEl.hidden = false;
+        }
 
         card.querySelector('.product-modelo').textContent = produto.modelo || 'Sem descrição';
 

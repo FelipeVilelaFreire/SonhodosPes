@@ -171,7 +171,6 @@
 
             <div class="product-card-header">
                 <span class="product-codigo"></span>
-                <span class="product-categoria"></span>
             </div>
 
             <h2 class="product-modelo"></h2>
@@ -221,15 +220,25 @@
                 <span class="price-value"></span>
             </div>
 
-            <p class="product-fornecedor" hidden>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M3 21h18"/>
-                    <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
-                    <path d="M9 8h1m5 0h1M9 12h1m5 0h1M9 16h1m5 0h1"/>
-                </svg>
-                <span class="product-fornecedor-label">Fabricante</span>
-                <span class="product-fornecedor-text"></span>
-            </p>
+            <div class="product-badges-row">
+                <p class="product-fornecedor" hidden>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 21h18"/>
+                        <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
+                        <path d="M9 8h1m5 0h1M9 12h1m5 0h1M9 16h1m5 0h1"/>
+                    </svg>
+                    <span class="product-fornecedor-label">Fabricante</span>
+                    <span class="product-fornecedor-text"></span>
+                </p>
+                <p class="product-categoria-badge" hidden>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                        <line x1="7" y1="7" x2="7.01" y2="7"/>
+                    </svg>
+                    <span class="product-categoria-label">Categoria</span>
+                    <span class="product-categoria-text"></span>
+                </p>
+            </div>
 
             <div class="product-actions" style="margin-top: 20px;">
                 <a href="#" class="btn-primary product-site-link" target="_blank" rel="noopener" style="text-decoration: none; justify-content: center; display: flex; width: 100%;">

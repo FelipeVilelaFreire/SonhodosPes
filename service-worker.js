@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sonhodospes-app-v3';
+const CACHE_NAME = 'sonhodospes-app-v4';
 const PRECACHE_URLS = [
     './',
     './index.html',
@@ -6,6 +6,8 @@ const PRECACHE_URLS = [
     './app.js',
     './logo.svg',
     './icon.svg',
+    './icon-192.png',
+    './icon-512.png',
     './config.json',
     './manifest.json',
     './html5-qrcode.min.js',
