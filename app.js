@@ -97,7 +97,7 @@
     let produtos = [];
     let produtosByCode = new Map();
     let stack = [];
-    let activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [] };
+    let activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [], colecoes: [] };
     let activeSort = 'default';
 
     const db = {
@@ -245,6 +245,7 @@
                 byCode.set(codigo, {
                     codigo,
                     modelo: col(values, 'desc_produto', 'modelo', 'nome', 'descricao'),
+                    colecao: col(values, 'coleção', 'colecao', 'collection', 'coleção'),
                     categoria: col(values, 'subgrupo_produto', 'subgrupo', 'categoria'),
                     grupo: col(values, 'grupo_produto', 'grupo'),
                     fabricante: col(values, 'fabricante'),
@@ -339,6 +340,7 @@
         const parts = [
             produto.codigo,
             produto.modelo,
+            produto.colecao,
             produto.categoria,
             produto.grupo,
             produto.referencia,
@@ -421,7 +423,8 @@
 
     function hasActiveFilters() {
         return activeFilters.priceMin !== null || activeFilters.priceMax !== null ||
-               activeFilters.cores.length > 0 || activeFilters.categorias.length > 0;
+               activeFilters.cores.length > 0 || activeFilters.categorias.length > 0 ||
+               activeFilters.colecoes.length > 0;
     }
 
     function countActiveFilters() {
@@ -429,6 +432,7 @@
         if (activeFilters.priceMin !== null || activeFilters.priceMax !== null) n++;
         if (activeFilters.cores.length) n++;
         if (activeFilters.categorias.length) n++;
+        if (activeFilters.colecoes.length) n++;
         return n;
     }
 
@@ -444,6 +448,9 @@
             if (activeFilters.categorias.length) {
                 const cat = p.categoria || p.grupo || '';
                 if (!activeFilters.categorias.includes(cat)) return false;
+            }
+            if (activeFilters.colecoes.length) {
+                if (!activeFilters.colecoes.includes(p.colecao || '')) return false;
             }
             return true;
         });
@@ -474,9 +481,11 @@
 
         const coresSet = new Set();
         const catsSet = new Set();
+        const colecoesSet = new Set();
         for (const p of produtos) {
             const cat = p.categoria || p.grupo;
             if (cat && !/^\d+$/.test(String(cat).trim())) catsSet.add(cat);
+            if (p.colecao) colecoesSet.add(p.colecao);
             for (const c of (p.cores || [])) {
                 if (c.nome && c.nome !== 'ÚNICA' && !/^\d+$/.test(c.nome.trim())) coresSet.add(c.nome);
             }
@@ -534,7 +543,7 @@
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.className = 'filter-search';
-        searchInput.placeholder = 'Buscar cor ou categoria…';
+        searchInput.placeholder = 'Buscar cor, categoria ou coleção…';
         searchInput.autocomplete = 'off';
         searchInput.spellcheck = false;
         searchWrap.append(searchIcon, searchInput);
@@ -622,6 +631,13 @@
         });
         if (catsSection) body.appendChild(catsSection);
 
+        const colecoesList = [...colecoesSet].sort();
+        const colecoesSection = buildChipsSection('Coleção', colecoesList, activeFilters.colecoes, (col, add) => {
+            if (add) { if (!activeFilters.colecoes.includes(col)) activeFilters.colecoes.push(col); }
+            else { activeFilters.colecoes = activeFilters.colecoes.filter(v => v !== col); }
+        });
+        if (colecoesSection) body.appendChild(colecoesSection);
+
         // Busca em tempo real nos chips
         searchInput.addEventListener('input', () => {
             const query = normalize(searchInput.value);
@@ -652,7 +668,7 @@
     }
 
     function clearActiveFilters() {
-        activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [] };
+        activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [], colecoes: [] };
         updateFilterBadge();
         if (!el.consultaInput.value.trim()) {
             el.filterBrowse.hidden = true;
@@ -873,6 +889,12 @@
         if (categoriaEl) categoriaEl.textContent = produto.categoria || produto.grupo || '';
 
         card.querySelector('.product-modelo').textContent = produto.modelo || 'Sem descrição';
+
+        const colecaoEl = card.querySelector('.product-colecao');
+        if (produto.colecao) {
+            colecaoEl.querySelector('span').textContent = produto.colecao;
+            colecaoEl.hidden = false;
+        }
 
         // Localização — sempre visível, com edição inline
         const locEl       = card.querySelector('.product-localizacao');

@@ -842,6 +842,27 @@ svg {
     word-wrap: break-word;
 }
 
+.product-colecao {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 8px;
+    background: linear-gradient(135deg, var(--color-primary-whisper), var(--color-primary-soft));
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    color: var(--color-primary-deep);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    margin: -10px 0 16px;
+}
+
+.product-colecao svg {
+    flex-shrink: 0;
+    opacity: 0.75;
+}
+
 .product-localizacao-wrap {
     margin: -10px 0 18px;
 }
