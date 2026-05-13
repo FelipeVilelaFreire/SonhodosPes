@@ -1240,8 +1240,8 @@ svg {
     z-index: 90;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 10px 16px;
+    gap: 8px;
+    padding: 11px 18px;
     background: #1a73e8;
     color: #fff;
     border-radius: 100px;
@@ -1249,9 +1249,36 @@ svg {
     font-weight: 600;
     letter-spacing: 0.02em;
     box-shadow: 0 4px 16px rgba(26,115,232,0.25);
-    opacity: 0.55;
-    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    opacity: 0.6;
     white-space: nowrap;
+    transition:
+        padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        gap 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.2s,
+        transform 0.15s,
+        box-shadow 0.2s;
+}
+
+.lens-fab-text {
+    display: inline-block;
+    max-width: 200px;
+    overflow: hidden;
+    opacity: 1;
+    transition:
+        max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lens-fab--collapsed {
+    padding: 13px;
+    gap: 0;
+    opacity: 0.75;
+    box-shadow: 0 4px 20px rgba(26,115,232,0.3);
+}
+
+.lens-fab--collapsed .lens-fab-text {
+    max-width: 0;
+    opacity: 0;
 }
 
 .lens-fab:hover,

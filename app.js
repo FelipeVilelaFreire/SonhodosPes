@@ -1916,6 +1916,17 @@
                 console.warn('Service worker falhou:', err);
             });
         }
+
+        if (el.lensBtn) {
+            let lensFabCollapsed = false;
+            window.addEventListener('scroll', () => {
+                const shouldCollapse = window.scrollY > 60;
+                if (shouldCollapse !== lensFabCollapsed) {
+                    lensFabCollapsed = shouldCollapse;
+                    el.lensBtn.classList.toggle('lens-fab--collapsed', shouldCollapse);
+                }
+            }, { passive: true });
+        }
     }
 
     let deferredInstallPrompt = null;
