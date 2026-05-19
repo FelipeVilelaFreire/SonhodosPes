@@ -8,17 +8,51 @@
     const WHEEL_SEGMENT_COUNT = 40;
     const WHEEL_SEPARATOR_COLOR = '#FFF7EA';
 
-    const SEGMENT_COLORS = [
-        '#F5C04A',
-        '#B23A48',
-        '#2F8F83',
-        '#4A6FA5',
-        '#E76F51',
-        '#8E5A9F',
+    const VALUE_COLORS = [
         '#C8B091',
+        '#A88B65',
+        '#D9C5AA',
+        '#BDA17D',
+        '#C89B5E',
+        '#B89168',
+        '#9B7B58',
+        '#7B9063',
+        '#66775B',
+        '#879970',
+        '#A4B08B',
         '#2F5D62',
-        '#D98E34',
-        '#6F7F3B',
+        '#4E7478',
+        '#6E8F92',
+        '#4A6F8A',
+        '#6F879A',
+        '#5C5266',
+        '#7A6F82',
+        '#7F2D3A',
+        '#9B4050',
+        '#B5574A',
+        '#C86B5F',
+        '#8A4D42',
+        '#A76555',
+        '#C07F68',
+        '#B68B66',
+        '#94785E',
+        '#D7B46A',
+        '#E1C589',
+        '#B7A28F',
+        '#8D8175',
+        '#A99682',
+        '#D7CEC1',
+        '#E8DFD1',
+        '#F2EBDF',
+        '#F7F0E6',
+        '#A36A6F',
+        '#866B73',
+        '#6D7B68',
+        '#8C955E',
+        '#536C5F',
+        '#365C68',
+        '#71605A',
+        '#B78373',
     ];
 
     const el = {
@@ -143,29 +177,87 @@
         return list.filter(prize => prize.quantidade > 0);
     }
 
-    function pickNonRepeatingColor(previous) {
-        const available = SEGMENT_COLORS.filter(color => color !== previous);
-        return available[Math.floor(Math.random() * available.length)];
+    function hashString(value) {
+        let hash = 0;
+        const str = normalize(value);
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+        }
+        return Math.abs(hash);
     }
 
-    function buildDecorativeWheelGradient() {
-        const colors = [];
+    function prizeColorMap(active) {
+        const used = new Set();
+        const map = new Map();
+
+        active
+            .map(prize => prize.item)
+            .filter(Boolean)
+            .sort((a, b) => normalize(a).localeCompare(normalize(b), 'pt-BR'))
+            .forEach(item => {
+                let index = hashString(item) % VALUE_COLORS.length;
+                let attempts = 0;
+
+                while (used.has(VALUE_COLORS[index]) && attempts < VALUE_COLORS.length) {
+                    index = (index + 1) % VALUE_COLORS.length;
+                    attempts++;
+                }
+
+                const color = VALUE_COLORS[index];
+                used.add(color);
+                map.set(item, color);
+            });
+
+        return map;
+    }
+
+    function balancedPrizeSegments(active) {
+        if (!active.length) return [];
+
+        const segments = [];
         for (let i = 0; i < WHEEL_SEGMENT_COUNT; i++) {
-            colors.push(pickNonRepeatingColor(colors[i - 1]));
+            segments.push(active[i % active.length]);
         }
 
-        if (colors[0] === colors[colors.length - 1]) {
-            const swapIdx = colors.findIndex((color, index) => {
-                return index > 0 && index < colors.length - 1 && color !== colors[0] && color !== colors[colors.length - 2];
-            });
+        for (let i = segments.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const tmp = segments[i];
+            segments[i] = segments[j];
+            segments[j] = tmp;
+        }
+
+        for (let i = 1; i < segments.length; i++) {
+            if (segments[i].item !== segments[i - 1].item) continue;
+            const swapIdx = segments.findIndex((segment, index) => index > i && segment.item !== segments[i - 1].item);
             if (swapIdx !== -1) {
-                const tmp = colors[colors.length - 1];
-                colors[colors.length - 1] = colors[swapIdx];
-                colors[swapIdx] = tmp;
+                const tmp = segments[i];
+                segments[i] = segments[swapIdx];
+                segments[swapIdx] = tmp;
             }
         }
 
-        const weights = colors.map(() => 0.72 + Math.random() * 0.56);
+        return segments;
+    }
+
+    function wheelColorsFromPrizes(active) {
+        const segments = balancedPrizeSegments(active);
+        const colorsByPrize = prizeColorMap(active);
+        return segments.map(prize => colorsByPrize.get(prize.item) || VALUE_COLORS[0]);
+    }
+
+    function fallbackWheelColors() {
+        const colors = [];
+        for (let i = 0; i < WHEEL_SEGMENT_COUNT; i++) {
+            colors.push(VALUE_COLORS[i % VALUE_COLORS.length]);
+        }
+        return colors;
+    }
+
+    function buildDecorativeWheelGradient() {
+        const active = activePrizes();
+        const colors = active.length ? wheelColorsFromPrizes(active) : fallbackWheelColors();
+        const weights = colors.map(() => 0.82 + Math.random() * 0.36);
         const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
         const separatorDeg = 0.9;
         let start = 0;
