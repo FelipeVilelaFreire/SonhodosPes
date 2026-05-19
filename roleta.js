@@ -71,6 +71,7 @@
     let source = '';
     let wheelRotation = 0;
     let wheelGradient = '';
+    let wheelSegments = [];
     let isLoading = false;
     let isSpinning = false;
 
@@ -238,44 +239,64 @@
         return segments;
     }
 
-    function wheelColorsFromPrizes(active) {
-        const segments = balancedPrizeSegments(active);
+    function wheelVisualSegmentsFromPrizes(active) {
+        const prizesForSegments = balancedPrizeSegments(active);
         const colorsByPrize = prizeColorMap(active);
-        return segments.map(prize => colorsByPrize.get(prize.item) || VALUE_COLORS[0]);
+        return prizesForSegments.map(prize => ({
+            item: prize.item,
+            color: colorsByPrize.get(prize.item) || VALUE_COLORS[0],
+        }));
     }
 
-    function fallbackWheelColors() {
-        const colors = [];
+    function fallbackWheelSegments() {
+        const segments = [];
         for (let i = 0; i < WHEEL_SEGMENT_COUNT; i++) {
-            colors.push(VALUE_COLORS[i % VALUE_COLORS.length]);
+            segments.push({
+                item: '',
+                color: VALUE_COLORS[i % VALUE_COLORS.length],
+            });
         }
-        return colors;
+        return segments;
     }
 
-    function buildDecorativeWheelGradient() {
+    function buildDecorativeWheel() {
         const active = activePrizes();
-        const colors = active.length ? wheelColorsFromPrizes(active) : fallbackWheelColors();
-        const weights = colors.map(() => 0.82 + Math.random() * 0.36);
+        const visualSegments = active.length ? wheelVisualSegmentsFromPrizes(active) : fallbackWheelSegments();
+        const weights = visualSegments.map(() => 0.82 + Math.random() * 0.36);
         const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
         const separatorDeg = 0.9;
         let start = 0;
+        const targetSegments = [];
 
-        const pieces = colors.flatMap((color, index) => {
-            const end = index === colors.length - 1 ? 360 : start + (weights[index] / totalWeight) * 360;
+        const pieces = visualSegments.flatMap((segment, index) => {
+            const end = index === visualSegments.length - 1 ? 360 : start + (weights[index] / totalWeight) * 360;
             const colorEnd = Math.max(start, end - separatorDeg);
+            targetSegments.push({
+                item: segment.item,
+                color: segment.color,
+                start,
+                end: colorEnd,
+                mid: start + ((colorEnd - start) / 2),
+                span: Math.max(0, colorEnd - start),
+            });
             const piece = [
-                `${color} ${start.toFixed(4)}deg ${colorEnd.toFixed(4)}deg`,
+                `${segment.color} ${start.toFixed(4)}deg ${colorEnd.toFixed(4)}deg`,
                 `${WHEEL_SEPARATOR_COLOR} ${colorEnd.toFixed(4)}deg ${end.toFixed(4)}deg`,
             ];
             start = end;
             return piece;
         });
 
-        return `conic-gradient(from -90deg, ${pieces.join(', ')})`;
+        return {
+            gradient: `conic-gradient(from -90deg, ${pieces.join(', ')})`,
+            segments: targetSegments,
+        };
     }
 
     function setFreshWheel() {
-        wheelGradient = buildDecorativeWheelGradient();
+        const wheel = buildDecorativeWheel();
+        wheelGradient = wheel.gradient;
+        wheelSegments = wheel.segments;
         el.wheel.style.setProperty('--wheel-gradient', wheelGradient);
     }
 
@@ -390,8 +411,19 @@
         return ((degree % 360) + 360) % 360;
     }
 
-    function spinWheel() {
-        const targetAngle = Math.random() * 360;
+    function targetSegmentForPrize(item) {
+        const normalized = normalize(item);
+        const matches = wheelSegments.filter(segment => normalize(segment.item) === normalized && segment.span > 0);
+        if (matches.length) return matches[Math.floor(Math.random() * matches.length)];
+
+        const drawable = wheelSegments.filter(segment => segment.span > 0);
+        return drawable.length ? drawable[Math.floor(Math.random() * drawable.length)] : { mid: Math.random() * 360, span: 360 };
+    }
+
+    function spinWheel(item) {
+        const segment = targetSegmentForPrize(item);
+        const jitter = (Math.random() - 0.5) * Math.min(12, segment.span * 0.42);
+        const targetAngle = normalizeDegree(segment.mid + jitter);
         const targetRotationMod = normalizeDegree(360 - targetAngle);
         const extraTurns = 5 + Math.floor(Math.random() * 3);
         const base = Math.floor(wheelRotation / 360) * 360;
@@ -463,13 +495,12 @@
 
         try {
             const result = await requestSpin();
-            await spinWheel();
+            await spinWheel(result.item);
 
             prizes = result.items;
             showResult(result.item);
             updateUI();
             launchCelebration();
-            showToast(`Saiu: ${result.item}`, 'success');
         } catch (e) {
             showToast(e.message || 'Erro ao girar roleta', 'error');
             console.error(e);
