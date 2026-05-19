@@ -145,6 +145,40 @@ svg {
     box-shadow: 0 0 0 3px rgba(168, 139, 101, 0.15);
 }
 
+.status-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.roleta-entry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: var(--color-surface);
+    color: var(--color-primary-deep);
+    border: 1px solid var(--color-primary-soft);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    transition: opacity 0.2s, transform 0.15s, border-color 0.2s;
+}
+
+.roleta-entry-btn:hover {
+    border-color: var(--color-primary);
+    opacity: 0.9;
+}
+
+.roleta-entry-btn:active {
+    transform: scale(0.96);
+}
+
 .install-btn {
     display: inline-flex;
     align-items: center;
