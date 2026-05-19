@@ -5,6 +5,8 @@
     const LOCAL_CSV_PATH = 'roleta.csv';
     const APP_TOKEN = 'sdp-4K9mX2rP7nQ1wL5j';
     const SPIN_DURATION_MS = 4300;
+    const WHEEL_SEGMENT_COUNT = 40;
+    const WHEEL_SEPARATOR_COLOR = '#FFF7EA';
 
     const SEGMENT_COLORS = [
         '#F5C04A',
@@ -21,15 +23,12 @@
 
     const el = {
         refreshBtn: document.getElementById('refreshBtn'),
-        rouletteSource: document.getElementById('rouletteSource'),
-        totalTickets: document.getElementById('totalTickets'),
         wheelArea: document.getElementById('wheelArea'),
         wheel: document.getElementById('wheel'),
         spinBtn: document.getElementById('spinBtn'),
         spinBtnText: document.getElementById('spinBtnText'),
         resultPanel: document.getElementById('resultPanel'),
         resultPrize: document.getElementById('resultPrize'),
-        itemCount: document.getElementById('itemCount'),
         prizeList: document.getElementById('prizeList'),
         celebrationLayer: document.getElementById('celebrationLayer'),
         toast: document.getElementById('rouletteToast'),
@@ -38,6 +37,7 @@
     let prizes = [];
     let source = '';
     let wheelRotation = 0;
+    let wheelGradient = '';
     let isLoading = false;
     let isSpinning = false;
     let lastPrize = '';
@@ -99,7 +99,7 @@
 
         return items
             .map(item => ({
-                item: String(item.item ?? item.nome ?? item.premio ?? '').trim(),
+                item: String(item.item ?? item.valor ?? item.nome ?? item.premio ?? '').trim(),
                 quantidade: parseQuantity(item.quantidade ?? item.qtd ?? item.qty),
             }))
             .filter(item => item.item);
@@ -143,41 +143,55 @@
         return list.filter(prize => prize.quantidade > 0);
     }
 
-    function formatChance(quantity, total) {
-        if (!total || quantity <= 0) return '0%';
-        const value = (quantity / total) * 100;
-        const maximumFractionDigits = value < 10 ? 1 : 0;
-        return new Intl.NumberFormat('pt-BR', {
-            maximumFractionDigits,
-        }).format(value) + '%';
+    function pickNonRepeatingColor(previous) {
+        const available = SEGMENT_COLORS.filter(color => color !== previous);
+        return available[Math.floor(Math.random() * available.length)];
     }
 
-    function formatQuantity(quantity) {
-        return quantity === 1 ? '1 unid.' : `${quantity} unid.`;
-    }
-
-    function formatTotal(total) {
-        return total === 1 ? '1 chance' : `${total} chances`;
-    }
-
-    function buildWheelGradient(list) {
-        const active = activePrizes(list);
-        const total = totalQuantity(active);
-
-        if (!active.length || !total) {
-            return 'conic-gradient(from -90deg, var(--color-primary-soft) 0deg 180deg, var(--color-primary-whisper) 180deg 360deg)';
+    function buildDecorativeWheelGradient() {
+        const colors = [];
+        for (let i = 0; i < WHEEL_SEGMENT_COUNT; i++) {
+            colors.push(pickNonRepeatingColor(colors[i - 1]));
         }
 
+        if (colors[0] === colors[colors.length - 1]) {
+            const swapIdx = colors.findIndex((color, index) => {
+                return index > 0 && index < colors.length - 1 && color !== colors[0] && color !== colors[colors.length - 2];
+            });
+            if (swapIdx !== -1) {
+                const tmp = colors[colors.length - 1];
+                colors[colors.length - 1] = colors[swapIdx];
+                colors[swapIdx] = tmp;
+            }
+        }
+
+        const weights = colors.map(() => 0.72 + Math.random() * 0.56);
+        const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+        const separatorDeg = 0.9;
         let start = 0;
-        const pieces = active.map((prize, index) => {
-            const end = start + (prize.quantidade / total) * 360;
-            const color = SEGMENT_COLORS[index % SEGMENT_COLORS.length];
-            const piece = `${color} ${start.toFixed(4)}deg ${end.toFixed(4)}deg`;
+
+        const pieces = colors.flatMap((color, index) => {
+            const end = index === colors.length - 1 ? 360 : start + (weights[index] / totalWeight) * 360;
+            const colorEnd = Math.max(start, end - separatorDeg);
+            const piece = [
+                `${color} ${start.toFixed(4)}deg ${colorEnd.toFixed(4)}deg`,
+                `${WHEEL_SEPARATOR_COLOR} ${colorEnd.toFixed(4)}deg ${end.toFixed(4)}deg`,
+            ];
             start = end;
             return piece;
         });
 
         return `conic-gradient(from -90deg, ${pieces.join(', ')})`;
+    }
+
+    function setFreshWheel() {
+        wheelGradient = buildDecorativeWheelGradient();
+        el.wheel.style.setProperty('--wheel-gradient', wheelGradient);
+    }
+
+    function ensureWheel() {
+        if (!wheelGradient) setFreshWheel();
+        else el.wheel.style.setProperty('--wheel-gradient', wheelGradient);
     }
 
     function showToast(message, type = '') {
@@ -231,28 +245,27 @@
 
         isLoading = true;
         source = '';
-        el.rouletteSource.textContent = 'Carregando';
         el.refreshBtn.disabled = true;
         el.spinBtn.disabled = true;
         el.spinBtnText.textContent = 'Carregando';
-        el.resultPanel.hidden = true;
+        clearResult();
 
         try {
             prizes = await loadFromApi();
             source = 'api';
-            el.rouletteSource.textContent = 'Aba roleta';
+            setFreshWheel();
             if (!silent) showToast('Roleta atualizada', 'success');
         } catch (apiError) {
             try {
                 prizes = await loadFromLocalCSV();
                 source = 'local';
-                el.rouletteSource.textContent = 'Lista local';
+                setFreshWheel();
                 if (!silent) showToast('Lista local carregada', '');
                 console.warn('API da roleta indisponivel:', apiError);
             } catch (localError) {
                 prizes = [];
                 source = '';
-                el.rouletteSource.textContent = 'Sem lista';
+                setFreshWheel();
                 showToast('Erro ao carregar roleta', 'error');
                 console.error(apiError, localError);
             }
@@ -265,100 +278,57 @@
 
     function updateUI() {
         const total = totalQuantity();
-        const count = prizes.length;
 
-        el.totalTickets.textContent = formatTotal(total);
-        el.itemCount.textContent = count === 1 ? '1 item' : `${count} itens`;
-        el.wheel.style.setProperty('--wheel-gradient', buildWheelGradient(prizes));
-
+        ensureWheel();
         renderPrizeList();
 
         el.wheelArea.classList.toggle('is-spinning', isSpinning);
         el.spinBtn.classList.toggle('is-spinning', isSpinning);
         el.spinBtn.disabled = isLoading || isSpinning || total <= 0;
+
         if (isLoading) {
             el.spinBtnText.textContent = 'Carregando';
         } else if (isSpinning) {
             el.spinBtnText.textContent = 'Girando';
         } else if (total <= 0) {
-            el.spinBtnText.textContent = 'Sem chances';
+            el.spinBtnText.textContent = 'Sorteio encerrado';
         } else {
             el.spinBtnText.textContent = 'Girar roleta';
         }
     }
 
     function renderPrizeList() {
-        const total = totalQuantity();
+        const visible = activePrizes(prizes);
         el.prizeList.innerHTML = '';
 
-        if (!prizes.length) {
+        if (!visible.length) {
             const empty = document.createElement('p');
             empty.className = 'prize-empty';
-            empty.textContent = 'Nenhum prêmio carregado.';
+            empty.textContent = prizes.length ? 'Sorteio encerrado.' : 'Nenhum prêmio carregado.';
             el.prizeList.appendChild(empty);
             return;
         }
 
-        prizes.forEach(prize => {
+        visible.forEach(prize => {
             const row = document.createElement('div');
             row.className = 'prize-row';
-            if (prize.quantidade <= 0) row.classList.add('is-empty');
             if (lastPrize && prize.item === lastPrize) row.classList.add('is-winner');
 
             const name = document.createElement('span');
             name.className = 'prize-name';
             name.textContent = prize.item;
 
-            const odds = document.createElement('span');
-            odds.className = 'prize-odds';
-
-            const chance = document.createElement('span');
-            chance.className = 'prize-chance';
-            chance.textContent = formatChance(prize.quantidade, total);
-
-            const qty = document.createElement('span');
-            qty.className = 'prize-qty';
-            qty.textContent = formatQuantity(prize.quantidade);
-
-            odds.append(chance, qty);
-            row.append(name, odds);
+            row.appendChild(name);
             el.prizeList.appendChild(row);
         });
-    }
-
-    function findTargetSegment(snapshot, itemName) {
-        const active = activePrizes(snapshot);
-        const total = totalQuantity(active);
-        if (!active.length || !total) return { mid: 0, span: 360 };
-
-        const wanted = String(itemName || '').trim();
-        let start = 0;
-        let fallback = null;
-
-        for (const prize of active) {
-            const span = (prize.quantidade / total) * 360;
-            const segment = {
-                mid: start + span / 2,
-                span,
-            };
-
-            if (!fallback) fallback = segment;
-            if (prize.item === wanted) return segment;
-
-            start += span;
-        }
-
-        return fallback || { mid: 0, span: 360 };
     }
 
     function normalizeDegree(degree) {
         return ((degree % 360) + 360) % 360;
     }
 
-    function spinWheelTo(segment) {
-        const jitterMax = Math.min(14, Math.max(0, segment.span) * 0.28);
-        const jitter = (Math.random() * 2 - 1) * jitterMax;
-        const targetAngle = normalizeDegree(segment.mid + jitter);
+    function spinWheel() {
+        const targetAngle = Math.random() * 360;
         const targetRotationMod = normalizeDegree(360 - targetAngle);
         const extraTurns = 5 + Math.floor(Math.random() * 3);
         const base = Math.floor(wheelRotation / 360) * 360;
@@ -424,16 +394,13 @@
     async function handleSpin() {
         if (isSpinning || isLoading || totalQuantity() <= 0) return;
 
-        const snapshot = prizes.map(prize => ({ ...prize }));
         isSpinning = true;
-        el.resultPanel.hidden = true;
+        clearResult();
         updateUI();
 
         try {
             const result = await requestSpin();
-            const segment = findTargetSegment(snapshot, result.item);
-
-            await spinWheelTo(segment);
+            await spinWheel();
 
             prizes = result.items;
             showResult(result.item);
@@ -447,6 +414,13 @@
             isSpinning = false;
             updateUI();
         }
+    }
+
+    function clearResult() {
+        lastPrize = '';
+        el.resultPrize.textContent = '';
+        el.resultPanel.hidden = true;
+        el.resultPanel.classList.remove('is-revealed');
     }
 
     function showResult(item) {
@@ -500,6 +474,7 @@
 
     function init() {
         bindEvents();
+        setFreshWheel();
         loadPrizes({ silent: true });
     }
 
