@@ -409,22 +409,26 @@
 }
 
 .result-panel {
+    --result-color: var(--color-primary);
     position: absolute;
     z-index: 8;
     left: 50%;
     top: 50%;
-    width: min(90%, 360px);
-    min-height: 190px;
-    padding: 30px 26px;
+    width: min(92%, 390px);
+    min-height: 220px;
+    padding: 34px 28px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-lg);
-    background: rgba(253, 250, 245, 0.92);
-    border: 1px solid rgba(200, 176, 145, 0.58);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(253, 250, 245, 0.94)),
+        radial-gradient(circle at top, color-mix(in srgb, var(--result-color) 22%, transparent), transparent 58%);
+    border: 1.5px solid color-mix(in srgb, var(--result-color) 54%, var(--color-primary-soft));
     box-shadow:
-        0 28px 58px rgba(43, 33, 24, 0.28),
+        0 30px 64px rgba(43, 33, 24, 0.32),
+        0 0 0 8px color-mix(in srgb, var(--result-color) 12%, transparent),
         inset 0 1px 0 rgba(255, 255, 255, 0.76);
     text-align: center;
     transform-origin: 50% 0;
@@ -442,32 +446,54 @@
     position: fixed;
     inset: 0;
     z-index: -1;
-    background: rgba(43, 33, 24, 0.34);
+    background:
+        radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--result-color) 24%, transparent), transparent 24%),
+        rgba(43, 33, 24, 0.42);
+    pointer-events: none;
+}
+
+.result-panel::after {
+    content: '';
+    position: absolute;
+    inset: 14px;
+    border-radius: calc(var(--radius-lg) - 6px);
+    border: 1px solid color-mix(in srgb, var(--result-color) 28%, rgba(200, 176, 145, 0.32));
+    background:
+        radial-gradient(circle at 22% 18%, color-mix(in srgb, var(--result-color) 22%, transparent) 0 8px, transparent 9px),
+        radial-gradient(circle at 82% 24%, rgba(200, 176, 145, 0.26) 0 7px, transparent 8px),
+        radial-gradient(circle at 76% 80%, color-mix(in srgb, var(--result-color) 16%, transparent) 0 9px, transparent 10px);
     pointer-events: none;
 }
 
 .result-panel.is-revealed {
-    animation: resultReveal 0.54s cubic-bezier(0.16, 1, 0.3, 1);
+    animation:
+        resultReveal 0.54s cubic-bezier(0.16, 1, 0.3, 1),
+        resultGlow 1.45s ease-in-out 0.18s 2;
 }
 
 .result-label {
+    position: relative;
+    z-index: 1;
     display: block;
-    margin-bottom: 8px;
-    color: var(--color-text-muted);
-    font-size: 11px;
+    margin-bottom: 10px;
+    color: var(--result-color);
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
 }
 
 #resultPrize {
+    position: relative;
+    z-index: 1;
     display: block;
     color: var(--color-text);
     font-family: var(--font-display);
-    font-size: clamp(42px, 15vw, 72px);
+    font-size: clamp(50px, 17vw, 84px);
     font-weight: 700;
     line-height: 1.1;
     overflow-wrap: anywhere;
+    text-shadow: 0 10px 24px rgba(43, 33, 24, 0.12);
 }
 
 .roulette-list-panel {
@@ -642,6 +668,24 @@
     100% {
         opacity: 1;
         transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes resultGlow {
+    0%,
+    100% {
+        box-shadow:
+            0 30px 64px rgba(43, 33, 24, 0.32),
+            0 0 0 8px color-mix(in srgb, var(--result-color) 12%, transparent),
+            inset 0 1px 0 rgba(255, 255, 255, 0.76);
+    }
+
+    50% {
+        box-shadow:
+            0 34px 72px rgba(43, 33, 24, 0.34),
+            0 0 0 14px color-mix(in srgb, var(--result-color) 20%, transparent),
+            0 0 34px color-mix(in srgb, var(--result-color) 26%, transparent),
+            inset 0 1px 0 rgba(255, 255, 255, 0.82);
     }
 }
 

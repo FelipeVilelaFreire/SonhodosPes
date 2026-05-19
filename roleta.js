@@ -7,6 +7,7 @@
     const SPIN_DURATION_MS = 4300;
     const WHEEL_SEGMENT_COUNT = 40;
     const WHEEL_SEPARATOR_COLOR = '#FFF7EA';
+    const COLOR_MAP_STORAGE_KEY = 'sdp:roletaColorMap:v1';
 
     const VALUE_COLORS = [
         '#C8B091',
@@ -72,6 +73,7 @@
     let wheelRotation = 0;
     let wheelGradient = '';
     let wheelSegments = [];
+    let valueColorMap = new Map();
     let isLoading = false;
     let isSpinning = false;
 
@@ -186,7 +188,26 @@
         return Math.abs(hash);
     }
 
+    function readStoredColorMap() {
+        try {
+            const raw = localStorage.getItem(COLOR_MAP_STORAGE_KEY);
+            const parsed = raw ? JSON.parse(raw) : {};
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (_) {
+            return {};
+        }
+    }
+
+    function writeStoredColorMap(mapObj) {
+        try {
+            localStorage.setItem(COLOR_MAP_STORAGE_KEY, JSON.stringify(mapObj));
+        } catch (_) {
+            // Se o navegador bloquear storage, a cor ainda fica estavel nesta sessao.
+        }
+    }
+
     function prizeColorMap(active) {
+        const stored = readStoredColorMap();
         const used = new Set();
         const map = new Map();
 
@@ -195,19 +216,27 @@
             .filter(Boolean)
             .sort((a, b) => normalize(a).localeCompare(normalize(b), 'pt-BR'))
             .forEach(item => {
-                let index = hashString(item) % VALUE_COLORS.length;
-                let attempts = 0;
+                const key = normalize(item);
+                let color = stored[key];
 
-                while (used.has(VALUE_COLORS[index]) && attempts < VALUE_COLORS.length) {
-                    index = (index + 1) % VALUE_COLORS.length;
-                    attempts++;
+                if (!VALUE_COLORS.includes(color) || used.has(color)) {
+                    let index = hashString(item) % VALUE_COLORS.length;
+                    let attempts = 0;
+
+                    while (used.has(VALUE_COLORS[index]) && attempts < VALUE_COLORS.length) {
+                        index = (index + 1) % VALUE_COLORS.length;
+                        attempts++;
+                    }
+
+                    color = VALUE_COLORS[index];
+                    stored[key] = color;
                 }
 
-                const color = VALUE_COLORS[index];
                 used.add(color);
                 map.set(item, color);
             });
 
+        writeStoredColorMap(stored);
         return map;
     }
 
@@ -242,6 +271,7 @@
     function wheelVisualSegmentsFromPrizes(active) {
         const prizesForSegments = balancedPrizeSegments(active);
         const colorsByPrize = prizeColorMap(active);
+        valueColorMap = colorsByPrize;
         return prizesForSegments.map(prize => ({
             item: prize.item,
             color: colorsByPrize.get(prize.item) || VALUE_COLORS[0],
@@ -423,7 +453,7 @@
     function spinWheel(item) {
         const segment = targetSegmentForPrize(item);
         const jitter = (Math.random() - 0.5) * Math.min(12, segment.span * 0.42);
-        const targetAngle = normalizeDegree(segment.mid + jitter);
+        const targetAngle = normalizeDegree(segment.mid - 90 + jitter);
         const targetRotationMod = normalizeDegree(360 - targetAngle);
         const extraTurns = 5 + Math.floor(Math.random() * 3);
         const base = Math.floor(wheelRotation / 360) * 360;
@@ -518,6 +548,7 @@
 
     function showResult(item) {
         el.resultPrize.textContent = item || '';
+        el.resultPanel.style.setProperty('--result-color', valueColorMap.get(item) || VALUE_COLORS[0]);
         el.resultPanel.hidden = !item;
         el.resultPanel.classList.remove('is-revealed');
         void el.resultPanel.offsetWidth;

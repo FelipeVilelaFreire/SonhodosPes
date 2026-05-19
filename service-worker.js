@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sonhodospes-app-v11';
+const CACHE_NAME = 'sonhodospes-app-v12';
 const PRECACHE_URLS = [
     './',
     './index.html',
