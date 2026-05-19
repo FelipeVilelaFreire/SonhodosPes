@@ -63,7 +63,6 @@
         spinBtnText: document.getElementById('spinBtnText'),
         resultPanel: document.getElementById('resultPanel'),
         resultPrize: document.getElementById('resultPrize'),
-        prizeList: document.getElementById('prizeList'),
         celebrationLayer: document.getElementById('celebrationLayer'),
         toast: document.getElementById('rouletteToast'),
     };
@@ -74,7 +73,6 @@
     let wheelGradient = '';
     let isLoading = false;
     let isSpinning = false;
-    let lastPrize = '';
 
     function normalize(str) {
         return String(str || '')
@@ -372,7 +370,6 @@
         const total = totalQuantity();
 
         ensureWheel();
-        renderPrizeList();
 
         el.wheelArea.classList.toggle('is-spinning', isSpinning);
         el.spinBtn.classList.toggle('is-spinning', isSpinning);
@@ -387,32 +384,6 @@
         } else {
             el.spinBtnText.textContent = 'Girar roleta';
         }
-    }
-
-    function renderPrizeList() {
-        const visible = activePrizes(prizes);
-        el.prizeList.innerHTML = '';
-
-        if (!visible.length) {
-            const empty = document.createElement('p');
-            empty.className = 'prize-empty';
-            empty.textContent = prizes.length ? 'Sorteio encerrado.' : 'Nenhum prêmio carregado.';
-            el.prizeList.appendChild(empty);
-            return;
-        }
-
-        visible.forEach(prize => {
-            const row = document.createElement('div');
-            row.className = 'prize-row';
-            if (lastPrize && prize.item === lastPrize) row.classList.add('is-winner');
-
-            const name = document.createElement('span');
-            name.className = 'prize-name';
-            name.textContent = prize.item;
-
-            row.appendChild(name);
-            el.prizeList.appendChild(row);
-        });
     }
 
     function normalizeDegree(degree) {
@@ -509,14 +480,12 @@
     }
 
     function clearResult() {
-        lastPrize = '';
         el.resultPrize.textContent = '';
         el.resultPanel.hidden = true;
         el.resultPanel.classList.remove('is-revealed');
     }
 
     function showResult(item) {
-        lastPrize = item || '';
         el.resultPrize.textContent = item || '';
         el.resultPanel.hidden = !item;
         el.resultPanel.classList.remove('is-revealed');

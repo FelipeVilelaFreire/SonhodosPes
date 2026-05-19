@@ -86,13 +86,16 @@
     flex-direction: column;
     gap: 22px;
     flex: 1;
+    justify-content: center;
 }
 
 .roulette-stage {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     position: relative;
+    flex: 1;
 }
 
 .roulette-meta-row {
@@ -131,9 +134,9 @@
 
 .wheel-area {
     position: relative;
-    width: min(86vw, 390px);
+    width: min(92vw, 420px);
     aspect-ratio: 1;
-    margin: 4px auto 18px;
+    margin: 0 auto 24px;
     display: grid;
     place-items: center;
 }
@@ -406,15 +409,41 @@
 }
 
 .result-panel {
-    width: min(100%, 360px);
-    margin-top: 16px;
-    padding: 14px 16px;
-    border-radius: var(--radius-md);
-    background: var(--color-surface);
-    border: 1px solid var(--color-primary-soft);
-    box-shadow: var(--shadow-md);
+    position: absolute;
+    z-index: 8;
+    left: 50%;
+    top: 50%;
+    width: min(82%, 300px);
+    min-height: 150px;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+    background: rgba(253, 250, 245, 0.88);
+    border: 1px solid rgba(200, 176, 145, 0.58);
+    box-shadow:
+        0 22px 44px rgba(43, 33, 24, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.76);
     text-align: center;
     transform-origin: 50% 0;
+    transform: translate(-50%, -50%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.result-panel[hidden] {
+    display: none;
+}
+
+.result-panel::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: rgba(43, 33, 24, 0.18);
+    pointer-events: none;
 }
 
 .result-panel.is-revealed {
@@ -435,7 +464,7 @@
     display: block;
     color: var(--color-text);
     font-family: var(--font-display);
-    font-size: clamp(24px, 8vw, 34px);
+    font-size: clamp(34px, 13vw, 58px);
     font-weight: 700;
     line-height: 1.1;
     overflow-wrap: anywhere;
@@ -602,17 +631,17 @@
 @keyframes resultReveal {
     0% {
         opacity: 0;
-        transform: translateY(-8px) scale(0.96);
+        transform: translate(-50%, -45%) scale(0.94);
     }
 
     68% {
         opacity: 1;
-        transform: translateY(2px) scale(1.02);
+        transform: translate(-50%, -50%) scale(1.03);
     }
 
     100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translate(-50%, -50%) scale(1);
     }
 }
 
