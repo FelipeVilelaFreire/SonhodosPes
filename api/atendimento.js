@@ -233,23 +233,19 @@ export default async function handler(req, res) {
                 }
             }
 
-            // Se o histórico foi limpo, também resetamos as posições para o padrão (Maria 1, Renata 2...)
-            if (parsedHist.length === 0 && fila.some(v => v.posicao !== 1 && v.posicao !== 2 && v.posicao !== 3 && v.posicao !== 4)) {
-                hasChanges = true;
+            // Se o histórico foi limpo, também resetamos as posições para a ordem das linhas da planilha (1, 2, 3...)
+            if (parsedHist.length === 0) {
+                const needsReset = fila.some((v, idx) => Number(v.posicao) !== (idx + 1));
+                if (needsReset) {
+                    hasChanges = true;
+                }
             }
 
             if (hasChanges) {
-                // Se o histórico estiver totalmente zerado, restaura a ordem inicial das posições
+                // Se o histórico estiver totalmente zerado, restaura a ordem sequencial das posições
                 if (parsedHist.length === 0) {
-                    const defaultPositions = {
-                        'maria': 1,
-                        'renata': 2,
-                        'giovana': 3,
-                        'joana': 4
-                    };
-                    recalculados.forEach(v => {
-                        const nameLower = String(v.vendedora || '').toLowerCase().trim();
-                        v.posicao = defaultPositions[nameLower] || 4;
+                    recalculados.forEach((v, idx) => {
+                        v.posicao = idx + 1;
                     });
                 } else {
                     // Mantém as posições atuais se houver histórico para não bagunçar a fila
