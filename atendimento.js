@@ -359,6 +359,35 @@
         selectedOption = null;
     }
 
+    // Sincroniza dados em segundo plano (sem spinner de carregamento)
+    async function syncDataSilently() {
+        if (!navigator.onLine) return;
+        try {
+            const res = await fetch(API_ENDPOINT, {
+                method: 'GET',
+                headers: { 'X-App-Token': APP_TOKEN }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.ok) {
+                state.opcoes = data.opcoes;
+                state.fila = data.fila.map(seller => {
+                    if (!seller.statusDia) seller.statusDia = 'Ativo';
+                    return seller;
+                });
+                state.proximoIdHistorico = data.proximoIdHistorico;
+                
+                localStorage.setItem(STORAGE_KEY_OPCOES, JSON.stringify(state.opcoes));
+                localStorage.setItem(STORAGE_KEY_FILA, JSON.stringify(state.fila));
+                localStorage.setItem(STORAGE_KEY_NEXT_ID, String(state.proximoIdHistorico));
+                
+                renderDashboard();
+            }
+        } catch (e) {
+            console.warn('Erro na sincronização em segundo plano:', e);
+        }
+    }
+
     // Confirmação e gravação do atendimento
     async function handleConfirmRegister() {
         if (!state.vendedoraDaVez || !selectedOption) return;
@@ -366,9 +395,10 @@
         const currentVendedora = state.vendedoraDaVez;
         const vendedoraName = currentVendedora.vendedora;
         const attPos = Number(currentVendedora.posicao);
+        const optionName = selectedOption.nome;
+        const optionCol = selectedOption.colunaContador;
 
         hideConfirmModal();
-        showLoading(true);
 
         try {
             // 1. Atualizar contadores da vendedora no estado local
@@ -377,7 +407,7 @@
                 if (s.vendedora === vendedoraName) {
                     s.totalAtendimentos = (s.totalAtendimentos || 0) + 1;
                     
-                    const prop = mapColumnToProperty(selectedOption.colunaContador);
+                    const prop = mapColumnToProperty(optionCol);
                     if (prop && s[prop] !== undefined) {
                         s[prop] = (s[prop] || 0) + 1;
                     }
@@ -388,9 +418,6 @@
                 }
 
                 // 2. Rotacionar Fila Circular
-                // A vendedora que atendeu vai para o fim da fila (posição 4)
-                // Quem estava atrás dela na fila (posicao > attPos) avança um espaço (posicao - 1)
-                // Quem estava na frente dela na fila (posicao < attPos) não muda de posição (ex: inativas puladas)
                 const currentPos = Number(s.posicao);
                 if (s.vendedora === vendedoraName) {
                     s.posicao = 4;
@@ -403,68 +430,61 @@
 
             // 3. Montar o novo log para o histórico
             const now = new Date();
-            // Data formatada ISO ajustada
             const dataHora = now.toLocaleString('pt-BR');
             const newHistorico = {
                 id: state.proximoIdHistorico,
                 dataHora: dataHora,
                 vendedoraAtendeu: vendedoraName,
-                resultadoAtendimento: selectedOption.nome
+                resultadoAtendimento: optionName
             };
 
-            // 4. Salvar via API
-            let success = false;
-            if (navigator.onLine) {
-                try {
-                    const response = await fetch(API_ENDPOINT, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-App-Token': APP_TOKEN
-                        },
-                        body: JSON.stringify({
-                            updatedFila,
-                            newHistorico
-                        })
-                    });
-
-                    if (response.ok) {
-                        success = true;
-                    } else {
-                        console.error('API Error response:', response.status);
-                    }
-                } catch (e) {
-                    console.error('API network error:', e);
-                }
-            }
-
-            // Atualiza estado local
+            // Atualiza estado local instantaneamente para a vendedora da vez mudar na hora!
             state.fila = updatedFila;
             state.proximoIdHistorico += 1;
 
-            // Salva cache
+            // Salva cache local
             localStorage.setItem(STORAGE_KEY_FILA, JSON.stringify(state.fila));
             localStorage.setItem(STORAGE_KEY_NEXT_ID, String(state.proximoIdHistorico));
 
-            if (success) {
-                showToast(`Atendimento de ${vendedoraName} gravado com sucesso!`, 'success');
+            // Re-renderiza o painel imediatamente (a vendedora muda instantaneamente)
+            renderDashboard();
+
+            // 4. Salvar via API em segundo plano
+            if (navigator.onLine) {
+                fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-App-Token': APP_TOKEN
+                    },
+                    body: JSON.stringify({
+                        updatedFila,
+                        newHistorico
+                    })
+                }).then(async response => {
+                    if (response.ok) {
+                        showToast(`Atendimento gravado na nuvem!`, 'success');
+                        await syncDataSilently();
+                    } else {
+                        console.error('API Error response:', response.status);
+                        showToast(`Erro ao sincronizar. Gravado localmente.`, 'warning');
+                    }
+                }).catch(e => {
+                    console.error('API network error:', e);
+                    showToast(`Salvo localmente (sem internet)`, 'warning');
+                });
             } else {
-                showToast(`Gravado localmente (sem internet)`, 'warning');
+                showToast(`Salvo localmente (modo offline)`, 'warning');
             }
-            
-            // Recarrega dados reais para certificar alinhamento de concorrência com o Sheets
-            await loadData();
 
         } catch (err) {
             console.error(err);
             showToast('Erro ao gravar atendimento', 'error');
-            showLoading(false);
         }
     }
 
     // Mudança de status da vendedora
     async function handleStatusChange(vendedoraName, newStatus) {
-        showLoading(true);
         try {
             // Atualiza estado local
             const updatedFila = state.fila.map(seller => {
@@ -475,42 +495,32 @@
                 return s;
             });
 
-            let success = false;
-            if (navigator.onLine) {
-                try {
-                    const response = await fetch(API_ENDPOINT, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-App-Token': APP_TOKEN
-                        },
-                        body: JSON.stringify({
-                            updatedFila
-                        })
-                    });
-
-                    if (response.ok) {
-                        success = true;
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-
             state.fila = updatedFila;
             localStorage.setItem(STORAGE_KEY_FILA, JSON.stringify(state.fila));
+            renderDashboard();
 
-            if (success) {
-                showToast(`Status de ${vendedoraName} alterado para ${newStatus}`, 'success');
-            } else {
-                showToast(`Status alterado localmente`, 'warning');
+            if (navigator.onLine) {
+                fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-App-Token': APP_TOKEN
+                    },
+                    body: JSON.stringify({
+                        updatedFila
+                    })
+                }).then(async response => {
+                    if (response.ok) {
+                        showToast(`Status atualizado na nuvem`, 'success');
+                        await syncDataSilently();
+                    }
+                }).catch(e => {
+                    console.error(e);
+                });
             }
-
-            await loadData();
         } catch (err) {
             console.error(err);
             showToast('Erro ao atualizar status', 'error');
-            showLoading(false);
         }
     }
 
