@@ -634,3 +634,25 @@
         transform: scale(1) translateY(0);
     }
 }
+
+/* Transição rápida para mudança de vendedora */
+.card-vez.flash-transition {
+    animation: cardFlashTransition 0.5s var(--ease);
+}
+
+@keyframes cardFlashTransition {
+    0% {
+        transform: scale(1);
+        border-color: var(--color-primary-soft);
+    }
+    30% {
+        transform: scale(0.97);
+        border-color: var(--color-primary);
+        background-color: var(--color-primary-whisper);
+    }
+    100% {
+        transform: scale(1);
+        border-color: var(--color-primary-soft);
+    }
+}
+

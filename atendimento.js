@@ -123,10 +123,10 @@
                 { id: 6, nome: "❓ Outro", colunaContador: "❓ Total_Outro" }
             ];
             state.fila = [
-                { vendedora: "Maria", posicao: 1, statusDia: "Ativo", totalAtendimentos: 0, totalCompras: 0, totalDesistencias: 0, totalAchouCaro: 0, totalNaoFalouNada: 0, totalOutro: 0, taxaConversaoPct: 0 },
-                { vendedora: "Renata", posicao: 2, statusDia: "Ativo", totalAtendimentos: 0, totalCompras: 0, totalDesistencias: 0, totalAchouCaro: 0, totalNaoFalouNada: 0, totalOutro: 0, taxaConversaoPct: 0 },
-                { vendedora: "Giovana", posicao: 3, statusDia: "Ativo", totalAtendimentos: 0, totalCompras: 0, totalDesistencias: 0, totalAchouCaro: 0, totalNaoFalouNada: 0, totalOutro: 0, taxaConversaoPct: 0 },
-                { vendedora: "Joana", posicao: 4, statusDia: "Ativo", totalAtendimentos: 0, totalCompras: 0, totalDesistencias: 0, totalAchouCaro: 0, totalNaoFalouNada: 0, totalOutro: 0, taxaConversaoPct: 0 }
+                { vendedora: "Maria", posicao: 1, statusDia: "Ativo", totalAtendimentos: 0, totalCompras: 0, totalDesistencias: 0, totalAchouCaro: 0, totalNaoFalouNada: 0, totalOutro: 0, taxaConversaoPct: "0%" },
+                { vendedora: "Renata", posicao: 2, statusDia: "Ativo", totalAtendimentos: 0, totalCompras: 0, totalDesistencias: 0, totalAchouCaro: 0, totalNaoFalouNada: 0, totalOutro: 0, taxaConversaoPct: "0%" },
+                { vendedora: "Giovana", posicao: 3, statusDia: "Ativo", totalAtendimentos: 0, totalCompras: 0, totalDesistencias: 0, totalAchouCaro: 0, totalNaoFalouNada: 0, totalOutro: 0, taxaConversaoPct: "0%" },
+                { vendedora: "Joana", posicao: 4, statusDia: "Ativo", totalAtendimentos: 0, totalCompras: 0, totalDesistencias: 0, totalAchouCaro: 0, totalNaoFalouNada: 0, totalOutro: 0, taxaConversaoPct: "0%" }
             ];
             state.proximoIdHistorico = 1;
             
@@ -167,6 +167,19 @@
         ativas.sort((a, b) => Number(a.posicao) - Number(b.posicao));
         
         state.vendedoraDaVez = ativas.length > 0 ? ativas[0] : null;
+
+        const nameText = state.vendedoraDaVez ? state.vendedoraDaVez.vendedora : '';
+        
+        // Aplica efeito de flash na mudança de vendedora
+        if (state.lastVendedoraName !== undefined && state.lastVendedoraName !== nameText && nameText) {
+            el.cardVez.classList.remove('flash-transition');
+            void el.cardVez.offsetWidth; // Força reflow
+            el.cardVez.classList.add('flash-transition');
+            setTimeout(() => {
+                el.cardVez.classList.remove('flash-transition');
+            }, 550);
+        }
+        state.lastVendedoraName = nameText;
 
         // Renderiza card da vez
         if (state.vendedoraDaVez) {
@@ -323,7 +336,8 @@
                 
                 const convertVal = document.createElement('span');
                 convertVal.className = 'stat-val';
-                convertVal.textContent = (seller.taxaConversaoPct || 0) + '%';
+                const pctVal = String(seller.taxaConversaoPct || '0');
+                convertVal.textContent = pctVal.includes('%') ? pctVal : pctVal + '%';
                 
                 const conversionHighlight = document.createElement('div');
                 conversionHighlight.className = 'stat-item conversion-highlight';
@@ -418,7 +432,8 @@
                     
                     // Recalcula conversão
                     const compras = s.totalCompras || 0;
-                    s.taxaConversaoPct = s.totalAtendimentos > 0 ? parseFloat(((compras / s.totalAtendimentos) * 100).toFixed(2)) : 0;
+                    const pct = s.totalAtendimentos > 0 ? Math.round((compras / s.totalAtendimentos) * 100) : 0;
+                    s.taxaConversaoPct = pct + '%';
                 }
 
                 // 2. Rotacionar Fila Circular
@@ -432,12 +447,14 @@
                 return s;
             });
 
-            // 3. Montar o novo log para o histórico
+            // 3. Montar o novo log para o histórico (Data e Hora divididos)
             const now = new Date();
-            const dataHora = now.toLocaleString('pt-BR');
+            const data = now.toLocaleDateString('pt-BR');
+            const hora = now.toLocaleTimeString('pt-BR');
             const newHistorico = {
                 id: state.proximoIdHistorico,
-                dataHora: dataHora,
+                data: data,
+                hora: hora,
                 vendedoraAtendeu: vendedoraName,
                 resultadoAtendimento: optionName
             };

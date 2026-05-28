@@ -60,7 +60,8 @@ const filaKeyMap = {
 
 const historicoKeyMap = {
     'id': 'id',
-    'data_hora': 'dataHora',
+    'data': 'data',
+    'hora': 'hora',
     'vendedora_atendeu': 'vendedoraAtendeu',
     'resultado_atendimento': 'resultadoAtendimento'
 };
@@ -86,7 +87,7 @@ function parseRows(rows, keyMap) {
                 if (val === '') {
                     val = 0;
                 } else {
-                    val = Number(val.replace(',', '.'));
+                    val = Number(val.replace('%', '').replace(',', '.'));
                     if (isNaN(val)) val = 0;
                 }
             }
@@ -133,7 +134,7 @@ export default async function handler(req, res) {
             const ranges = [
                 'opcoes_atendimento!A:C',
                 'controle_fila!A:J',
-                'historico_atendimentos!A:D'
+                'historico_atendimentos!A:E'
             ];
 
             const { data } = await sheets.spreadsheets.values.batchGet({
@@ -149,10 +150,121 @@ export default async function handler(req, res) {
 
             const opcoes = parseRows(opcoesRows, opcoesKeyMap);
             const fila = parseRows(filaRows, filaKeyMap);
+            const parsedHist = parseRows(historicoRows, historicoKeyMap);
+
+            // 1. Recalcula as estatísticas de controle_fila com base em historico_atendimentos
+            const recalculados = fila.map(v => ({
+                ...v,
+                totalAtendimentos: 0,
+                totalCompras: 0,
+                totalDesistencias: 0,
+                totalAchouCaro: 0,
+                totalNaoFalouNada: 0,
+                totalOutro: 0,
+                taxaConversaoPct: '0%'
+            }));
+
+            // Mapeamento de nome de opção para coluna/propriedade
+            const opcaoToColProperty = {};
+            opcoes.forEach(opt => {
+                const prop = mapColumnToProperty(opt.colunaContador);
+                opcaoToColProperty[normalizeHeader(opt.nome)] = prop;
+            });
+
+            parsedHist.forEach(log => {
+                const sellerName = String(log.vendedoraAtendeu || '').toLowerCase().trim();
+                const seller = recalculados.find(v => String(v.vendedora || '').toLowerCase().trim() === sellerName);
+                if (seller) {
+                    seller.totalAtendimentos += 1;
+                    
+                    const cleanResultName = normalizeHeader(log.resultadoAtendimento);
+                    const prop = opcaoToColProperty[cleanResultName];
+                    if (prop && seller[prop] !== undefined) {
+                        seller[prop] += 1;
+                    }
+                }
+            });
+
+            // Recalcula taxas de conversão (%)
+            recalculados.forEach(seller => {
+                const compras = seller.totalCompras || 0;
+                const pct = seller.totalAtendimentos > 0 ? Math.round((compras / seller.totalAtendimentos) * 100) : 0;
+                seller.taxaConversaoPct = pct + '%';
+            });
+
+            // 2. Compara se houve qualquer mudança (seja por inserção, edição ou limpeza no histórico)
+            let hasChanges = false;
+            for (let i = 0; i < fila.length; i++) {
+                const original = fila[i];
+                const recalculated = recalculados[i];
+                
+                if (
+                    original.totalAtendimentos !== recalculated.totalAtendimentos ||
+                    original.totalCompras !== recalculated.totalCompras ||
+                    original.totalDesistencias !== recalculated.totalDesistencias ||
+                    original.totalAchouCaro !== recalculated.totalAchouCaro ||
+                    original.totalNaoFalouNada !== recalculated.totalNaoFalouNada ||
+                    original.totalOutro !== recalculated.totalOutro ||
+                    original.taxaConversaoPct !== recalculated.taxaConversaoPct
+                ) {
+                    hasChanges = true;
+                    break;
+                }
+            }
+
+            // Se o histórico foi limpo, também resetamos as posições para o padrão (Maria 1, Renata 2...)
+            if (parsedHist.length === 0 && fila.some(v => v.posicao !== 1 && v.posicao !== 2 && v.posicao !== 3 && v.posicao !== 4)) {
+                hasChanges = true;
+            }
+
+            if (hasChanges) {
+                // Se o histórico estiver totalmente zerado, restaura a ordem inicial das posições
+                if (parsedHist.length === 0) {
+                    const defaultPositions = {
+                        'maria': 1,
+                        'renata': 2,
+                        'giovana': 3,
+                        'joana': 4
+                    };
+                    recalculados.forEach(v => {
+                        const nameLower = String(v.vendedora || '').toLowerCase().trim();
+                        v.posicao = defaultPositions[nameLower] || 4;
+                    });
+                } else {
+                    // Mantém as posições atuais se houver histórico para não bagunçar a fila
+                    recalculados.forEach((v, idx) => {
+                        v.posicao = fila[idx].posicao;
+                    });
+                }
+
+                // Salva a nova fila corrigida no Google Sheets
+                const rangesCheck = ['controle_fila!A1:J1'];
+                const { data: headerData } = await sheets.spreadsheets.values.batchGet({
+                    spreadsheetId: SPREADSHEET_ID,
+                    ranges: rangesCheck,
+                });
+                const controleFilaHeaders = headerData.valueRanges[0]?.values?.[0] || [];
+                if (controleFilaHeaders.length > 0) {
+                    const filaValues = objectsToRows(recalculados, controleFilaHeaders, filaKeyMap);
+                    const endCol = colLetter(controleFilaHeaders.length - 1);
+                    await sheets.spreadsheets.values.update({
+                        spreadsheetId: SPREADSHEET_ID,
+                        range: `controle_fila!A2:${endCol}${recalculados.length + 1}`,
+                        valueInputOption: 'RAW',
+                        requestBody: {
+                            values: filaValues
+                        }
+                    });
+                }
+                
+                // Sincroniza o objeto fila para o retorno
+                fila.forEach((v, idx) => {
+                    Object.assign(v, recalculados[idx]);
+                });
+            }
 
             let proximoIdHistorico = 1;
-            if (historicoRows.length > 1) {
-                const parsedHist = parseRows(historicoRows, historicoKeyMap);
+            if (parsedHist.length > 0) {
                 const maxId = parsedHist.reduce((max, h) => Math.max(max, h.id || 0), 0);
                 proximoIdHistorico = maxId + 1;
             }
@@ -175,7 +287,7 @@ export default async function handler(req, res) {
             // 1. Para remapear os objetos de volta ao formato da planilha, primeiro precisamos ler os cabeçalhos atuais
             const ranges = [
                 'controle_fila!A1:J1',
-                'historico_atendimentos!A1:D1'
+                'historico_atendimentos!A1:E1'
             ];
 
             const { data } = await sheets.spreadsheets.values.batchGet({
@@ -222,7 +334,7 @@ export default async function handler(req, res) {
                 
                 await sheets.spreadsheets.values.append({
                     spreadsheetId: SPREADSHEET_ID,
-                    range: 'historico_atendimentos!A:D',
+                    range: 'historico_atendimentos!A:E',
                     valueInputOption: 'RAW',
                     requestBody: {
                         values: [historicoValue]
