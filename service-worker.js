@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sonhodospes-app-v12';
+const CACHE_NAME = 'sonhodospes-app-v13';
 const PRECACHE_URLS = [
     './',
     './index.html',
@@ -8,6 +8,9 @@ const PRECACHE_URLS = [
     './roleta.css',
     './roleta.js',
     './roleta.csv',
+    './atendimento.html',
+    './atendimento.css',
+    './atendimento.js',
     './logo.svg',
     './icon.svg',
     './icon-192.png',

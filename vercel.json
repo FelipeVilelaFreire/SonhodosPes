@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/roleta", "destination": "/roleta.html" },
+    { "source": "/atendimento", "destination": "/atendimento.html" },
     { "source": "/sdp-metricas-9x7k2m", "destination": "/painel.html" }
   ]
 }

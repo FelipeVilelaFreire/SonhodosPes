@@ -96,6 +96,12 @@ Usa `navigator.share({ files })` no Android Chrome (abre share sheet nativo onde
 
 O botão `#installBtn` no header fica oculto por padrão e só aparece quando o browser dispara `beforeinstallprompt` (Android/Chrome). Não aparece no iOS.
 
+## Roleta da Sorte
+
+A feature `/roleta` esta documentada em `ROLETA.md`. Leia esse arquivo antes de alterar `roleta.html`, `roleta.css`, `roleta.js`, `api/roleta.js`, `roleta.csv`, `vercel.json` ou `service-worker.js`.
+
+Regras importantes: a UI nao deve mostrar odds/quantidades; cada `VALOR` tem cor fixa por navegador; o sorteio real acontece no servidor; apos sortear, a API decrementa `QUANTIDADE` na planilha.
+
 ## Deployment
 
 Push para `main` no GitHub → deploy automático no Vercel. Repositório: `FelipeVilelaFreire/SonhodosPes`.

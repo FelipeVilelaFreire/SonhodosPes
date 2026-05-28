@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#C8B091">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Sonho dos Pés">
+    <meta name="description" content="Fila de Atendimento - Sonho dos Pés">
+
+    <title>Sonho dos Pés - Fila de Atendimento</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="apple-touch-icon" href="logo.svg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="atendimento.css">
+</head>
+<body class="atendimento-body">
+    <div class="atendimento-app">
+        <!-- Topbar matching roleta and index -->
+        <header class="atendimento-topbar">
+            <a class="atendimento-icon-link" href="/" aria-label="Voltar para consulta">
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </a>
+
+            <div class="atendimento-brand">
+                <img src="logo.svg" alt="Sonho dos Pés" class="atendimento-logo">
+                <h1 class="atendimento-kicker">Fila de Atendimento</h1>
+            </div>
+
+            <button class="atendimento-icon-btn" id="refreshBtn" aria-label="Atualizar dados">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12a9 9 0 0 1-15.1 6.6"/>
+                    <path d="M3 12a9 9 0 0 1 15.1-6.6"/>
+                    <path d="M6 19H3v-3"/>
+                    <path d="M18 5h3v3"/>
+                </svg>
+            </button>
+        </header>
+
+        <main class="atendimento-main">
+            <!-- Spinner overlay during load -->
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <p>Carregando fila...</p>
+            </div>
+
+            <!-- Main dashboard wrapper -->
+            <div id="dashboardContent" class="dashboard-content" hidden>
+                
+                <!-- 1. VENDEDORA DA VEZ HIGHLIGHT -->
+                <section class="vez-section">
+                    <div class="card-vez" id="cardVez">
+                        <span class="vez-tag">Vendedora da Vez</span>
+                        <div class="vez-info">
+                            <div class="vez-avatar" id="vezAvatar">
+                                <span id="vezInitial">-</span>
+                            </div>
+                            <div class="vez-details">
+                                <h2 class="vez-name" id="vezName">Nenhuma ativa</h2>
+                                <span class="vez-status-badge badge-active">🟢 Em Atendimento</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. ACTION CARDS GRID -->
+                <section class="actions-section">
+                    <h3 class="section-title">Registrar Resultado</h3>
+                    <div class="actions-grid" id="actionsGrid">
+                        <!-- Action cards populated dynamically from opcoes_atendimento -->
+                    </div>
+                </section>
+
+                <!-- 3. QUEUE LIST (WAITING ORDER) -->
+                <section class="queue-section">
+                    <h3 class="section-title">Próximas da Vez</h3>
+                    <div class="queue-list" id="queueList">
+                        <!-- Queue list populated dynamically -->
+                    </div>
+                </section>
+
+                <!-- 4. MANAGEMENT PANEL -->
+                <section class="management-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Painel de Controle</h3>
+                        <span class="management-badge">Dia</span>
+                    </div>
+                    <div class="sellers-list" id="sellersList">
+                        <!-- Sellers state and stats dynamically populated -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- 5. CONFIRMATION MODAL -->
+    <div class="modal" id="confirmModal" hidden>
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-content" role="dialog" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+            <div class="modal-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+            </div>
+            <h2 id="modalTitle" class="modal-title">Confirmar Atendimento</h2>
+            <p id="modalDesc" class="modal-description">Você tem certeza que deseja registrar <strong id="selectedOptionName"></strong> e passar a sua vez?</p>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelBtn">Cancelar</button>
+                <button class="btn-confirm" id="confirmBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast" id="toast" hidden></div>
+
+    <script src="atendimento.js"></script>
+</body>
+</html>

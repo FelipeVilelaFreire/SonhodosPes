@@ -45,6 +45,7 @@ pnpm-debug.log*
 
 # Arquivos de ambiente / segredos
 .env
+vercel_key.txt
 *-credentials.json
 *-service-account.json
 sonhoodospes-*.json
