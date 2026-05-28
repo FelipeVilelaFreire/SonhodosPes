@@ -30,6 +30,7 @@
         vezInitial: document.getElementById('vezInitial'),
         vezName: document.getElementById('vezName'),
         actionsGrid: document.getElementById('actionsGrid'),
+        queueSection: document.getElementById('queueSection'),
         queueList: document.getElementById('queueList'),
         sellersList: document.getElementById('sellersList'),
         confirmModal: document.getElementById('confirmModal'),
@@ -75,7 +76,10 @@
             const data = await res.json();
             if (data.ok) {
                 state.opcoes = data.opcoes;
-                state.fila = data.fila;
+                state.fila = data.fila.map(seller => {
+                    if (!seller.statusDia) seller.statusDia = 'Ativo';
+                    return seller;
+                });
                 state.proximoIdHistorico = data.proximoIdHistorico;
                 
                 // Salva no localStorage para uso offline posterior
@@ -103,7 +107,10 @@
 
         if (cachedOpcoes && cachedFila) {
             state.opcoes = JSON.parse(cachedOpcoes);
-            state.fila = JSON.parse(cachedFila);
+            state.fila = JSON.parse(cachedFila).map(seller => {
+                if (!seller.statusDia) seller.statusDia = 'Ativo';
+                return seller;
+            });
             state.proximoIdHistorico = cachedNextId ? parseInt(cachedNextId, 10) : 1;
         } else {
             // Inicializa com dados padrão se não houver cache
@@ -208,6 +215,7 @@
         // 3. Renderizar fila de espera (Próximas vendedoras ativas)
         el.queueList.innerHTML = '';
         if (ativas.length > 1) {
+            el.queueSection.hidden = false;
             // Próximas na fila (todas ativas exceto a primeira)
             const proximas = ativas.slice(1);
             proximas.forEach((prox, idx) => {
@@ -225,10 +233,7 @@
                 el.queueList.appendChild(item);
             });
         } else {
-            const empty = document.createElement('span');
-            empty.className = 'queue-empty';
-            empty.textContent = ativas.length === 1 ? 'Nenhuma outra vendedora na fila' : 'Nenhuma vendedora ativa no momento';
-            el.queueList.appendChild(empty);
+            el.queueSection.hidden = true;
         }
 
         // 4. Renderizar lista de gerenciamento de vendedores

@@ -48,6 +48,7 @@ const filaKeyMap = {
     'vendedora': 'vendedora',
     'posicao': 'posicao',
     'status_dia': 'statusDia',
+    'status_diario': 'statusDia',
     'total_atendimentos': 'totalAtendimentos',
     'total_compras': 'totalCompras',
     'total_desistencias': 'totalDesistencias',
@@ -89,6 +90,13 @@ function parseRows(rows, keyMap) {
                     if (isNaN(val)) val = 0;
                 }
             }
+            
+            // Se for status e estiver vazio, define como Ativo por padrão
+            if (key === 'statusDia') {
+                val = String(val).trim();
+                if (!val) val = 'Ativo';
+            }
+            
             obj[key] = val;
         });
         parsed.push(obj);
