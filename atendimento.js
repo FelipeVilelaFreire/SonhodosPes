@@ -213,136 +213,140 @@
         });
 
         // 3. Renderizar fila de espera (Próximas vendedoras ativas)
-        el.queueList.innerHTML = '';
-        if (ativas.length > 1) {
-            el.queueSection.hidden = false;
-            // Próximas na fila (todas ativas exceto a primeira)
-            const proximas = ativas.slice(1);
-            proximas.forEach((prox, idx) => {
-                const item = document.createElement('div');
-                item.className = 'queue-item';
-                
-                const badge = document.createElement('span');
-                badge.className = 'queue-badge';
-                badge.textContent = idx + 1;
-                
-                const name = document.createTextNode(prox.vendedora);
-                
-                item.appendChild(badge);
-                item.appendChild(name);
-                el.queueList.appendChild(item);
-            });
-        } else {
-            el.queueSection.hidden = true;
+        if (el.queueList && el.queueSection) {
+            el.queueList.innerHTML = '';
+            if (ativas.length > 1) {
+                el.queueSection.hidden = false;
+                // Próximas na fila (todas ativas exceto a primeira)
+                const proximas = ativas.slice(1);
+                proximas.forEach((prox, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'queue-item';
+                    
+                    const badge = document.createElement('span');
+                    badge.className = 'queue-badge';
+                    badge.textContent = idx + 1;
+                    
+                    const name = document.createTextNode(prox.vendedora);
+                    
+                    item.appendChild(badge);
+                    item.appendChild(name);
+                    el.queueList.appendChild(item);
+                });
+            } else {
+                el.queueSection.hidden = true;
+            }
         }
 
         // 4. Renderizar lista de gerenciamento de vendedores
-        el.sellersList.innerHTML = '';
-        
-        // Ordena por ordem de posição total (incluindo inativas) para exibição estável
-        const exibicaoSellers = [...state.fila].sort((a, b) => a.vendedora.localeCompare(b.vendedora));
-
-        exibicaoSellers.forEach(seller => {
-            const card = document.createElement('div');
-            card.className = 'seller-row-card';
-
-            const mainInfo = document.createElement('div');
-            mainInfo.className = 'seller-main-info';
-
-            const profile = document.createElement('div');
-            profile.className = 'seller-profile';
-
-            const circle = document.createElement('div');
-            circle.className = 'seller-circle';
-            circle.textContent = seller.vendedora.charAt(0).toUpperCase();
-
-            const profileDetail = document.createElement('div');
-            profileDetail.className = 'seller-profile-detail';
-
-            const nameLbl = document.createElement('span');
-            nameLbl.className = 'seller-name-label';
-            nameLbl.textContent = seller.vendedora;
-
-            const posTag = document.createElement('span');
-            posTag.className = 'seller-pos-tag';
-            posTag.textContent = seller.statusDia === 'Ativo' ? `Fila Pos: ${seller.posicao}` : 'Fora da fila';
-
-            profileDetail.appendChild(nameLbl);
-            profileDetail.appendChild(posTag);
-            profile.appendChild(circle);
-            profile.appendChild(profileDetail);
-
-            const selectWrap = document.createElement('div');
-            selectWrap.className = 'status-select-wrap';
-
-            const select = document.createElement('select');
-            select.className = 'status-select ' + seller.statusDia.toLowerCase();
-            select.ariaLabel = `Status da vendedora ${seller.vendedora}`;
+        if (el.sellersList) {
+            el.sellersList.innerHTML = '';
             
-            const optAtivo = document.createElement('option');
-            optAtivo.value = 'Ativo';
-            optAtivo.textContent = '🟢 Ativo';
-            optAtivo.selected = seller.statusDia === 'Ativo';
+            // Ordena por ordem de posição total (incluindo inativas) para exibição estável
+            const exibicaoSellers = [...state.fila].sort((a, b) => a.vendedora.localeCompare(b.vendedora));
 
-            const optInativo = document.createElement('option');
-            optInativo.value = 'Inativo';
-            optInativo.textContent = '🔴 Inativo';
-            optInativo.selected = seller.statusDia === 'Inativo';
+            exibicaoSellers.forEach(seller => {
+                const card = document.createElement('div');
+                card.className = 'seller-row-card';
 
-            select.appendChild(optAtivo);
-            select.appendChild(optInativo);
-            selectWrap.appendChild(select);
+                const mainInfo = document.createElement('div');
+                mainInfo.className = 'seller-main-info';
 
-            mainInfo.appendChild(profile);
-            mainInfo.appendChild(selectWrap);
+                const profile = document.createElement('div');
+                profile.className = 'seller-profile';
 
-            // Stats grid expandido
-            const statsGrid = document.createElement('div');
-            statsGrid.className = 'seller-stats-grid';
+                const circle = document.createElement('div');
+                circle.className = 'seller-circle';
+                circle.textContent = seller.vendedora.charAt(0).toUpperCase();
 
-            const createStatItem = (val, lbl) => {
-                const item = document.createElement('div');
-                item.className = 'stat-item';
-                const v = document.createElement('span');
-                v.className = 'stat-val';
-                v.textContent = val;
-                const l = document.createElement('span');
-                l.className = 'stat-lbl';
-                l.textContent = lbl;
-                item.appendChild(v);
-                item.appendChild(l);
-                return item;
-            };
+                const profileDetail = document.createElement('div');
+                profileDetail.className = 'seller-profile-detail';
 
-            const convertLbl = document.createElement('span');
-            convertLbl.className = 'stat-lbl';
-            convertLbl.textContent = 'Taxa de Conversão';
-            
-            const convertVal = document.createElement('span');
-            convertVal.className = 'stat-val';
-            convertVal.textContent = (seller.taxaConversaoPct || 0) + '%';
-            
-            const conversionHighlight = document.createElement('div');
-            conversionHighlight.className = 'stat-item conversion-highlight';
-            conversionHighlight.appendChild(convertLbl);
-            conversionHighlight.appendChild(convertVal);
+                const nameLbl = document.createElement('span');
+                nameLbl.className = 'seller-name-label';
+                nameLbl.textContent = seller.vendedora;
 
-            statsGrid.appendChild(createStatItem(seller.totalAtendimentos || 0, 'Atendimentos'));
-            statsGrid.appendChild(createStatItem(seller.totalCompras || 0, 'Compras'));
-            statsGrid.appendChild(createStatItem(seller.totalDesistencias || 0, 'Desistências'));
-            statsGrid.appendChild(createStatItem(seller.totalAchouCaro || 0, 'Caro'));
-            statsGrid.appendChild(createStatItem(seller.totalNaoFalouNada || 0, 'Sem Falar'));
-            statsGrid.appendChild(createStatItem(seller.totalOutro || 0, 'Outro'));
-            statsGrid.appendChild(conversionHighlight);
+                const posTag = document.createElement('span');
+                posTag.className = 'seller-pos-tag';
+                posTag.textContent = seller.statusDia === 'Ativo' ? `Fila Pos: ${seller.posicao}` : 'Fora da fila';
 
-            card.appendChild(mainInfo);
-            card.appendChild(statsGrid);
+                profileDetail.appendChild(nameLbl);
+                profileDetail.appendChild(posTag);
+                profile.appendChild(circle);
+                profile.appendChild(profileDetail);
 
-            // Event listener de mudança de status
-            select.addEventListener('change', (e) => handleStatusChange(seller.vendedora, e.target.value));
+                const selectWrap = document.createElement('div');
+                selectWrap.className = 'status-select-wrap';
 
-            el.sellersList.appendChild(card);
-        });
+                const select = document.createElement('select');
+                select.className = 'status-select ' + seller.statusDia.toLowerCase();
+                select.ariaLabel = `Status da vendedora ${seller.vendedora}`;
+                
+                const optAtivo = document.createElement('option');
+                optAtivo.value = 'Ativo';
+                optAtivo.textContent = '🟢 Ativo';
+                optAtivo.selected = seller.statusDia === 'Ativo';
+
+                const optInativo = document.createElement('option');
+                optInativo.value = 'Inativo';
+                optInativo.textContent = '🔴 Inativo';
+                optInativo.selected = seller.statusDia === 'Inativo';
+
+                select.appendChild(optAtivo);
+                select.appendChild(optInativo);
+                selectWrap.appendChild(select);
+
+                mainInfo.appendChild(profile);
+                mainInfo.appendChild(selectWrap);
+
+                // Stats grid expandido
+                const statsGrid = document.createElement('div');
+                statsGrid.className = 'seller-stats-grid';
+
+                const createStatItem = (val, lbl) => {
+                    const item = document.createElement('div');
+                    item.className = 'stat-item';
+                    const v = document.createElement('span');
+                    v.className = 'stat-val';
+                    v.textContent = val;
+                    const l = document.createElement('span');
+                    l.className = 'stat-lbl';
+                    l.textContent = lbl;
+                    item.appendChild(v);
+                    item.appendChild(l);
+                    return item;
+                };
+
+                const convertLbl = document.createElement('span');
+                convertLbl.className = 'stat-lbl';
+                convertLbl.textContent = 'Taxa de Conversão';
+                
+                const convertVal = document.createElement('span');
+                convertVal.className = 'stat-val';
+                convertVal.textContent = (seller.taxaConversaoPct || 0) + '%';
+                
+                const conversionHighlight = document.createElement('div');
+                conversionHighlight.className = 'stat-item conversion-highlight';
+                conversionHighlight.appendChild(convertLbl);
+                conversionHighlight.appendChild(convertVal);
+
+                statsGrid.appendChild(createStatItem(seller.totalAtendimentos || 0, 'Atendimentos'));
+                statsGrid.appendChild(createStatItem(seller.totalCompras || 0, 'Compras'));
+                statsGrid.appendChild(createStatItem(seller.totalDesistencias || 0, 'Desistências'));
+                statsGrid.appendChild(createStatItem(seller.totalAchouCaro || 0, 'Caro'));
+                statsGrid.appendChild(createStatItem(seller.totalNaoFalouNada || 0, 'Sem Falar'));
+                statsGrid.appendChild(createStatItem(seller.totalOutro || 0, 'Outro'));
+                statsGrid.appendChild(conversionHighlight);
+
+                card.appendChild(mainInfo);
+                card.appendChild(statsGrid);
+
+                // Event listener de mudança de status
+                select.addEventListener('change', (e) => handleStatusChange(seller.vendedora, e.target.value));
+
+                el.sellersList.appendChild(card);
+            });
+        }
     }
 
     // Modal de Confirmação
