@@ -66,8 +66,9 @@
                 throw new Error("Offline");
             }
 
-            const res = await fetch(API_ENDPOINT, {
+            const res = await fetch(`${API_ENDPOINT}?t=${Date.now()}`, {
                 method: 'GET',
+                cache: 'no-store',
                 headers: { 'X-App-Token': APP_TOKEN }
             });
 
@@ -381,8 +382,9 @@
     async function syncDataSilently() {
         if (!navigator.onLine) return;
         try {
-            const res = await fetch(API_ENDPOINT, {
+            const res = await fetch(`${API_ENDPOINT}?t=${Date.now()}`, {
                 method: 'GET',
+                cache: 'no-store',
                 headers: { 'X-App-Token': APP_TOKEN }
             });
             if (!res.ok) return;

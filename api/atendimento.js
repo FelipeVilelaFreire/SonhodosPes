@@ -38,6 +38,19 @@ function normalizeHeader(value) {
         .trim();
 }
 
+function mapColumnToProperty(colName) {
+    const clean = normalizeHeader(colName);
+    const map = {
+        'total_atendimentos': 'totalAtendimentos',
+        'total_compras': 'totalCompras',
+        'total_desistencias': 'totalDesistencias',
+        'total_achou_caro': 'totalAchouCaro',
+        'total_nao_falou_nada': 'totalNaoFalouNada',
+        'total_outro': 'totalOutro'
+    };
+    return map[clean] || clean;
+}
+
 const opcoesKeyMap = {
     'id_opcao': 'id',
     'nome_opcao': 'nome',
@@ -81,7 +94,7 @@ function parseRows(rows, keyMap) {
             if ([
                 'id', 'posicao', 'total_atendimentos', 'total_compras', 
                 'total_desistencias', 'total_achou_caro', 'total_nao_falou_nada', 
-                'total_outro', 'taxa_conversao_pct'
+                'total_outro'
             ].includes(header)) {
                 val = String(val).trim();
                 if (val === '') {
@@ -90,6 +103,14 @@ function parseRows(rows, keyMap) {
                     val = Number(val.replace('%', '').replace(',', '.'));
                     if (isNaN(val)) val = 0;
                 }
+            } else if (header === 'taxa_conversao_pct') {
+                val = String(val).trim();
+                let num = 0;
+                if (val !== '') {
+                    num = Number(val.replace('%', '').replace(',', '.'));
+                    if (isNaN(num)) num = 0;
+                }
+                val = num + '%';
             }
             
             // Se for status e estiver vazio, define como Ativo por padrão

@@ -45,7 +45,7 @@ self.addEventListener('fetch', (event) => {
 
     const url = new URL(request.url);
 
-    if (url.hostname.includes('docs.google.com') || url.hostname.includes('googleusercontent.com')) {
+    if (url.hostname.includes('docs.google.com') || url.hostname.includes('googleusercontent.com') || url.pathname.startsWith('/api/')) {
         return;
     }
 
