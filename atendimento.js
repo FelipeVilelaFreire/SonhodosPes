@@ -226,13 +226,13 @@
             el.actionsGrid.appendChild(btn);
         });
 
-        // 3. Renderizar fila de espera (Próximas vendedoras ativas)
+        // 3. Renderizar fila de espera (Próximas vendedoras ativas - limite de 5)
         if (el.queueList && el.queueSection) {
             el.queueList.innerHTML = '';
             if (ativas.length > 1) {
                 el.queueSection.hidden = false;
-                // Próximas na fila (todas ativas exceto a primeira)
-                const proximas = ativas.slice(1);
+                // Próximas na fila (todas ativas exceto a primeira, limitado a 5)
+                const proximas = ativas.slice(1, 6);
                 proximas.forEach((prox, idx) => {
                     const item = document.createElement('div');
                     item.className = 'queue-item';
