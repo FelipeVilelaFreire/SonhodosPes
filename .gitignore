@@ -33,7 +33,7 @@ supabase/
 .supabase/
 
 # Docs extras (ficam na branch nextjs)
-docs/
+# docs/
 # ──────────────────────────────────────────────────────────────────────────────
 
 # Logs

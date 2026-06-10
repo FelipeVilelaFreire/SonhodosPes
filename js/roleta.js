@@ -2,7 +2,7 @@
     'use strict';
 
     const API_URL = '/api/roleta';
-    const LOCAL_CSV_PATH = 'roleta.csv';
+    const LOCAL_CSV_PATH = 'data/roleta.csv';
     const APP_TOKEN = 'sdp-4K9mX2rP7nQ1wL5j';
     const SPIN_DURATION_MS = 4300;
     const WHEEL_SEGMENT_COUNT = 40;

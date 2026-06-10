@@ -1,3 +1,51 @@
+/*
+================================================================================
+SONHO DOS PÉS - PWA
+[ROULETTE STYLESHEET]
+File: roleta.css
+Description: Styles for the Lucky Roulette screen, including wheel geometry,
+             spin animations, modal displays, and confetti celebration layer.
+================================================================================
+TABLE OF CONTENTS:
+1. BASE PAGE & THEME STYLES
+2. TOPBAR & NAVIGATION
+3. WHEEL CONTAINER & ENERGY EFFECTS
+4. WHEEL SEGMENTS & GEOMETRY
+5. WHEEL CENTER & SPIN BUTTON
+6. RESULT OVERLAY PANEL & CELEBRATION LAYER
+7. ROW RESULTS & FALLBACK PRIZE LIST
+8. ANIMATIONS & KEYFRAMES
+9. BREAKPOINTS & MOTION CONTROLS
+================================================================================
+*/
+
+/* ==========================================================================
+   1. BASE PAGE & THEME STYLES
+   ========================================================================== */
+/*
+================================================================================
+SONHO DOS PÉS - PWA
+[ROULETTE STYLESHEET]
+File: roleta.css
+Description: Styles for the Lucky Roulette screen, including wheel geometry,
+             spin animations, modal displays, and confetti celebration layer.
+================================================================================
+TABLE OF CONTENTS:
+1. BASE PAGE & THEME STYLES
+2. TOPBAR & NAVIGATION
+3. WHEEL CONTAINER & ENERGY EFFECTS
+4. WHEEL SEGMENTS & GEOMETRY
+5. WHEEL CENTER & SPIN BUTTON
+6. RESULT OVERLAY PANEL & CELEBRATION LAYER
+7. ROW RESULTS & FALLBACK PRIZE LIST
+8. ANIMATIONS & KEYFRAMES
+9. BREAKPOINTS & MOTION CONTROLS
+================================================================================
+*/
+
+/* ==========================================================================
+   1. BASE PAGE & THEME STYLES
+   ========================================================================== */
 .roleta-body {
     min-height: 100vh;
     min-height: 100dvh;
@@ -17,6 +65,12 @@
     flex-direction: column;
 }
 
+/* ==========================================================================
+   2. TOPBAR & NAVIGATION
+   ========================================================================== */
+/* ==========================================================================
+   2. TOPBAR & NAVIGATION
+   ========================================================================== */
 .roulette-topbar {
     display: grid;
     grid-template-columns: 44px 1fr 44px;
@@ -132,6 +186,12 @@
     color: var(--color-primary-deep);
 }
 
+/* ==========================================================================
+   3. WHEEL CONTAINER & ENERGY EFFECTS
+   ========================================================================== */
+/* ==========================================================================
+   3. WHEEL CONTAINER & ENERGY EFFECTS
+   ========================================================================== */
 .wheel-area {
     position: relative;
     width: min(92vw, 420px);
@@ -240,6 +300,12 @@
     border: 1px solid rgba(255, 247, 234, 0.82);
 }
 
+/* ==========================================================================
+   4. WHEEL SEGMENTS & GEOMETRY
+   ========================================================================== */
+/* ==========================================================================
+   4. WHEEL SEGMENTS & GEOMETRY
+   ========================================================================== */
 .roulette-wheel {
     --wheel-gradient: conic-gradient(from -90deg, #c8b091 0deg 360deg);
     --wheel-rotation: 0deg;
@@ -296,6 +362,12 @@
     pointer-events: none;
 }
 
+/* ==========================================================================
+   5. WHEEL CENTER & SPIN BUTTON
+   ========================================================================== */
+/* ==========================================================================
+   5. WHEEL CENTER & SPIN BUTTON
+   ========================================================================== */
 .wheel-center {
     position: absolute;
     top: 50%;
@@ -408,6 +480,12 @@
         linear-gradient(135deg, #2f5d62 0%, #7b9063 44%, #c89b5e 100%);
 }
 
+/* ==========================================================================
+   6. RESULT OVERLAY PANEL & CELEBRATION LAYER
+   ========================================================================== */
+/* ==========================================================================
+   6. RESULT OVERLAY PANEL & CELEBRATION LAYER
+   ========================================================================== */
 .result-panel {
     --result-color: var(--color-primary);
     position: absolute;
@@ -496,6 +574,12 @@
     text-shadow: 0 10px 24px rgba(43, 33, 24, 0.12);
 }
 
+/* ==========================================================================
+   7. ROW RESULTS & FALLBACK PRIZE LIST
+   ========================================================================== */
+/* ==========================================================================
+   7. ROW RESULTS & FALLBACK PRIZE LIST
+   ========================================================================== */
 .roulette-list-panel {
     padding-top: 2px;
 }
@@ -600,6 +684,12 @@
     height: 5px;
 }
 
+/* ==========================================================================
+   8. ANIMATIONS & KEYFRAMES
+   ========================================================================== */
+/* ==========================================================================
+   8. ANIMATIONS & KEYFRAMES
+   ========================================================================== */
 @keyframes rouletteAura {
     to {
         transform: scale(1.03) rotate(360deg);
@@ -711,6 +801,12 @@
     }
 }
 
+/* ==========================================================================
+   9. BREAKPOINTS & MOTION CONTROLS
+   ========================================================================== */
+/* ==========================================================================
+   9. BREAKPOINTS & MOTION CONTROLS
+   ========================================================================== */
 @media (max-width: 360px) {
     .roulette-app {
         padding-left: 14px;

@@ -1,264 +1,253 @@
-# Sonho dos Pés — Consulta de Preços
+# Sonho dos Pés — Stock & Price Query PWA
 
-App PWA de consulta de preços e estoque para as vendedoras da loja **Sonho dos Pés**.
-Funciona **100% offline** no celular após a primeira abertura.
+An internal Progressive Web Application (PWA) designed for store associates of the Brazilian footwear brand **Sonho dos Pés** to instantly search prices, stock levels, sizes, and store locations. 
 
-Desenvolvido com HTML, CSS e JavaScript puros — zero dependências, zero build step.
-
----
-
-## Sumário
-
-- [O que o app faz](#o-que-o-app-faz)
-- [Como testar localmente](#como-testar-localmente)
-- [Como hospedar online](#como-hospedar-online)
-- [Como as vendedoras instalam no celular](#como-as-vendedoras-instalam-no-celular)
-- [Como o dono alimenta a tabela](#como-o-dono-alimenta-a-tabela-de-preços)
-- [Formato da planilha](#formato-da-planilha)
-- [PIN de segurança](#pin-de-segurança)
-- [Estrutura de arquivos](#estrutura-de-arquivos)
-- [Tecnologias](#tecnologias)
-- [Personalização](#personalização)
+The application is built to be **offline-first**, allowing seamless operations inside physical stores where cellular reception or Wi-Fi might be unstable.
 
 ---
 
-## O que o app faz
+## Table of Contents
 
-### Recursos principais
-
-- 🔍 **Busca por código de 5 dígitos** com auto-pesquisa instantânea
-- 📝 **Busca por nome ou marca** com autocomplete (ignora acentos e maiúsculas)
-- 📚 **Stack de consultas** — abre vários produtos em cards empilhados simultaneamente
-- 📦 **Estoque por tamanho** — cada chip mostra tamanho + quantidade disponível
-- 🎨 **Status visual do estoque:**
-  - Verde: 3+ pares disponíveis
-  - Amarelo (com pontinho pulsante): 1-2 pares (último)
-  - Cinza tracejado e riscado: 0 (esgotado)
-- 🚫 **Badge "ESGOTADO"** grande quando todos os tamanhos estão em 0
-- ✈️ **Offline-first** — funciona sem internet após a primeira abertura
-- 🔄 **Atualização automática** em segundo plano quando conectado ao Wi-Fi
-- 🔐 **PIN de 4 dígitos** para proteger ações sensíveis (salvar URL da planilha)
-- 📱 **PWA instalável** — vira ícone na tela inicial do celular, sem passar por loja de apps
-- 🎨 **Identidade visual oficial** da marca (paleta champagne `#C8B091`, logo SVG autêntico)
-
-### Telas
-
-- **Tela principal:** logo + campo de busca + stack de cards de produto
-- **Modal de configurações** (engrenagem no topo): URL da planilha, atualizar manualmente, total de produtos
-- **Modal de PIN:** aparece ao salvar URL da planilha
+- [Core Features](#core-features)
+- [Architecture & Tech Stack](#architecture--tech-stack)
+- [Directory Structure](#directory-structure)
+- [Local Development Setup](#local-development-setup)
+- [Google Sheets Schema (Database)](#google-sheets-schema-database)
+- [Security & PIN Configuration](#security--pin-configuration)
+- [Lucky Roulette System (Gamification)](#lucky-roulette-system-gamification)
+- [Attendance Queue System](#attendance-queue-system)
+- [Multi-Franchise Concept](#multi-franchise-concept)
+- [Deployment & Environment Variables](#deployment--environment-variables)
+- [Repository Conventions](#repository-conventions)
 
 ---
 
-## Como testar localmente
+## Core Features
 
-Service workers não funcionam com `file://`, então precisa de um servidor local.
+- 🔍 **Dynamic Multi-Term Search:** Autocomplete search ignoring accents and letter casing. Matches product names, SKU codes, collections, categories, or colors.
+- 🔢 **5-Digit SKU Matching:** Instant auto-query when typing a 5-digit product code (e.g. `12345`).
+- 📚 **Product Cards Stack:** Displays query results in an interactive comparative stack, allowing sales associates to check and compare multiple shoes simultaneously.
+- 📦 **Color & Size Stock Grid:** Beautiful grids showing available pairs by shoe size.
+  - **Sufficient Stock (Green):** 3+ pairs available.
+  - **Low Stock (Yellow with Pulse Dot):** 1-2 pairs (notifies urgency).
+  - **Out of Stock (Dashed Grey Strikethrough):** 0 pairs.
+- 🚫 **"Sold Out" Overlay:** Big visual badge indicating when a product is completely out of stock across all sizes.
+- 📍 **Stock Location Display:** Tells associates exactly where to find the product in the store (e.g. `Corredor 10 · Armário B · Prateleira 2`). Includes a PIN-secured edit interface to update locations directly on the sales floor.
+- 📷 **Barcode & Lens Integration:** 
+  - QR Code scanner that extracts product IDs from long barcodes (e.g. EAN barcodes).
+  - Google Lens search fallback (sharing a photo or submitting to Lens upload portal).
+- ✈️ **Offline-First Capabilities:** Works 100% offline using locally cached assets and IndexedDB storage. Syncs automatically in the background when connected to Wi-Fi.
+- 🎡 **Lucky Roulette (`/roleta`):** A customer engagement game to draw prizes, with server-side stock-decrementing logic and browser-locked prize coloring.
+- 👥 **Attendance Queue (`/atendimento`):** A custom rota control to manage the customer service queue for store sales associates.
 
-### Opção 1 — Node.js (recomendado)
+---
 
+## Architecture & Tech Stack
+
+```
+[Google Sheets] ──(Service Account)──> [Vercel Serverless APIs]
+                                               │
+                                         (GET /api/produtos)
+                                               │
+[IndexedDB (Local Storage)] <──────────── [Service Worker] <─── [PWA Frontend]
+```
+
+### Frontend (Vanilla PWA)
+- **Zero Frontend Frameworks:** Native HTML5, CSS3 CSS Variables, and ES6+ Vanilla JavaScript. Zero bundlers or build steps.
+- **IndexedDB (`sonhodospes` v2 database):** Local browser database capable of storing and querying thousands of product entries instantly.
+- **Service Worker (`service-worker.js`):** Intercepts network requests using a **Network-First** strategy with a Cache-First fallback for fonts and static files (`sonhodospes-app-v3` cache version).
+- **Web Crypto API:** Native browser cryptography (`crypto.subtle`) for hashing the configuration PIN locally in SHA-256.
+
+### Backend (Serverless APIs)
+- **Vercel Serverless Functions (`api/` folder):** Node.js functions running on Vercel's edge network.
+- **Google Sheets API:** Integrated via `googleapis` library using a Google Service Account JSON key string to read and write master data.
+
+---
+
+## Directory Structure
+
+```
+SonhoodosPés/
+├── api/                   # Vercel Serverless Node.js backend functions
+│   ├── produtos.js        # GET: Pulls Sheets data and parses into CSV
+│   ├── locations.js       # PATCH: Updates corridor/closet/shelf location in Sheets
+│   ├── verify-pin.js      # POST: Validates security PIN for config changes
+│   ├── roleta.js          # GET/POST: Handles roulette prize listing & server-side draw
+│   └── atendimento.js     # GET/POST: Manages sales queue lists
+│
+├── styles.css             # Main application stylesheet (structured in 16 sections)
+├── roleta.css             # Lucky Roulette UI stylesheet
+├── atendimento.css        # Attendance queue stylesheet
+├── app.js                 # Main application logic (IIFE scope, IndexedDB, search stack)
+├── roleta.js              # Lucky Roulette logic (animations, color maps)
+├── atendimento.js         # Attendance queue rota logic
+│
+├── index.html             # Main application template
+├── roleta.html            # Lucky Roulette template (served at /roleta)
+├── atendimento.html       # Attendance queue template (served at /atendimento)
+├── painel.html            # Metrics dashboard template (served at /sdp-metricas-9x7k2m)
+│
+├── manifest.json          # PWA Manifest (app icon, coloring, full-screen behavior)
+├── service-worker.js      # Cache precaching roster and offline synchronization rules
+│
+├── logo.svg               # Authentic brand asset (SVG format)
+├── manifest assets        # icon-192.png, icon-512.png, icon.svg
+│
+├── package.json           # Backend node dependencies (googleapis)
+├── vercel.json            # Vercel deployment routes mapping
+│
+├── [app/], [src/]         # EXPERIMENTAL: Next.js/TypeScript folders
+│                          # (Unused in the active production static PWA)
+└── README.md              # English documentation
+```
+
+> [!NOTE]
+> The folders `app/`, `src/` and files `tsconfig.tsbuildinfo`, `next-env.d.ts` are part of an experimental/planned migration to Next.js. The current active production app is served directly from the root-level vanilla files (`index.html`, `app.js`, `styles.css`).
+
+---
+
+## Local Development Setup
+
+To test offline behaviors, service workers require a secure context (HTTPS) or a local loopback server.
+
+### 1. Serving static files locally
+Ensure you are in the project root directory. Do not open `index.html` via double-click (`file://` protocol), use one of the following:
+
+**Option A (Node.js - Recommended):**
 ```bash
 npx serve -l 8000
 ```
+Open: `http://localhost:8000`
 
-Abra: http://localhost:8000
-
-### Opção 2 — Python
-
+**Option B (Python):**
 ```bash
 python -m http.server 8000
 ```
 
-> ⚠️ No Windows, o comando `python` pode ser só um redirect para a Microsoft Store. Se não funcionar, use a Opção 1.
+### 2. Testing Serverless APIs locally
+To run serverless endpoints inside the `api/` directory locally, you must install the Vercel CLI and load environment variables:
 
-### Opção 3 — VS Code Live Server
-
-1. Instale a extensão **Live Server**
-2. Clique com o botão direito em `index.html`
-3. Escolha **"Open with Live Server"**
-
----
-
-## Como hospedar online
-
-Três opções todas gratuitas:
-
-### Vercel (recomendado se já usa)
-
-Via CLI:
 ```bash
-npm i -g vercel
-vercel
+# Install Node dependencies
+npm install
+
+# Install Vercel CLI globally
+npm install -g vercel
+
+# Run development server (loads mock environment or pulls live keys from Vercel account)
+vercel dev
 ```
 
-Ou via dashboard: https://vercel.com — importa do GitHub.
-
-### Netlify Drop (mais simples)
-
-1. Acesse https://app.netlify.com/drop
-2. Arraste a pasta do projeto
-3. URL gerada instantaneamente
-
-### GitHub Pages
-
-1. Suba o código pro GitHub
-2. Em **Settings → Pages**, ative a branch principal
-3. URL aparece em ~1 minuto
-
-> Todas fornecem HTTPS automático (necessário pro service worker funcionar em produção).
-
----
-
-## Como as vendedoras instalam no celular
-
-1. Vendedora abre a URL pública no navegador do celular (**Chrome** no Android, **Safari** no iPhone)
-2. Toca no menu:
-   - Android: `⋮` → **"Adicionar à tela inicial"** ou **"Instalar app"**
-   - iPhone: `⬆️` (ícone de compartilhar) → **"Adicionar à Tela Inicial"**
-3. Ícone do Sonho dos Pés aparece na tela inicial
-4. A partir daí: toca no ícone para abrir em tela cheia, **sem internet**
-
----
-
-## Como o dono alimenta a tabela de preços
-
-### Configuração inicial (uma vez)
-
-1. O dono cria uma planilha no **Google Sheets** com as colunas exatamente nesta ordem:
-   ```
-   codigo, modelo, marca, tamanhos, preco
-   ```
-2. **Arquivo → Compartilhar → Publicar na Web**
-3. Em "Formato", escolhe **Valores separados por vírgula (.csv)**
-4. Clica em **Publicar** e copia a URL gerada
-5. No app (engrenagem → campo "URL da planilha"), cola a URL e toca em **"Salvar URL"**
-6. Digita o PIN (padrão: `1357`) e confirma
-
-### Atualização do dia a dia
-
-O dono simplesmente **edita a planilha do Google Sheets**. O Google salva automaticamente e a URL sempre aponta pra versão mais recente.
-
-O app atualiza:
-- **Automaticamente:** toda vez que abre com Wi-Fi, baixa a versão nova em segundo plano
-- **Manualmente:** engrenagem → **"Atualizar tabela agora"**
-
----
-
-## Formato da planilha
-
-| codigo | modelo                | marca     | tamanhos                          | preco  |
-|--------|-----------------------|-----------|-----------------------------------|--------|
-| 12001  | Scarpin Aurora Nude   | Vizzano   | `34:2,35:3,36:4,37:1,38:0,39:1`   | 199.90 |
-| 12002  | Sandália Luna Dourada | Beira Rio | `34:0,35:2,36:4,37:3,38:1`        | 149.90 |
-
-### Regras
-
-- **`codigo`:** 5 dígitos (ex: `12345`). Códigos com menos dígitos são preenchidos com zeros à esquerda automaticamente.
-- **`modelo`:** nome descritivo do produto.
-- **`marca`:** nome do fabricante (Vizzano, Beira Rio, Dakota, etc).
-- **`tamanhos`:** formato `tamanho:quantidade` separado por vírgula.
-  - Exemplo: `34:2,35:3,36:0` significa tamanho 34 com 2 pares, 35 com 3 pares, 36 esgotado.
-  - Se quiser só listar tamanhos sem quantidade (formato legado), também funciona: `34,35,36`.
-  - Como o campo contém vírgulas, o Google Sheets envolve automaticamente em aspas ao exportar CSV.
-- **`preco`:** ponto ou vírgula como separador decimal (`199.90` ou `199,90`).
-- **Primeira linha:** cabeçalhos com esses nomes exatos, em minúsculas.
-
----
-
-## PIN de segurança
-
-O PIN protege ações sensíveis como salvar uma nova URL da planilha, evitando que vendedoras alterem a configuração acidentalmente.
-
-### PIN padrão
-
-Definido em `app.js` na constante `DEFAULT_PIN`:
-
-```js
-const DEFAULT_PIN = '1357';
-```
-
-Para alterar: edite essa linha, salve, e faça redeploy.
-
-### Fluxo
-
-- Toque na engrenagem → abre configurações (sem PIN)
-- Cole uma URL de planilha → toque em **"Salvar URL"**
-- Aparece modal de PIN
-- Digite `1357` → URL salva
-
-### PIN personalizado (funcionalidade oculta)
-
-O código suporta PIN personalizado armazenado com hash SHA-256 no `localStorage`. A interface pra definir/alterar/remover está comentada no `index.html` dentro do modal de configurações (seção "Segurança"). Para reativar:
-
-1. Abra `index.html`
-2. Remova os comentários `<!-- ... -->` ao redor do bloco `<div class="setting-group security-group">`
-3. Recarregue
-
----
-
-## Estrutura de arquivos
-
-```
-SonhoodosPés/
-├── index.html          Estrutura da página (marcação HTML)
-├── styles.css          Visual (paleta Sonho dos Pés, layouts, animações)
-├── app.js              Lógica (busca, stack, IndexedDB, PIN, atualizações)
-├── manifest.json       Configuração PWA (instalação no celular)
-├── service-worker.js   Cache offline (estratégia network-first)
-├── logo.svg            Logo oficial extraído do site da marca
-├── produtos.csv        Dados de exemplo (25 sapatos)
-├── .gitignore          Arquivos ignorados pelo Git
-└── README.md           Este arquivo
+### 3. File validation check
+Run the standard syntax integrity checks before pushing code changes:
+```bash
+node --check app.js
+node --check roleta.js
+node --check api/roleta.js
 ```
 
 ---
 
-## Tecnologias
+## Google Sheets Schema (Database)
 
-- **HTML5 + CSS3 + JavaScript ES6+** puros — zero dependências npm, zero build step
-- **IndexedDB** para armazenar produtos no celular (suporta milhares de itens)
-- **Service Worker** com estratégia network-first para offline confiável
-- **PWA** (Progressive Web App) via `manifest.json`
-- **Web Crypto API** (`crypto.subtle`) para hash SHA-256 do PIN
-- **Google Fonts** — `Cormorant Garamond` (títulos) + `Inter` (corpo), cacheadas após primeira carga
+The spreadsheet configured under Vercel's `SPREADSHEET_ID` serves as the primary relational database.
+
+### 1. Products Spreadsheet Tab
+The main sheet (usually configured as `SHEET_NAME`) must contain the following columns in the header row:
+
+| Column Header | Description | Format Example |
+|---|---|---|
+| `codigo` | 5-Digit Unique Identifier | `12001`, `03450` |
+| `modelo` | Description/Design Name | `Scarpin Aurora Nude` |
+| `marca` | Supplier or Sub-Brand | `Vizzano`, `Dakota` |
+| `tamanhos` | Color & stock availability matrix | `Cor: Preto\|34:2,35:5,36:0` |
+| `preco_venda` | Retail Price | `199.90` or `199,90` |
+| `corredor` | Closet corridor position | `12` |
+| `armario` | Closet shelf column | `A` |
+| `prateleira` | Closet shelf level | `3` |
+
+### 2. Sizes/Colors Parsing format
+The `tamanhos` cell content uses a serialization syntax:
+- Format: `Color_Name|Size:Qty,Size:Qty,...`
+- Multi-color listing support (comma-separated): `PRETO|34:1,35:2,36:0;NUDE|34:0,35:1,36:1`
+- If no colon is present (legacy behavior), sizes are parsed as listed without quantities: `34,35,36` (showing fallback available states).
 
 ---
 
-## Personalização
+## Security & PIN Configuration
 
-### Cores
+To prevent sales associates or customers from accidentally altering the configuration URL (Spreadsheet CSV location) or changing physical warehouse locations, a security PIN lock is implemented.
 
-Topo do `styles.css`, seção `:root`. Variáveis CSS bem nomeadas:
+- **Default Code:** Defined in `app.js` under the constant:
+  ```javascript
+  const LOCAL_DEV_PIN = '1357';
+  ```
+- **Live Check:** The production app submits validation requests to `/api/verify-pin` which validates against the server-side environment variable `SDP_PIN`.
+- **Hashed Custom PIN:** The application supports saving a custom hashed PIN. This feature can be activated by uncommenting the block inside `<div class="setting-group security-group">` in `index.html`. Once enabled, it saves a SHA-256 hash representation of the custom PIN inside the browser's `localStorage` (`sdp:pinHash`).
 
-```css
---color-primary: #C8B091;       /* Bege/champagne da marca */
---color-primary-deep: #A88B65;  /* Dourado mais saturado */
---color-bg: #FAF7F2;            /* Fundo off-white */
---color-text: #2B2118;          /* Texto principal */
+---
+
+## Lucky Roulette System (Gamification)
+
+The Lucky Roulette is located at the `/roleta` route (rewritten from `roleta.html`). 
+
+### Key Rules (Do Not Violate)
+1. **Hidden Odds:** The user interface **must never** display remaining quantities, win probabilities, chances, or total tickets.
+2. **Dynamic Segments:** The visual slices of the wheel are created dynamically based on currently available prizes. However, slice sizes are purely illustrative; probabilities are not calculated on the client.
+3. **Server-Side Draw:** The winning index is computed on the Vercel server (`api/roleta.js`) using a quantity-weighted formula:
+   $$\text{probability} = \frac{\text{Quantity of Item}}{\sum \text{All Quantities}}$$
+4. **Instant Decrement:** When a prize is successfully drawn, the server instantly decrements the item's quantity by `1` in the Google Sheet tab (`roleta` or `rotina`), preventing race conditions.
+5. **Locked Browser Colors:** Colors are dynamically assigned to each unique `VALOR` (Prize Name) and cached in the browser's `localStorage` (`sdp:roletaColorMap:v1`). This guarantees that a prize (e.g. `10%`) retains the same color on consecutive spins within that browser instance.
+6. **Compensated Angle Stop:** The wheel's stopping rotation contains a `-90` degree compensation factor matching the CSS conic-gradient rotation. Do not alter this formula in `roleta.js`.
+
+---
+
+## Attendance Queue System
+
+Accessible at `/atendimento` (mapped to `atendimento.html`), this module tracks store attendants.
+- Associates can toggle their status (Active vs Inactive) inside a roster list.
+- Rota uses a FIFO (First In, First Out) queue sequence to display the "Vendedora da Vez" (current employee to serve next).
+- Automatically updates store conversion stats (Active attendants, total queue count).
+
+---
+
+## Multi-Franchise Concept
+
+Designed for scalability, the system plans support for multi-franchise operations (described in `MULTIFRANCHISE.md`):
+- A master `franchises.json` listing stores:
+  ```json
+  [
+    { "id": "moema", "nome": "Unidade Moema", "csvUrl": "/api/produtos?f=moema" }
+  ]
+  ```
+- A proxy rewrite mapping `/api/produtos?f=moema` to read dynamic environment variables (e.g., `URL_TABLE_MOEMA`) corresponding to that location's Google Sheet database.
+- Roster selection saved inside the browser's `localStorage`.
+
+---
+
+## Deployment & Environment Variables
+
+The project deploys automatically to **Vercel** when commits are pushed to the `main` branch:
+- Repository: `FelipeVilelaFreire/SonhodosPes`
+
+### Required Environment Variables on Vercel
+```env
+SPREADSHEET_ID              # The ID of the Google Sheets document
+SHEET_NAME                  # Tab name containing product data (e.g. "Planilha1")
+GOOGLE_SERVICE_ACCOUNT_KEY  # Complete stringified JSON credential of the Service Account
+APP_TOKEN                   # Authentication token matching header `X-App-Token`
+SDP_PIN                     # 4-Digit production security PIN (e.g. "1357")
+ROLETA_SHEET_NAME          # (Optional) Specific sheet name for roulette data
 ```
 
-### Dados de exemplo
-
-Edite `produtos.csv` seguindo o formato descrito acima.
-
-### Adicionar/remover colunas
-
-1. Ajuste `parseCSV` em `app.js` se precisar de campos novos
-2. Atualize `renderCard` em `app.js` pra exibir os novos campos
-3. Atualize o `<template id="cardTemplate">` em `index.html` com a nova marcação
-
-### Mudar PIN padrão
-
-Em `app.js`, linha com `const DEFAULT_PIN = '1357';`.
-
 ---
 
-## Limitações conhecidas
+## Repository Conventions
 
-- **Uso comercial no Vercel Hobby:** tecnicamente os termos do Vercel restringem uso comercial ao plano Pro. Para uso comercial irrestrito, **Netlify Starter** ou **GitHub Pages** são alternativas 100% gratuitas sem essa limitação.
-- **Primeira carga exige internet:** service worker + IndexedDB precisam baixar uma vez antes de funcionar offline.
-- **Atualização da tabela requer Wi-Fi:** offline o app usa a última versão salva no celular.
-
----
-
-## Licença
-
-Projeto privado / uso interno da loja Sonho dos Pés.
+- **No Secret Commits:** Do not commit `.env`, `vercel_key.txt`, or Service Account JSON files.
+- **Service Worker Versioning:** When editing static files (`index.html`, `styles.css`, `app.js`, etc.), you **must** update the `CACHE_NAME` constant at the top of `service-worker.js` (e.g. from `sonhodospes-app-v13` to `sonhodospes-app-v14`) so installed PWA clients fetch updated code.
+- **Git Hygiene:** Only stage files belonging to the current task. Verify status before committing:
+  ```bash
+  git status --short --branch
+  git diff --cached --stat
+  ```

@@ -5,7 +5,7 @@
     const DB_VERSION = 2;
     const STORE_PRODUTOS = 'produtos';
     const STORE_META = 'meta';
-    const LOCAL_CSV_PATH = 'produtos.csv';
+    const LOCAL_CSV_PATH = 'data/produtos.csv';
     const STORAGE_KEY_URL = 'sdp:csvUrl';
     const STORAGE_KEY_PIN = 'sdp:pinHash';
     const MAX_AUTOCOMPLETE = 6;

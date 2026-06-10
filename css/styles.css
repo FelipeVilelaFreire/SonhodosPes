@@ -1,3 +1,34 @@
+/*
+================================================================================
+SONHO DOS PÉS - PWA
+[MAIN STYLESHEET]
+File: styles.css
+Description: Design system tokens, layout structures, product comparison cards,
+             search features, filters, modals, and animation systems.
+================================================================================
+TABLE OF CONTENTS:
+1. DESIGN TOKENS & VARIABLES
+2. RESET & BASE HTML/BODY
+3. SYSTEM STATS & HEADER
+4. BRANDING & ORNAMENTS
+5. SEARCH BOX & AUTOCOMPLETE
+6. BASE PAGE SECTIONS & STACK HEADER
+7. PRODUCT CARD & COMPARISON STACK
+8. SIZE & STOCK GRIDS / CHIPS
+9. MODALS & POP-UP INTERFACES
+10. SETTINGS & APP SECURITY (PIN/DANGER ZONE)
+11. TOAST NOTIFICATIONS
+12. ANIMATION KEYFRAMES
+13. QR CODE SCANNER COMPONENT
+14. GOOGLE LENS SCANNER INTERFACE
+15. SEARCH FILTER COMPONENT
+16. MOTION PREFERENCES & MEDIA QUERIES
+================================================================================
+*/
+
+/* ==========================================================================
+   1. DESIGN TOKENS & VARIABLES
+   ========================================================================== */
 :root {
     --color-primary: #C8B091;
     --color-primary-deep: #A88B65;
@@ -37,6 +68,9 @@
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* ==========================================================================
+   2. RESET & BASE HTML/BODY
+   ========================================================================== */
 *,
 *::before,
 *::after {
@@ -92,6 +126,9 @@ svg {
     max-width: 100%;
 }
 
+/* ==========================================================================
+   3. SYSTEM STATS & HEADER
+   ========================================================================== */
 .app {
     position: relative;
     z-index: 1;
@@ -220,6 +257,9 @@ svg {
     transform: rotate(45deg);
 }
 
+/* ==========================================================================
+   4. BRANDING & ORNAMENTS
+   ========================================================================== */
 .brand {
     text-align: center;
     padding-top: 12px;
@@ -265,6 +305,9 @@ svg {
     background: currentColor;
 }
 
+/* ==========================================================================
+   5. SEARCH BOX & AUTOCOMPLETE
+   ========================================================================== */
 .search-section {
     padding: 8px 0 20px;
     position: relative;
@@ -467,6 +510,9 @@ svg {
     color: var(--color-text-soft);
 }
 
+/* ==========================================================================
+   6. BASE PAGE SECTIONS & STACK HEADER
+   ========================================================================== */
 .app-main {
     flex: 1;
     display: flex;
@@ -608,6 +654,9 @@ svg {
     }
 }
 
+/* ==========================================================================
+   7. PRODUCT CARD & COMPARISON STACK
+   ========================================================================== */
 .stack {
     display: flex;
     flex-direction: column;
@@ -714,6 +763,9 @@ svg {
     text-align: right;
 }
 
+/* ==========================================================================
+   8. SIZE & STOCK GRIDS / CHIPS
+   ========================================================================== */
 .stock-grid-wrapper {
     margin-bottom: 20px;
     width: 100%;
@@ -1332,6 +1384,9 @@ svg {
     letter-spacing: 0.05em;
 }
 
+/* ==========================================================================
+   9. MODALS & POP-UP INTERFACES
+   ========================================================================== */
 .modal {
     position: fixed;
     inset: 0;
@@ -1404,6 +1459,9 @@ svg {
     padding-bottom: calc(28px + env(safe-area-inset-bottom));
 }
 
+/* ==========================================================================
+   10. SETTINGS & APP SECURITY (PIN/DANGER ZONE)
+   ========================================================================== */
 .setting-group {
     padding: 20px 0;
     border-bottom: 1px solid var(--color-primary-whisper);
@@ -1697,6 +1755,9 @@ svg {
     min-height: 1em;
 }
 
+/* ==========================================================================
+   11. TOAST NOTIFICATIONS
+   ========================================================================== */
 .toast {
     position: fixed;
     bottom: max(24px, env(safe-area-inset-bottom));
@@ -1735,6 +1796,9 @@ svg {
     background: var(--color-danger);
 }
 
+/* ==========================================================================
+   12. ANIMATION KEYFRAMES
+   ========================================================================== */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -1825,6 +1889,9 @@ svg {
     }
 }
 
+/* ==========================================================================
+   13. QR CODE SCANNER COMPONENT
+   ========================================================================== */
 /* QR Code Modal Styles */
 .qr-content {
     background: var(--color-surface);
@@ -1887,6 +1954,9 @@ svg {
 }
 
 
+/* ==========================================================================
+   14. GOOGLE LENS SCANNER INTERFACE
+   ========================================================================== */
 .lens-content {
     width: 95%;
     max-width: 600px;
@@ -1937,6 +2007,9 @@ svg {
     cursor: not-allowed;
 }
 
+/* ==========================================================================
+   15. SEARCH FILTER COMPONENT
+   ========================================================================== */
 /* ── Filter ─────────────────────────────────────────────────────── */
 .search-header-actions {
     display: flex;
@@ -2361,6 +2434,9 @@ svg {
     }
 }
 
+/* ==========================================================================
+   16. MOTION PREFERENCES & MEDIA QUERIES
+   ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

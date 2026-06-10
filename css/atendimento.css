@@ -1,5 +1,57 @@
 /* atendimento.css - Fila de Atendimento */
 
+/*
+================================================================================
+SONHO DOS PÉS - PWA
+[ATTENDANCE QUEUE STYLESHEET]
+File: atendimento.css
+Description: Styles for the sales representatives queue screen (atendimento),
+             including vez vendedora display, queue status buttons, seller
+             management panel, and modal controls.
+================================================================================
+TABLE OF CONTENTS:
+1. BASE PAGE & APP WRAPPER
+2. TOPBAR & NAVIGATION
+3. SECTIONS & TITLES
+4. CURRENT SELLER CARD (VEZ DA VEZ)
+5. ACTION CARDS GRID
+6. QUEUE LIST DISPLAY
+7. MANAGEMENT PANEL & SELLER ROSTER
+8. LOADING OVERLAY & SPINNER
+9. MODAL WINDOWS & CONFIRMATION
+10. ANIMATIONS & TRANSITIONS
+================================================================================
+*/
+
+/* ==========================================================================
+   1. BASE PAGE & APP WRAPPER
+   ========================================================================== */
+/*
+================================================================================
+SONHO DOS PÉS - PWA
+[ATTENDANCE QUEUE STYLESHEET]
+File: atendimento.css
+Description: Styles for the sales representatives queue screen (atendimento),
+             including vez vendedora display, queue status buttons, seller
+             management panel, and modal controls.
+================================================================================
+TABLE OF CONTENTS:
+1. BASE PAGE & APP WRAPPER
+2. TOPBAR & NAVIGATION
+3. SECTIONS & TITLES
+4. CURRENT SELLER CARD (VEZ DA VEZ)
+5. ACTION CARDS GRID
+6. QUEUE LIST DISPLAY
+7. MANAGEMENT PANEL & SELLER ROSTER
+8. LOADING OVERLAY & SPINNER
+9. MODAL WINDOWS & CONFIRMATION
+10. ANIMATIONS & TRANSITIONS
+================================================================================
+*/
+
+/* ==========================================================================
+   1. BASE PAGE & APP WRAPPER
+   ========================================================================== */
 .atendimento-body {
     background-color: var(--color-bg);
     color: var(--color-text);
@@ -20,6 +72,12 @@
 }
 
 /* Header style matching roleta and index */
+/* ==========================================================================
+   2. TOPBAR & NAVIGATION
+   ========================================================================== */
+/* ==========================================================================
+   2. TOPBAR & NAVIGATION
+   ========================================================================== */
 .atendimento-topbar {
     display: flex;
     align-items: center;
@@ -79,6 +137,12 @@
 }
 
 /* Sections */
+/* ==========================================================================
+   3. SECTIONS & TITLES
+   ========================================================================== */
+/* ==========================================================================
+   3. SECTIONS & TITLES
+   ========================================================================== */
 .atendimento-main {
     flex: 1;
     display: flex;
@@ -100,6 +164,12 @@
     margin-bottom: 24px;
 }
 
+/* ==========================================================================
+   4. CURRENT SELLER CARD (VEZ DA VEZ)
+   ========================================================================== */
+/* ==========================================================================
+   4. CURRENT SELLER CARD (VEZ DA VEZ)
+   ========================================================================== */
 .card-vez {
     background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-warm) 100%);
     border: 1px solid var(--color-primary-soft);
@@ -187,6 +257,12 @@
     margin-bottom: 28px;
 }
 
+/* ==========================================================================
+   5. ACTION CARDS GRID
+   ========================================================================== */
+/* ==========================================================================
+   5. ACTION CARDS GRID
+   ========================================================================== */
 .actions-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -234,6 +310,12 @@
     margin-bottom: 28px;
 }
 
+/* ==========================================================================
+   6. QUEUE LIST DISPLAY
+   ========================================================================== */
+/* ==========================================================================
+   6. QUEUE LIST DISPLAY
+   ========================================================================== */
 .queue-list {
     display: flex;
     flex-wrap: wrap;
@@ -302,6 +384,12 @@
     text-transform: uppercase;
 }
 
+/* ==========================================================================
+   7. MANAGEMENT PANEL & SELLER ROSTER
+   ========================================================================== */
+/* ==========================================================================
+   7. MANAGEMENT PANEL & SELLER ROSTER
+   ========================================================================== */
 .sellers-list {
     display: flex;
     flex-direction: column;
@@ -474,6 +562,12 @@
 }
 
 /* Spinner */
+/* ==========================================================================
+   8. LOADING OVERLAY & SPINNER
+   ========================================================================== */
+/* ==========================================================================
+   8. LOADING OVERLAY & SPINNER
+   ========================================================================== */
 .loading-overlay {
     display: flex;
     flex-direction: column;
@@ -509,6 +603,12 @@
     display: none !important;
 }
 
+/* ==========================================================================
+   9. MODAL WINDOWS & CONFIRMATION
+   ========================================================================== */
+/* ==========================================================================
+   9. MODAL WINDOWS & CONFIRMATION
+   ========================================================================== */
 .modal-backdrop {
     position: absolute;
     inset: 0;
@@ -604,6 +704,12 @@
 }
 
 /* Animations */
+/* ==========================================================================
+   10. ANIMATIONS & TRANSITIONS
+   ========================================================================== */
+/* ==========================================================================
+   10. ANIMATIONS & TRANSITIONS
+   ========================================================================== */
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
