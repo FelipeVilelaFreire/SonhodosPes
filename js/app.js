@@ -237,7 +237,12 @@
 
             const tamanhos = {};
             sizeColumnIndices.forEach(({ label, idx }) => {
-                const qty = parseInt(values[idx], 10);
+                let rawVal = String(values[idx] || '').trim();
+                rawVal = rawVal.replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-');
+                if (rawVal.startsWith('(') && rawVal.endsWith(')')) {
+                    rawVal = '-' + rawVal.slice(1, -1);
+                }
+                const qty = parseInt(rawVal, 10);
                 tamanhos[label] = Number.isFinite(qty) ? qty : 0;
             });
 
@@ -307,7 +312,11 @@
             const trimmed = t.trim();
             if (!trimmed) return null;
             const [numero, qtyStr] = trimmed.split(':').map(s => s.trim());
-            const quantidade = qtyStr !== undefined ? (parseInt(qtyStr, 10) || 0) : null;
+            let rawVal = qtyStr !== undefined ? qtyStr.replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-') : '';
+            if (rawVal.startsWith('(') && rawVal.endsWith(')')) {
+                rawVal = '-' + rawVal.slice(1, -1);
+            }
+            const quantidade = qtyStr !== undefined ? (parseInt(rawVal, 10) || 0) : null;
             return { numero, quantidade };
         }).filter(t => t && t.numero);
     }
@@ -322,7 +331,11 @@
             const str = String(t).trim();
             if (str.includes(':')) {
                 const [numero, qtyStr] = str.split(':').map(s => s.trim());
-                return { numero, quantidade: parseInt(qtyStr, 10) || 0 };
+                let rawVal = qtyStr.replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-');
+                if (rawVal.startsWith('(') && rawVal.endsWith(')')) {
+                    rawVal = '-' + rawVal.slice(1, -1);
+                }
+                return { numero, quantidade: parseInt(rawVal, 10) || 0 };
             }
             return { numero: str, quantidade: null };
         });
