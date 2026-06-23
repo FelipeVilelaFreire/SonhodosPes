@@ -858,7 +858,7 @@
         const set = new Set();
         (produto.cores || []).forEach(c => {
             Object.entries(c.tamanhos || {}).forEach(([s, q]) => {
-                if (!onlyWithStock || (q && q > 0)) set.add(s);
+                if (!onlyWithStock || (q !== 0 && q !== undefined && q !== null)) set.add(s);
             });
         });
         return Array.from(set).sort((a, b) => {
@@ -880,6 +880,13 @@
     function renderCard(produto) {
         const tpl = el.cardTemplate.content.cloneNode(true);
         const card = tpl.querySelector('.product-card');
+
+        const hasNegativeStock = (produto.cores || []).some(c =>
+            Object.values(c.tamanhos || {}).some(q => q < 0)
+        );
+        if (hasNegativeStock) {
+            card.classList.add('has-negative');
+        }
 
         card.dataset.codigo = produto.codigo;
 
@@ -1006,7 +1013,10 @@
             : ['QTD'];
 
         const cores = (produto.cores || []).filter(c =>
-            columns.some(s => c.tamanhos?.[s] > 0)
+            columns.some(s => {
+                const qty = c.tamanhos?.[s];
+                return qty !== 0 && qty !== undefined && qty !== null;
+            })
         );
 
         if (!cores.length || !columns.length) {
@@ -1041,7 +1051,10 @@
                     const cell = document.createElement('td');
                     cell.className = 'stock-cell';
                     const qty = cor.tamanhos?.[s];
-                    if (!qty || qty === 0) {
+                    if (qty < 0) {
+                        cell.classList.add('negativo');
+                        cell.textContent = qty;
+                    } else if (!qty || qty === 0) {
                         cell.classList.add('esgotado');
                         cell.textContent = '—';
                     } else if (qty <= 2) {

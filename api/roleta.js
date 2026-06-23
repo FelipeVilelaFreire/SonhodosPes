@@ -152,6 +152,8 @@ function pickPrize(prizes) {
 }
 
 export default async function handler(req, res) {
+    return res.status(404).json({ error: 'Funcionalidade de roleta desativada' });
+    /*
     if (!['GET', 'POST'].includes(req.method)) return res.status(405).end();
 
     if (APP_TOKEN && req.headers['x-app-token'] !== APP_TOKEN) {
@@ -212,4 +214,5 @@ export default async function handler(req, res) {
     } catch (e) {
         return res.status(500).json({ error: 'Erro na roleta', detail: e.message });
     }
+    */
 }
