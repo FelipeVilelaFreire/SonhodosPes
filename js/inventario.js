@@ -224,13 +224,25 @@
                         <strong>${s.name} ${isActive ? ' (Ativa)' : ''}</strong>
                         <span>Criada em: ${s.created_at}</span>
                     </div>
-                    <span style="font-weight: 600; color: #C8B091; font-size: 0.9rem;">${total} peças</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-weight: 600; color: #C8B091; font-size: 0.88rem;">${total} peças</span>
+                        <button class="btn-delete-card" data-id="${s.id}" title="Remover card da tela">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             `;
         }).join('');
 
+        // Evento para selecionar sessão
         document.querySelectorAll('.session-item').forEach(el => {
-            el.addEventListener('click', async () => {
+            el.addEventListener('click', async (e) => {
+                // Evita disparar se clicou na lixeira
+                if (e.target.closest('.btn-delete-card')) return;
+
                 const sId = el.getAttribute('data-id');
                 const selected = sessions.find(x => x.id === sId);
                 if (selected) {
@@ -238,6 +250,27 @@
                     activeSessionId = selected.id;
                     await renderSessionList();
                     renderTable();
+                }
+            });
+        });
+
+        // Evento para remover apenas o card da tela (IndexedDB local)
+        document.querySelectorAll('.btn-delete-card').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const sId = btn.getAttribute('data-id');
+                if (confirm('Remover este card de inventário da tela? (Os dados já enviados para a planilha continuam salvos lá normalmente).')) {
+                    await deleteSessionLocal(sId);
+                    const remaining = await getAllSessions();
+                    if (remaining.length > 0) {
+                        activeSessionData = remaining[0];
+                        activeSessionId = remaining[0].id;
+                    } else {
+                        await createNewSession();
+                    }
+                    await renderSessionList();
+                    renderTable();
+                    showToast('Card removido com sucesso.');
                 }
             });
         });
@@ -364,6 +397,16 @@
     }
 
     // Helpers IndexedDB
+    function deleteSessionLocal(sessionId) {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('sessions', 'readwrite');
+            const store = tx.objectStore('sessions');
+            store.delete(sessionId);
+            tx.oncomplete = () => resolve();
+            tx.onerror = (e) => reject(e);
+        });
+    }
+
     function saveSession(sessionObj) {
         return new Promise((resolve, reject) => {
             const tx = db.transaction('sessions', 'readwrite');
