@@ -64,6 +64,7 @@ export default async function handler(req, res) {
         return res.json({ ok: true, count: rowsToAppend.length });
     } catch (e) {
         console.error('[inventario] Sheets API error:', e);
-        return res.status(500).json({ error: 'Erro ao salvar na planilha', detail: e.message });
+        const detailMsg = e.errors ? JSON.stringify(e.errors) : (e.message || String(e));
+        return res.status(500).json({ error: 'Erro ao salvar na planilha', detail: detailMsg, raw: String(e) });
     }
 }
