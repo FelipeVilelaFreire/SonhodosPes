@@ -93,7 +93,8 @@
 
     function renderSessionSelectOptions() {
         sessionSelect.innerHTML = allSessions.map(s => {
-            return `<option value="${s.id}">${s.name} (${s.created_at})</option>`;
+            const cleanDisplay = s.created_at || s.name;
+            return `<option value="${s.id}">${cleanDisplay}</option>`;
         }).join('');
     }
 
