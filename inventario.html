@@ -37,38 +37,38 @@
 
         .scan-hero {
             text-align: center;
-            padding: 26px 18px;
-            background: linear-gradient(135deg, #09090b 0%, #1c1917 100%);
-            color: #fff;
+            padding: 24px 18px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #FDFAF5 100%);
+            color: #2B2118;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 4px 20px rgba(200, 176, 145, 0.15);
             margin-bottom: 20px;
             position: relative;
             overflow: hidden;
-            border: 1px solid #27272a;
+            border: 1px solid rgba(200, 176, 145, 0.3);
         }
 
         .scan-hero-btn {
-            background: #ffffff;
-            color: #09090b;
+            background: linear-gradient(135deg, #C8B091 0%, #A88B65 100%);
+            color: #ffffff;
             border: none;
             border-radius: 14px;
             padding: 16px 28px;
-            font-size: 1.15rem;
-            font-weight: 700;
+            font-size: 1.05rem;
+            font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 12px;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 16px rgba(200, 176, 145, 0.35);
             transition: all 0.2s ease;
             width: 100%;
             justify-content: center;
         }
 
         .scan-hero-btn:hover {
-            background: #f4f4f5;
-            transform: translateY(-2px);
+            opacity: 0.93;
+            transform: translateY(-1px);
         }
 
         .scan-hero-btn:active {
@@ -93,13 +93,18 @@
         }
 
         .input-manual-wrap button {
-            background: #292524;
+            background: #A88B65;
             color: #fff;
             border: none;
             border-radius: 10px;
             padding: 0 20px;
             font-weight: 600;
             cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .input-manual-wrap button:hover {
+            background: #8F724E;
         }
 
         .inv-header-flex {
