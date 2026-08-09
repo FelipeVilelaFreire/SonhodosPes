@@ -6,6 +6,8 @@
 (function () {
     'use strict';
 
+    const APP_TOKEN = 'sdp-4K9mX2rP7nQ1wL5j';
+
     // Banco de Dados IndexedDB para inventário
     const DB_NAME = 'sonhodospes_inventario';
     const DB_VERSION = 1;
@@ -306,7 +308,10 @@
         try {
             await fetch('/api/inventario', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-app-token': APP_TOKEN
+                },
                 body: JSON.stringify({
                     items: [{ last_updated: dateStr, sku: sku, qtd: qtd }]
                 })
@@ -331,7 +336,8 @@
             const res = await fetch('/api/inventario', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'x-app-token': APP_TOKEN
                 },
                 body: JSON.stringify({ items })
             });
