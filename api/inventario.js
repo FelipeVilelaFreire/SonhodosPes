@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         // Adiciona as novas linhas ao final da aba 'inventarios'
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: `'${INVENTORY_SHEET_NAME}'!A:C`,
+            range: INVENTORY_SHEET_NAME,
             valueInputOption: 'USER_ENTERED',
             insertDataOption: 'INSERT_ROWS',
             requestBody: {
