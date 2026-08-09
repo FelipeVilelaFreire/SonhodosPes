@@ -202,12 +202,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 14px;
+            padding: 10px 12px;
             background: #fafaf9;
             border-radius: 12px;
             border: 1px solid #e7e5e4;
             cursor: pointer;
             transition: background 0.2s;
+            gap: 10px;
         }
 
         .session-item:hover, .session-item.active {
@@ -219,13 +220,14 @@
             background: none;
             border: none;
             color: #a8a29e;
-            padding: 6px;
+            padding: 4px;
             border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.15s ease;
+            flex-shrink: 0;
         }
 
         .btn-delete-card:hover {
@@ -233,26 +235,50 @@
             color: #ef4444;
         }
 
+        .session-info {
+            min-width: 0;
+            flex: 1;
+        }
+
         .session-info strong {
             display: block;
             color: #1c1917;
-            font-size: 0.95rem;
+            font-size: 0.88rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .session-info span {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: #78716c;
+            white-space: nowrap;
         }
 
-        .back-nav {
+        .btn-new-session-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            color: #78716c;
-            text-decoration: none;
-            font-weight: 500;
-            margin-bottom: 16px;
-            font-size: 0.9rem;
+            gap: 5px;
+            background: #FDFAF5;
+            color: #A88B65;
+            border: 1px solid #E8DFD1;
+            padding: 5px 12px;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn-new-session-badge:hover {
+            background: #F5F0E8;
+            border-color: #C8B091;
+            color: #2B2118;
+        }
+
+        .btn-new-session-badge:active {
+            transform: scale(0.96);
         }
     </style>
 </head>
@@ -355,7 +381,13 @@
             <div class="inv-card">
                 <div class="inv-header-flex">
                     <h2 class="inv-title">Histórico de Contagens</h2>
-                    <button id="btnNewSession" style="background: none; border: none; color: #C8B091; font-weight: 600; cursor: pointer;">+ Nova Contagem</button>
+                    <button id="btnNewSession" class="btn-new-session-badge">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Nova Contagem
+                    </button>
                 </div>
 
                 <div class="session-list" id="sessionList">
