@@ -332,6 +332,8 @@
         btnSyncSheets.disabled = true;
         btnSyncSheets.textContent = 'Enviando...';
 
+        console.log('[Inventario Sync] Enviando payload:', { items, token: APP_TOKEN });
+
         try {
             const res = await fetch('/api/inventario', {
                 method: 'POST',
@@ -342,14 +344,19 @@
                 body: JSON.stringify({ items })
             });
 
+            console.log('[Inventario Sync] HTTP Status:', res.status, res.statusText);
+
             const data = await res.json();
+            console.log('[Inventario Sync] Resposta do servidor:', data);
+
             if (res.ok && data.ok) {
                 showToast(`Sucesso! ${data.count} linhas salvas na aba 'inventarios'.`);
             } else {
-                showToast(`Erro ao salvar: ${data.error || 'Falha na resposta'}`);
+                console.error('[Inventario Sync] Erro retornado:', data);
+                showToast(`Erro ao salvar: ${data.error || data.detail || 'Falha na resposta'}`);
             }
         } catch (err) {
-            console.error('Erro ao enviar inventário:', err);
+            console.error('[Inventario Sync] Erro de rede/excecao:', err);
             showToast('Erro de conexão ao enviar para a planilha.');
         } finally {
             btnSyncSheets.disabled = false;

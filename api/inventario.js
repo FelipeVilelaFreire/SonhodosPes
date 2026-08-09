@@ -23,8 +23,12 @@ function getSheets() {
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
 
-    if (APP_TOKEN && req.headers['x-app-token'] !== APP_TOKEN) {
-        return res.status(401).json({ error: 'Não autorizado' });
+    const receivedToken = req.headers['x-app-token'];
+    console.log('[API inventario] Token recebido:', receivedToken, '| APP_TOKEN esperado:', APP_TOKEN);
+
+    if (APP_TOKEN && receivedToken !== APP_TOKEN) {
+        console.error('[API inventario] Autenticação falhou: token incompatível');
+        return res.status(401).json({ error: 'Não autorizado', receivedToken, expectedToken: APP_TOKEN });
     }
 
     const { items } = req.body || {};
