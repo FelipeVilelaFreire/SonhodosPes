@@ -11,6 +11,8 @@ const PRECACHE_URLS = [
     './atendimento.html',
     './css/atendimento.css',
     './js/atendimento.js',
+    './inventario.html',
+    './js/inventario.js',
     './assets/logo.svg',
     './assets/icon.svg',
     './assets/icon-192.png',

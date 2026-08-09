@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#C8B091">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Inventário — Sonho dos Pés">
+    <meta name="description" content="Contagem de Estoque e Inventário — Sonho dos Pés">
+
+    <title>Sonho dos Pés — Inventário</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+    <link rel="apple-touch-icon" href="assets/logo.svg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .inv-container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .inv-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+            border: 1px solid rgba(200, 176, 145, 0.2);
+        }
+
+        .scan-hero {
+            text-align: center;
+            padding: 24px 16px;
+            background: linear-gradient(135deg, #1c1917 0%, #292524 100%);
+            color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(28, 25, 23, 0.2);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-hero-btn {
+            background: linear-gradient(135deg, #C8B091 0%, #a88d6b 100%);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 16px 28px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(200, 176, 145, 0.4);
+            transition: all 0.2s ease;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .scan-hero-btn:active {
+            transform: scale(0.98);
+        }
+
+        .input-manual-wrap {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-manual-wrap input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid #e7e5e4;
+            font-size: 1rem;
+            outline: none;
+            background: #fff;
+            color: #292524;
+        }
+
+        .input-manual-wrap button {
+            background: #292524;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0 20px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .inv-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .inv-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1c1917;
+            margin: 0;
+        }
+
+        .inv-badge {
+            background: #f5f5f4;
+            color: #78716c;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .sku-table-wrap {
+            max-height: 350px;
+            overflow-y: auto;
+            border-radius: 10px;
+            border: 1px solid #f5f5f4;
+        }
+
+        .sku-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            text-align: left;
+        }
+
+        .sku-table th {
+            background: #fafaf9;
+            padding: 10px 12px;
+            color: #78716c;
+            font-weight: 600;
+            border-bottom: 1px solid #e7e5e4;
+            position: sticky;
+            top: 0;
+        }
+
+        .sku-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f5f5f4;
+            color: #292524;
+        }
+
+        .sku-table tr.just-updated {
+            animation: highlightRow 1.2s ease;
+        }
+
+        @keyframes highlightRow {
+            0% { background-color: rgba(200, 176, 145, 0.4); }
+            100% { background-color: transparent; }
+        }
+
+        .btn-export {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-top: 14px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .session-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #fafaf9;
+            border-radius: 12px;
+            border: 1px solid #e7e5e4;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .session-item:hover, .session-item.active {
+            background: #f5f0e8;
+            border-color: #C8B091;
+        }
+
+        .session-info strong {
+            display: block;
+            color: #1c1917;
+            font-size: 0.95rem;
+        }
+
+        .session-info span {
+            font-size: 0.8rem;
+            color: #78716c;
+        }
+
+        .back-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #78716c;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="app-header">
+            <div class="status-bar">
+                <a href="/" class="back-nav">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Voltar para Consulta
+                </a>
+            </div>
+
+            <div class="brand">
+                <div class="logo" aria-label="Sonho dos Pés">
+                    <img src="assets/logo.svg" alt="Sonho dos Pés" class="logo-img">
+                </div>
+                <p class="tagline">Contagem de Estoque</p>
+            </div>
+        </header>
+
+        <main class="inv-container">
+            <!-- SCANNER HERO -->
+            <div class="scan-hero">
+                <button class="scan-hero-btn" id="btnOpenScan">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="7" y1="12" x2="17" y2="12"/>
+                        <line x1="12" y1="7" x2="12" y2="17"/>
+                    </svg>
+                    Escanear Caixa de Sapato
+                </button>
+
+                <div class="input-manual-wrap">
+                    <input type="text" id="manualSkuInput" placeholder="Ou digite o SKU / Código..." autocomplete="off" autocapitalize="characters">
+                    <button type="button" id="btnAddManual">Somar +1</button>
+                </div>
+            </div>
+
+            <!-- TABELA DE CONTAGEM ATIVA -->
+            <div class="inv-card">
+                <div class="inv-header-flex">
+                    <h2 class="inv-title" id="currentSessionTitle">Contagem de Hoje</h2>
+                    <span class="inv-badge" id="totalItemsBadge">0 peças lidas</span>
+                </div>
+
+                <div class="sku-table-wrap">
+                    <table class="sku-table">
+                        <thead>
+                            <tr>
+                                <th>Data_Hora</th>
+                                <th>SKU</th>
+                                <th style="text-align: right;">Qtd_Contada</th>
+                            </tr>
+                        </thead>
+                        <tbody id="skuTableBody">
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #a8a29e; padding: 20px;">
+                                    Nenhum item lido ainda nesta contagem.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 14px;">
+                    <button class="btn-export" id="btnExportCsv" style="flex: 1; margin-top: 0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Baixar CSV
+                    </button>
+                    <button class="btn-export" id="btnSyncSheets" style="flex: 1; margin-top: 0; background: #16a34a;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Salvar na Planilha
+                    </button>
+                </div>
+            </div>
+
+            <!-- HISTÓRICO DE MESES / SESSÕES -->
+            <div class="inv-card">
+                <div class="inv-header-flex">
+                    <h2 class="inv-title">Histórico de Contagens</h2>
+                    <button id="btnNewSession" style="background: none; border: none; color: #C8B091; font-weight: 600; cursor: pointer;">+ Nova Contagem</button>
+                </div>
+
+                <div class="session-list" id="sessionList">
+                    <!-- Lista dinâmica de sessões por mês/data -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL DE SCANNER CAMERA -->
+    <div class="modal" id="qrModal" hidden>
+        <div class="modal-backdrop" id="qrBackdrop"></div>
+        <div class="qr-content" role="dialog" aria-labelledby="qrTitle">
+            <button class="qr-close" id="qrClose" aria-label="Fechar Scanner">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            
+            <h2 id="qrTitle" class="qr-title">Contagem por Câmera</h2>
+            <p class="qr-subtitle">Aponte para o Código de Barras da caixa. Cada leitura soma +1.</p>
+            
+            <div id="qr-reader" class="qr-reader"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <script src="js/html5-qrcode.min.js"></script>
+    <script src="js/inventario.js"></script>
+</body>
+</html>
