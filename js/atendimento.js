@@ -21,23 +21,37 @@
     // Opção selecionada para registrar
     let selectedOption = null;
 
+    // Vendedora selecionada para desativar/reativar
+    let sellerToToggle = null;
+    let targetNewStatus = 'Inativo';
+
     // Elementos DOM
     const el = {
         loadingOverlay: document.getElementById('loadingOverlay'),
         dashboardContent: document.getElementById('dashboardContent'),
         cardVez: document.getElementById('cardVez'),
+        disableVezBtn: document.getElementById('disableVezBtn'),
         vezAvatar: document.getElementById('vezAvatar'),
         vezInitial: document.getElementById('vezInitial'),
         vezName: document.getElementById('vezName'),
         actionsGrid: document.getElementById('actionsGrid'),
         queueSection: document.getElementById('queueSection'),
         queueList: document.getElementById('queueList'),
+        inactiveSection: document.getElementById('inactiveSection'),
+        inactiveList: document.getElementById('inactiveList'),
         sellersList: document.getElementById('sellersList'),
         confirmModal: document.getElementById('confirmModal'),
         modalTitle: document.getElementById('modalTitle'),
         selectedOptionName: document.getElementById('selectedOptionName'),
         cancelBtn: document.getElementById('cancelBtn'),
         confirmBtn: document.getElementById('confirmBtn'),
+        disableModal: document.getElementById('disableModal'),
+        disableModalTitle: document.getElementById('disableModalTitle'),
+        disableModalDesc: document.getElementById('disableModalDesc'),
+        disableSellerName: document.getElementById('disableSellerName'),
+        cancelDisableBtn: document.getElementById('cancelDisableBtn'),
+        confirmDisableBtn: document.getElementById('confirmDisableBtn'),
+        disableModalBackdrop: document.getElementById('disableModalBackdrop'),
         refreshBtn: document.getElementById('refreshBtn'),
         toast: document.getElementById('toast'),
         modalBackdrop: document.getElementById('modalBackdrop')
@@ -56,6 +70,17 @@
         el.cancelBtn.addEventListener('click', hideConfirmModal);
         el.confirmBtn.addEventListener('click', handleConfirmRegister);
         el.modalBackdrop.addEventListener('click', hideConfirmModal);
+
+        if (el.disableVezBtn) {
+            el.disableVezBtn.addEventListener('click', () => {
+                if (state.vendedoraDaVez) {
+                    openDisableModal(state.vendedoraDaVez.vendedora, 'Inativo');
+                }
+            });
+        }
+        if (el.cancelDisableBtn) el.cancelDisableBtn.addEventListener('click', hideDisableModal);
+        if (el.disableModalBackdrop) el.disableModalBackdrop.addEventListener('click', hideDisableModal);
+        if (el.confirmDisableBtn) el.confirmDisableBtn.addEventListener('click', confirmToggleStatus);
     }
 
     // Carrega dados da API ou do LocalStorage (fallback)
@@ -187,10 +212,12 @@
             el.vezName.textContent = state.vendedoraDaVez.vendedora;
             el.vezInitial.textContent = state.vendedoraDaVez.vendedora.charAt(0).toUpperCase();
             el.cardVez.classList.remove('no-sellers');
+            if (el.disableVezBtn) el.disableVezBtn.hidden = false;
         } else {
             el.vezName.textContent = "Nenhuma vendedora ativa";
             el.vezInitial.textContent = "-";
             el.cardVez.classList.add('no-sellers');
+            if (el.disableVezBtn) el.disableVezBtn.hidden = true;
         }
 
         // 2. Renderizar botões de ação
@@ -241,14 +268,76 @@
                     badge.className = 'queue-badge';
                     badge.textContent = idx + 1;
                     
-                    const name = document.createTextNode(prox.vendedora);
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'queue-name';
+                    nameSpan.textContent = prox.vendedora;
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'queue-remove-btn';
+                    removeBtn.type = 'button';
+                    removeBtn.setAttribute('aria-label', `Desativar ${prox.vendedora}`);
+                    removeBtn.title = `Desativar ${prox.vendedora} da fila`;
+                    removeBtn.innerHTML = `
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    `;
+                    removeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openDisableModal(prox.vendedora, 'Inativo');
+                    });
                     
                     item.appendChild(badge);
-                    item.appendChild(name);
+                    item.appendChild(nameSpan);
+                    item.appendChild(removeBtn);
                     el.queueList.appendChild(item);
                 });
             } else {
                 el.queueSection.hidden = true;
+            }
+        }
+
+        // 3.1. Renderizar vendedoras inativas do dia (se houver)
+        if (el.inactiveList && el.inactiveSection) {
+            el.inactiveList.innerHTML = '';
+            const inativas = state.fila.filter(v => v.statusDia === 'Inativo');
+            if (inativas.length > 0) {
+                el.inactiveSection.hidden = false;
+                inativas.forEach(inact => {
+                    const item = document.createElement('div');
+                    item.className = 'queue-item inactive-item';
+                    
+                    const badge = document.createElement('span');
+                    badge.className = 'queue-badge inactive-badge';
+                    badge.textContent = '✕';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'queue-name';
+                    nameSpan.textContent = inact.vendedora;
+
+                    const activateBtn = document.createElement('button');
+                    activateBtn.className = 'queue-add-btn';
+                    activateBtn.type = 'button';
+                    activateBtn.setAttribute('aria-label', `Reativar ${inact.vendedora}`);
+                    activateBtn.title = `Reativar ${inact.vendedora} na fila`;
+                    activateBtn.innerHTML = `
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    `;
+                    activateBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openDisableModal(inact.vendedora, 'Ativo');
+                    });
+
+                    item.appendChild(badge);
+                    item.appendChild(nameSpan);
+                    item.appendChild(activateBtn);
+                    el.inactiveList.appendChild(item);
+                });
+            } else {
+                el.inactiveSection.hidden = true;
             }
         }
 
@@ -376,6 +465,45 @@
         el.confirmModal.hidden = true;
         document.body.style.overflow = '';
         selectedOption = null;
+    }
+
+    // Modal de Desativar / Reativar Vendedora
+    function openDisableModal(vendedoraName, newStatus = 'Inativo') {
+        sellerToToggle = vendedoraName;
+        targetNewStatus = newStatus;
+        el.disableSellerName.textContent = vendedoraName;
+
+        const isDisabling = newStatus === 'Inativo';
+        if (el.disableModalTitle) {
+            el.disableModalTitle.textContent = isDisabling ? 'Desativar Vendedora' : 'Reativar Vendedora';
+        }
+        if (el.disableModalDesc) {
+            el.disableModalDesc.innerHTML = isDisabling 
+                ? `Deseja desativar <strong id="disableSellerName">${vendedoraName}</strong> da fila de atendimento hoje?`
+                : `Deseja reativar <strong id="disableSellerName">${vendedoraName}</strong> na fila de atendimento?`;
+        }
+        if (el.confirmDisableBtn) {
+            el.confirmDisableBtn.textContent = isDisabling ? 'Desativar' : 'Reativar';
+            el.confirmDisableBtn.className = isDisabling ? 'btn-confirm btn-danger' : 'btn-confirm btn-success';
+        }
+        if (el.disableModal) {
+            el.disableModal.hidden = false;
+        }
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideDisableModal() {
+        if (el.disableModal) el.disableModal.hidden = true;
+        document.body.style.overflow = '';
+        sellerToToggle = null;
+    }
+
+    async function confirmToggleStatus() {
+        if (!sellerToToggle) return;
+        const name = sellerToToggle;
+        const status = targetNewStatus;
+        hideDisableModal();
+        await handleStatusChange(name, status);
     }
 
     // Sincroniza dados em segundo plano (sem spinner de carregamento)

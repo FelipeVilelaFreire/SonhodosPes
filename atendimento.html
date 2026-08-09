@@ -60,7 +60,15 @@
                 <!-- 1. VENDEDORA DA VEZ HIGHLIGHT -->
                 <section class="vez-section">
                     <div class="card-vez" id="cardVez">
-                        <span class="vez-tag">Vendedora da Vez</span>
+                        <div class="vez-header">
+                            <span class="vez-tag">Vendedora da Vez</span>
+                            <button class="vez-disable-btn" id="disableVezBtn" aria-label="Desativar vendedora da vez" title="Desativar da fila">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"/>
+                                    <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                            </button>
+                        </div>
                         <div class="vez-info">
                             <div class="vez-avatar" id="vezAvatar">
                                 <span id="vezInitial">-</span>
@@ -85,6 +93,14 @@
                 <section class="queue-section" id="queueSection">
                     <h3 class="section-title">Próximas da Vez</h3>
                     <div class="queue-list" id="queueList">
+                        
+                    </div>
+                </section>
+
+                <!-- INACTIVE SELLERS SECTION -->
+                <section class="queue-section inactive-section" id="inactiveSection" hidden>
+                    <h3 class="section-title section-title-sub">Inativas no Dia</h3>
+                    <div class="queue-list inactive-list" id="inactiveList">
                         
                     </div>
                 </section>
@@ -119,6 +135,26 @@
             <div class="modal-footer">
                 <button class="btn-cancel" id="cancelBtn">Cancelar</button>
                 <button class="btn-confirm" id="confirmBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. DISABLE / TOGGLE STATUS SELLER MODAL -->
+    <div class="modal" id="disableModal" hidden>
+        <div class="modal-backdrop" id="disableModalBackdrop"></div>
+        <div class="modal-content" role="dialog" aria-labelledby="disableModalTitle" aria-describedby="disableModalDesc">
+            <div class="modal-icon modal-icon-danger" id="disableModalIcon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+            </div>
+            <h2 id="disableModalTitle" class="modal-title">Desativar Vendedora</h2>
+            <p id="disableModalDesc" class="modal-description">Deseja desativar <strong id="disableSellerName"></strong> da fila de atendimento hoje?</p>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelDisableBtn">Cancelar</button>
+                <button class="btn-confirm btn-danger" id="confirmDisableBtn">Desativar</button>
             </div>
         </div>
     </div>
