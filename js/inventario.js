@@ -135,8 +135,13 @@
     async function addSkuItem(skuCode) {
         if (!skuCode) return;
 
-        const cleanSku = String(skuCode).trim().toUpperCase();
+        let cleanSku = String(skuCode).trim().toUpperCase();
         if (!cleanSku) return;
+
+        // Se for um código de barras numérico com mais de 5 dígitos, extrai os 5 primeiros dígitos (código master do produto)
+        if (/^\d{6,}$/.test(cleanSku)) {
+            cleanSku = cleanSku.slice(0, 5);
+        }
 
         const nowStr = getCurrentDateTimeStr();
 
