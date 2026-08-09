@@ -36,36 +36,63 @@
             font-size: 0.9rem;
         }
 
-        /* CARD DE SELEÇÃO DE INVENTÁRIO */
+        /* CARD DE SELEÇÃO DE INVENTÁRIO CUSTOMIZADO */
         .session-selector-card {
-            background: #FFFFFF;
-            border-radius: 16px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #FDFAF5 100%);
+            border-radius: 18px;
             padding: 16px 20px;
-            box-shadow: 0 4px 20px rgba(200, 176, 145, 0.12);
-            border: 1px solid rgba(200, 176, 145, 0.3);
+            box-shadow: 0 4px 20px rgba(200, 176, 145, 0.15);
+            border: 1px solid rgba(200, 176, 145, 0.35);
             margin-bottom: 16px;
         }
 
         .session-select-label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #7A6B5C;
+            letter-spacing: 0.1em;
+            color: #A88B65;
             margin-bottom: 8px;
+        }
+
+        .select-wrapper {
+            position: relative;
+            width: 100%;
         }
 
         .session-select {
             width: 100%;
-            padding: 12px 14px;
-            border-radius: 10px;
+            padding: 12px 40px 12px 16px;
+            border-radius: 12px;
             border: 1px solid #E8DFD1;
-            background: #FDFAF5;
+            background: #FFFFFF;
             color: #2B2118;
             font-size: 0.95rem;
             font-weight: 600;
             outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            box-shadow: 0 2px 6px rgba(43, 33, 24, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .session-select:focus, .session-select:hover {
+            border-color: #C8B091;
+            box-shadow: 0 0 0 3px rgba(200, 176, 145, 0.18);
+        }
+
+        .select-arrow {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #A88B65;
         }
 
         /* SUMMARY CARDS (RESUMO ESTAÍSTICO) */
@@ -246,12 +273,25 @@
         </header>
 
         <main class="depara-container">
-            <!-- SELETOR DE CONTAGEM -->
+            <!-- SELETOR DE CONTAGEM CUSTOMIZADO -->
             <div class="session-selector-card">
-                <label for="sessionSelect" class="session-select-label">Comparar Inventário:</label>
-                <select id="sessionSelect" class="session-select">
-                    <!-- Preenchido via JS -->
-                </select>
+                <label for="sessionSelect" class="session-select-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    Comparar Inventário:
+                </label>
+                <div class="select-wrapper">
+                    <select id="sessionSelect" class="session-select">
+                        <!-- Preenchido via JS -->
+                    </select>
+                    <svg class="select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
             </div>
 
             <!-- CARDS DE RESUMO (ESPERADO VS CONTADO VS DIVERGÊNCIA) -->
