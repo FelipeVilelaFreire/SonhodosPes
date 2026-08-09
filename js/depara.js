@@ -1,0 +1,262 @@
+/**
+ * Sonho dos Pés — Módulo De-Para (Auditoria de Divergência de Estoque)
+ * Cruza o banco IndexedDB 'produtos' (Sistema) com 'sonhodospes_inventario' (Contado)
+ */
+
+(function () {
+    'use strict';
+
+    let dbProdutos = null;
+    let dbInventario = null;
+
+    let produtosMaster = [];
+    let produtosByCode = new Map();
+
+    let allSessions = [];
+    let activeSession = null;
+    let activeTabFilter = 'todos';
+
+    // Elementos DOM
+    const sessionSelect = document.getElementById('sessionSelect');
+    const valSistema = document.getElementById('valSistema');
+    const valContado = document.getElementById('valContado');
+    const valDivergencia = document.getElementById('valDivergencia');
+    const deparaList = document.getElementById('deparaList');
+    const filterTabs = document.querySelectorAll('.tab-btn');
+    const toast = document.getElementById('toast');
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await initDBs();
+        await loadMasterData();
+        await loadSessions();
+
+        setupEvents();
+    });
+
+    // Conecta nos bancos IndexedDB
+    function initDBs() {
+        return Promise.all([
+            new Promise((resolve) => {
+                const req = indexedDB.open('sonhodospes', 2);
+                req.onsuccess = (e) => { dbProdutos = e.target.result; resolve(); };
+                req.onerror = () => resolve();
+            }),
+            new Promise((resolve) => {
+                const req = indexedDB.open('sonhodospes_inventario', 1);
+                req.onsuccess = (e) => { dbInventario = e.target.result; resolve(); };
+                req.onerror = () => resolve();
+            })
+        ]);
+    }
+
+    // Carrega a lista master de produtos do sistema
+    function loadMasterData() {
+        return new Promise((resolve) => {
+            if (!dbProdutos) return resolve();
+            const tx = dbProdutos.transaction('produtos', 'readonly');
+            const store = tx.objectStore('produtos');
+            const req = store.getAll();
+            req.onsuccess = () => {
+                produtosMaster = req.result || [];
+                produtosByCode = new Map();
+                produtosMaster.forEach(p => produtosByCode.set(p.codigo, p));
+                resolve();
+            };
+            req.onerror = () => resolve();
+        });
+    }
+
+    // Carrega o histórico de sessões do inventário
+    function loadSessions() {
+        return new Promise((resolve) => {
+            if (!dbInventario) return resolve();
+            const tx = dbInventario.transaction('sessions', 'readonly');
+            const store = tx.objectStore('sessions');
+            const req = store.getAll();
+            req.onsuccess = () => {
+                allSessions = req.result || [];
+                allSessions.sort((a, b) => new Date(b.id) - new Date(a.id));
+
+                if (allSessions.length > 0) {
+                    renderSessionSelectOptions();
+                    activeSession = allSessions[0];
+                    renderAudit();
+                } else {
+                    sessionSelect.innerHTML = '<option value="">Nenhum inventário encontrado</option>';
+                    deparaList.innerHTML = '<p style="text-align:center; color:#7A6B5C; padding:30px;">Crie uma contagem na tela de Inventário primeiro.</p>';
+                }
+                resolve();
+            };
+            req.onerror = () => resolve();
+        });
+    }
+
+    function renderSessionSelectOptions() {
+        sessionSelect.innerHTML = allSessions.map(s => {
+            return `<option value="${s.id}">${s.name} (${s.created_at})</option>`;
+        }).join('');
+    }
+
+    function setupEvents() {
+        sessionSelect.addEventListener('change', (e) => {
+            const sId = e.target.value;
+            activeSession = allSessions.find(x => x.id === sId);
+            if (activeSession) {
+                renderAudit();
+            }
+        });
+
+        filterTabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterTabs.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeTabFilter = btn.getAttribute('data-tab');
+                renderAudit();
+            });
+        });
+    }
+
+    // Processa a comparação De-Para entre o Sistema e o Inventário lido
+    function renderAudit() {
+        if (!activeSession) return;
+
+        const itemsLidos = activeSession.items || {};
+        const auditMap = new Map();
+
+        // 1. Processa itens lidos do Inventário
+        Object.values(itemsLidos).forEach(item => {
+            const rawSku = item.sku;
+            const qtdContada = item.qtd;
+
+            // Busca produto master (pode ser pelos 5 primeiros dígitos ou SKU exato)
+            const cod5 = rawSku.length >= 5 ? rawSku.slice(0, 5) : rawSku;
+            const pMaster = produtosByCode.get(cod5) || produtosByCode.get(rawSku);
+
+            let qtdSistema = 0;
+            let nomeProduto = 'PRODUTO NÃO CADASTRADO';
+            let corNome = 'N/A';
+
+            if (pMaster) {
+                nomeProduto = pMaster.modelo || 'SEM NOME';
+                if (pMaster.cores && pMaster.cores.length > 0) {
+                    corNome = pMaster.cores[0].nome || 'ÚNICA';
+                    const tamanhosObj = pMaster.cores[0].tamanhos || {};
+                    qtdSistema = Object.values(tamanhosObj).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                }
+            }
+
+            auditMap.set(rawSku, {
+                sku: rawSku,
+                modelo: nomeProduto,
+                cor: corNome,
+                qtdSistema: qtdSistema,
+                qtdContada: qtdContada,
+                diferenca: qtdContada - qtdSistema
+            });
+        });
+
+        // 2. Se quiser comparar também os que o sistema esperava mas não foram lidos (Diferença Negativa)
+        produtosMaster.forEach(p => {
+            if (!auditMap.has(p.codigo)) {
+                let totalSistema = 0;
+                let corNome = 'N/A';
+                if (p.cores && p.cores.length > 0) {
+                    corNome = p.cores[0].nome || 'ÚNICA';
+                    totalSistema = Object.values(p.cores[0].tamanhos || {}).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                }
+
+                if (totalSistema > 0) {
+                    auditMap.set(p.codigo, {
+                        sku: p.codigo,
+                        modelo: p.modelo,
+                        cor: corNome,
+                        qtdSistema: totalSistema,
+                        qtdContada: 0,
+                        diferenca: 0 - totalSistema
+                    });
+                }
+            }
+        });
+
+        const auditList = Array.from(auditMap.values());
+
+        // Atualiza Totais nos Cards do Topo
+        let sumSistema = 0;
+        let sumContado = 0;
+
+        auditList.forEach(item => {
+            sumSistema += item.qtdSistema;
+            sumContado += item.qtdContada;
+        });
+
+        const sumDiff = sumContado - sumSistema;
+
+        valSistema.textContent = sumSistema;
+        valContado.textContent = sumContado;
+        valDivergencia.textContent = (sumDiff > 0 ? '+' : '') + sumDiff;
+
+        valDivergencia.className = 'summary-card-value ' + (sumDiff < 0 ? 'negativo' : (sumDiff > 0 ? 'positivo' : 'ok'));
+
+        // Aplica o Filtro das Abas (Todos, Faltas, Sobras, Batidos)
+        let filteredList = auditList;
+        if (activeTabFilter === 'faltas') {
+            filteredList = auditList.filter(x => x.diferenca < 0);
+        } else if (activeTabFilter === 'sobras') {
+            filteredList = auditList.filter(x => x.diferenca > 0);
+        } else if (activeTabFilter === 'ok') {
+            filteredList = auditList.filter(x => x.diferenca === 0);
+        }
+
+        // Renderiza os Cards De-Para
+        if (filteredList.length === 0) {
+            deparaList.innerHTML = '<p style="text-align:center; color:#7A6B5C; padding:30px;">Nenhum item nesta categoria.</p>';
+            return;
+        }
+
+        deparaList.innerHTML = filteredList.map(item => {
+            let statusBadge = '';
+            let diffClass = '';
+
+            if (item.diferenca < 0) {
+                statusBadge = `<span class="depara-badge falta">Falta: ${item.diferenca}</span>`;
+                diffClass = 'neg';
+            } else if (item.diferenca > 0) {
+                statusBadge = `<span class="depara-badge sobra">Sobra: +${item.diferenca}</span>`;
+                diffClass = 'pos';
+            } else {
+                statusBadge = `<span class="depara-badge ok">Bateu (0)</span>`;
+                diffClass = 'zero';
+            }
+
+            return `
+                <div class="depara-card">
+                    <div class="depara-card-header">
+                        <div>
+                            <span class="depara-sku">SKU: ${item.sku}</span>
+                            <div class="depara-modelo">${item.modelo}</div>
+                            <div style="font-size:0.8rem; color:#7A6B5C;">Cor: ${item.cor}</div>
+                        </div>
+                        ${statusBadge}
+                    </div>
+
+                    <table class="depara-grid-table">
+                        <thead>
+                            <tr>
+                                <th>Sistema</th>
+                                <th>Contado</th>
+                                <th>Diferença</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>${item.qtdSistema}</strong> pçs</td>
+                                <td><strong>${item.qtdContada}</strong> pçs</td>
+                                <td><span class="diff-tag ${diffClass}">${item.diferenca > 0 ? '+' : ''}${item.diferenca}</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }).join('');
+    }
+})();

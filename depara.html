@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#C8B091">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="De-Para — Sonho dos Pés">
+    <meta name="description" content="Auditoria de estoque esperada vs contada — Sonho dos Pés">
+
+    <title>Sonho dos Pés — Auditoria De-Para</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+    <link rel="apple-touch-icon" href="assets/logo.svg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .depara-container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .back-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #7A6B5C;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* CARD DE SELEÇÃO DE INVENTÁRIO */
+        .session-selector-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 20px rgba(200, 176, 145, 0.12);
+            border: 1px solid rgba(200, 176, 145, 0.3);
+            margin-bottom: 16px;
+        }
+
+        .session-select-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #7A6B5C;
+            margin-bottom: 8px;
+        }
+
+        .session-select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #E8DFD1;
+            background: #FDFAF5;
+            color: #2B2118;
+            font-size: 0.95rem;
+            font-weight: 600;
+            outline: none;
+        }
+
+        /* SUMMARY CARDS (RESUMO ESTAÍSTICO) */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .summary-card {
+            background: #FFFFFF;
+            border-radius: 14px;
+            padding: 12px 8px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(43, 33, 24, 0.04);
+            border: 1px solid rgba(200, 176, 145, 0.25);
+        }
+
+        .summary-card-title {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #7A6B5C;
+            margin-bottom: 4px;
+        }
+
+        .summary-card-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2B2118;
+        }
+
+        .summary-card-value.negativo { color: #B5574A; }
+        .summary-card-value.positivo { color: #C89B5E; }
+        .summary-card-value.ok { color: #7B9063; }
+
+        /* TAB BAR (ABAS DE FILTRO REAPROVEITADAS) */
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+            background: #E8DFD1;
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #7A6B5C;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            text-align: center;
+            transition: all 0.15s ease;
+        }
+
+        .tab-btn.active {
+            background: #FFFFFF;
+            color: #2B2118;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        .tab-btn.active.tab-falta { color: #B5574A; }
+        .tab-btn.active.tab-sobra { color: #C89B5E; }
+        .tab-btn.active.tab-ok { color: #7B9063; }
+
+        /* LISTA DE CARDS DE AUDITORIA DE-PARA */
+        .depara-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .depara-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 16px 18px;
+            box-shadow: 0 4px 16px rgba(43, 33, 24, 0.05);
+            border: 1px solid rgba(200, 176, 145, 0.25);
+            position: relative;
+        }
+
+        .depara-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .depara-sku {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #A88B65;
+            letter-spacing: 0.08em;
+        }
+
+        .depara-modelo {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2B2118;
+            margin-bottom: 4px;
+        }
+
+        .depara-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .depara-badge.falta { background: #F4E0DC; color: #B5574A; }
+        .depara-badge.sobra { background: #F4E9D4; color: #C89B5E; }
+        .depara-badge.ok { background: #E8EFE0; color: #7B9063; }
+
+        .depara-grid-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        .depara-grid-table th {
+            text-align: left;
+            color: #7A6B5C;
+            padding: 6px 4px;
+            border-bottom: 1px solid #F2EBDF;
+            font-weight: 600;
+        }
+
+        .depara-grid-table td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #FDFAF5;
+            color: #2B2118;
+        }
+
+        .diff-tag {
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .diff-tag.neg { color: #B5574A; background: #F4E0DC; }
+        .diff-tag.pos { color: #C89B5E; background: #F4E9D4; }
+        .diff-tag.zero { color: #7B9063; background: #E8EFE0; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="app-header">
+            <div class="status-bar">
+                <a href="/inventario.html" class="back-nav">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Voltar para Inventário
+                </a>
+            </div>
+
+            <div class="brand">
+                <div class="logo" aria-label="Sonho dos Pés">
+                    <img src="assets/logo.svg" alt="Sonho dos Pés" class="logo-img">
+                </div>
+                <p class="tagline">Auditoria De-Para de Estoque</p>
+            </div>
+        </header>
+
+        <main class="depara-container">
+            <!-- SELETOR DE CONTAGEM -->
+            <div class="session-selector-card">
+                <label for="sessionSelect" class="session-select-label">Comparar Inventário:</label>
+                <select id="sessionSelect" class="session-select">
+                    <!-- Preenchido via JS -->
+                </select>
+            </div>
+
+            <!-- CARDS DE RESUMO (ESPERADO VS CONTADO VS DIVERGÊNCIA) -->
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-card-title">Sistema</div>
+                    <div class="summary-card-value" id="valSistema">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-title">Contado</div>
+                    <div class="summary-card-value" id="valContado">0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-title">Divergência</div>
+                    <div class="summary-card-value" id="valDivergencia">0</div>
+                </div>
+            </div>
+
+            <!-- ABAS DE FILTRO REAPROVEITADAS -->
+            <div class="filter-tabs">
+                <button class="tab-btn active" data-tab="todos">Todos</button>
+                <button class="tab-btn tab-falta" data-tab="faltas">Faltas 🔴</button>
+                <button class="tab-btn tab-sobra" data-tab="sobras">Sobras 🟡</button>
+                <button class="tab-btn tab-ok" data-tab="ok">Batidos 🟢</button>
+            </div>
+
+            <!-- LISTA DE CARDS DE-PARA -->
+            <div class="depara-list" id="deparaList">
+                <!-- Preenchido via JS -->
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <script src="js/depara.js"></script>
+</body>
+</html>

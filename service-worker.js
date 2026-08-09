@@ -13,6 +13,8 @@ const PRECACHE_URLS = [
     './js/atendimento.js',
     './inventario.html',
     './js/inventario.js',
+    './depara.html',
+    './js/depara.js',
     './assets/logo.svg',
     './assets/icon.svg',
     './assets/icon-192.png',
