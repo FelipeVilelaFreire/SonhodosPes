@@ -35,13 +35,19 @@ TABLE OF CONTENTS:
     --color-primary-soft: #E8DFD1;
     --color-primary-whisper: #F2EBDF;
 
+    /* Tons de Preto & Grafite de Alto Contraste */
+    --color-black: #111111;
+    --color-black-deep: #1A1817;
+    --color-black-soft: #262422;
+    --color-black-muted: #3D3935;
+
     --color-bg: #FAF7F2;
     --color-surface: #FFFFFF;
     --color-surface-warm: #FDFAF5;
 
-    --color-text: #2B2118;
-    --color-text-soft: #7A6B5C;
-    --color-text-muted: #B5A794;
+    --color-text: #111111;
+    --color-text-soft: #5C5248;
+    --color-text-muted: #9E9080;
 
     --color-success: #7B9063;
     --color-success-soft: #E8EFE0;
@@ -194,22 +200,23 @@ svg {
     align-items: center;
     gap: 5px;
     padding: 6px 12px;
-    background: var(--color-surface);
-    color: var(--color-primary-deep);
-    border: 1px solid var(--color-primary-soft);
+    background: var(--color-black);
+    color: var(--color-primary-soft);
+    border: 1px solid var(--color-black-muted);
     border-radius: 100px;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     text-decoration: none;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 2px 8px rgba(17, 17, 17, 0.2);
     transition: opacity 0.2s, transform 0.15s, border-color 0.2s;
 }
 
 .roleta-entry-btn:hover {
+    background: var(--color-black-soft);
     border-color: var(--color-primary);
-    opacity: 0.9;
+    color: #fff;
 }
 
 .roleta-entry-btn:active {
