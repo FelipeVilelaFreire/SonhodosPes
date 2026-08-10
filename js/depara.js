@@ -136,7 +136,7 @@
         const itemsLidos = activeSession.items || {};
         const auditMap = new Map();
 
-        // Processa APENAS os itens lidos na contagem selecionada (evita somar todos os produtos master desnecessariamente)
+        // 1. Processa itens lidos do Inventário selecionado
         Object.values(itemsLidos).forEach(item => {
             const rawSku = item.sku;
             const qtdContada = item.qtd;
@@ -166,6 +166,30 @@
                 qtdContada: qtdContada,
                 diferenca: qtdContada - qtdSistema
             });
+        });
+
+        // 2. Inclui produtos do sistema cadastrados que NÃO foram contados (Faltas 🔴)
+        produtosMaster.forEach(p => {
+            const cod5 = p.codigo;
+            if (!auditMap.has(cod5)) {
+                let totalSistema = 0;
+                let corNome = 'N/A';
+                if (p.cores && p.cores.length > 0) {
+                    corNome = p.cores[0].nome || 'ÚNICA';
+                    totalSistema = Object.values(p.cores[0].tamanhos || {}).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                }
+
+                if (totalSistema > 0) {
+                    auditMap.set(cod5, {
+                        sku: cod5,
+                        modelo: p.modelo,
+                        cor: corNome,
+                        qtdSistema: totalSistema,
+                        qtdContada: 0,
+                        diferenca: 0 - totalSistema
+                    });
+                }
+            }
         });
 
         const auditList = Array.from(auditMap.values());

@@ -108,16 +108,31 @@
             `;
             showToast('Modo de edição ativado. Altere os valores na tabela.');
         } else {
-            // Salva as alterações feitas nos inputs
-            document.querySelectorAll('.edit-qtd-input').forEach(input => {
-                const sku = input.getAttribute('data-sku');
-                const val = parseInt(input.value, 10);
-                if (sku && activeSessionData.items[sku] && !isNaN(val) && val >= 0) {
-                    activeSessionData.items[sku].qtd = val;
-                    activeSessionData.items[sku].last_updated = getCurrentDateTimeStr();
+            // Salva as alterações feitas nos inputs (SKU e Quantidade)
+            const newItems = {};
+            const nowStr = getCurrentDateTimeStr();
+
+            document.querySelectorAll('.edit-sku-row').forEach(row => {
+                const oldSku = row.getAttribute('data-old-sku');
+                const skuInput = row.querySelector('.edit-sku-input');
+                const qtdInput = row.querySelector('.edit-qtd-input');
+
+                if (skuInput && qtdInput) {
+                    const newSku = String(skuInput.value).trim().toUpperCase();
+                    const val = parseInt(qtdInput.value, 10);
+
+                    if (newSku && !isNaN(val) && val >= 0) {
+                        const origUpdated = (activeSessionData.items[oldSku] && activeSessionData.items[oldSku].last_updated) || nowStr;
+                        newItems[newSku] = {
+                            sku: newSku,
+                            qtd: val,
+                            last_updated: origUpdated
+                        };
+                    }
                 }
             });
 
+            activeSessionData.items = newItems;
             await saveSession(activeSessionData);
 
             btnEditQuantities.style.background = '#FFFFFF';
@@ -130,7 +145,7 @@
                 </svg>
                 Editar Quantidades
             `;
-            showToast('Quantidades atualizadas com sucesso!');
+            showToast('Contagem e SKUs atualizados com sucesso!');
         }
 
         renderTable();
@@ -291,13 +306,17 @@
             totalPecas += item.qtd;
             const isUpdated = item.sku === lastUpdatedSku;
             
+            const skuCell = isEditMode
+                ? `<input type="text" class="edit-sku-input" value="${item.sku}" style="width: 100%; font-weight: 700; padding: 4px 6px; border: 1px solid #C8B091; border-radius: 6px; background: #FDFAF5; font-size: 0.95rem; text-transform: uppercase;">`
+                : `<strong>${item.sku}</strong>`;
+
             const qtdCell = isEditMode
-                ? `<input type="number" class="edit-qtd-input" data-sku="${item.sku}" value="${item.qtd}" min="0" style="width: 70px; text-align: right; font-weight: 700; padding: 4px 6px; border: 1px solid #C8B091; border-radius: 6px; background: #FDFAF5; font-size: 0.95rem;">`
+                ? `<input type="number" class="edit-qtd-input" value="${item.qtd}" min="0" style="width: 70px; text-align: right; font-weight: 700; padding: 4px 6px; border: 1px solid #C8B091; border-radius: 6px; background: #FDFAF5; font-size: 0.95rem;">`
                 : `${item.qtd}`;
 
             return `
-                <tr class="${isUpdated ? 'just-updated' : ''}">
-                    <td><strong>${item.sku}</strong></td>
+                <tr class="edit-sku-row ${isUpdated ? 'just-updated' : ''}" data-old-sku="${item.sku}">
+                    <td>${skuCell}</td>
                     <td style="text-align: right; font-weight: 700; color: #1c1917;">${qtdCell}</td>
                 </tr>
             `;
@@ -400,14 +419,42 @@
             };
         }
 
-        // Evento para baixar CSV direto pelo ícone do card
+        // Modal de confirmação para download CSV
+        let sessionToCsvData = null;
+        const confirmCsvModal = document.getElementById('confirmCsvModal');
+        const csvBackdrop = document.getElementById('csvBackdrop');
+        const btnCancelCsv = document.getElementById('btnCancelCsv');
+        const btnCancelCsvX = document.getElementById('btnCancelCsvX');
+        const btnConfirmCsv = document.getElementById('btnConfirmCsv');
+
+        function closeCsvModal() {
+            if (confirmCsvModal) confirmCsvModal.setAttribute('hidden', '');
+            sessionToCsvData = null;
+        }
+
+        if (btnCancelCsv) btnCancelCsv.onclick = closeCsvModal;
+        if (btnCancelCsvX) btnCancelCsvX.onclick = closeCsvModal;
+        if (csvBackdrop) csvBackdrop.onclick = closeCsvModal;
+
+        if (btnConfirmCsv) {
+            btnConfirmCsv.onclick = () => {
+                if (sessionToCsvData) {
+                    const target = sessionToCsvData;
+                    closeCsvModal();
+                    exportToCsvData(target);
+                }
+            };
+        }
+
+        // Evento para baixar CSV direto pelo ícone do card com confirmação de modal
         document.querySelectorAll('.btn-export-csv-icon').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const sId = btn.getAttribute('data-id');
                 const targetSess = sessions.find(x => x.id === sId);
                 if (targetSess) {
-                    exportToCsvData(targetSess);
+                    sessionToCsvData = targetSess;
+                    if (confirmCsvModal) confirmCsvModal.removeAttribute('hidden');
                 }
             });
         });
