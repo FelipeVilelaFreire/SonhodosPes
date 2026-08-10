@@ -135,6 +135,9 @@
             activeSessionData.items = newItems;
             await saveSession(activeSessionData);
 
+            // Sincroniza 100% automaticamente com a planilha do GoogleSheets
+            syncToGoogleSheets();
+
             btnEditQuantities.style.background = '#FFFFFF';
             btnEditQuantities.style.borderColor = '#E8DFD1';
             btnEditQuantities.style.color = '#A88B65';
