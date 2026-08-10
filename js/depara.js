@@ -67,34 +67,46 @@
     }
 
     // Carrega o histórico de sessões do inventário
-    function loadSessions() {
-        return new Promise((resolve) => {
-            if (!dbInventario) return resolve();
-            const tx = dbInventario.transaction('sessions', 'readonly');
-            const store = tx.objectStore('sessions');
-            const req = store.getAll();
-            req.onsuccess = () => {
-                allSessions = req.result || [];
-                allSessions.sort((a, b) => new Date(b.id) - new Date(a.id));
+    // Carrega o histórico de sessões do inventário direto da API (planilha) ou banco local
+    async function loadSessions() {
+        try {
+            const res = await fetch('/api/inventario', {
+                headers: { 'x-app-token': 'sdp-4K9mX2rP7nQ1wL5j' }
+            });
+            const data = await res.json();
+            if (data.ok && Array.isArray(data.sessions) && data.sessions.length > 0) {
+                allSessions = data.sessions;
+            }
+        } catch (e) {
+            console.log('Usando banco local para De-Para.');
+        }
 
-                if (allSessions.length > 0) {
-                    renderSessionSelectOptions();
-                    activeSession = allSessions[0];
-                    renderAudit();
-                } else {
-                    sessionSelect.innerHTML = '<option value="">Nenhum inventário encontrado</option>';
-                    deparaList.innerHTML = '<p style="text-align:center; color:#7A6B5C; padding:30px;">Crie uma contagem na tela de Inventário primeiro.</p>';
-                }
-                resolve();
-            };
-            req.onerror = () => resolve();
-        });
+        if (allSessions.length === 0 && dbInventario) {
+            allSessions = await new Promise((resolve) => {
+                const tx = dbInventario.transaction('sessions', 'readonly');
+                const store = tx.objectStore('sessions');
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => resolve([]);
+            });
+        }
+
+        allSessions.sort((a, b) => b.id.localeCompare(a.id));
+
+        if (allSessions.length > 0) {
+            renderSessionSelectOptions();
+            activeSession = allSessions[0];
+            renderAudit();
+        } else {
+            sessionSelect.innerHTML = '<option value="">Nenhum inventário encontrado</option>';
+            deparaList.innerHTML = '<p style="text-align:center; color:#7A6B5C; padding:30px;">Crie uma contagem na tela de Inventário primeiro.</p>';
+        }
     }
 
     function renderSessionSelectOptions() {
         sessionSelect.innerHTML = allSessions.map(s => {
-            const cleanDisplay = s.created_at || s.name;
-            return `<option value="${s.id}">${cleanDisplay}</option>`;
+            const sid = s.session_id || s.id;
+            return `<option value="${s.id}">Contagem ${sid} (${s.created_at})</option>`;
         }).join('');
     }
 
@@ -124,7 +136,7 @@
         const itemsLidos = activeSession.items || {};
         const auditMap = new Map();
 
-        // 1. Processa itens lidos do Inventário
+        // Processa APENAS os itens lidos na contagem selecionada (evita somar todos os produtos master desnecessariamente)
         Object.values(itemsLidos).forEach(item => {
             const rawSku = item.sku;
             const qtdContada = item.qtd;
@@ -154,29 +166,6 @@
                 qtdContada: qtdContada,
                 diferenca: qtdContada - qtdSistema
             });
-        });
-
-        // 2. Se quiser comparar também os que o sistema esperava mas não foram lidos (Diferença Negativa)
-        produtosMaster.forEach(p => {
-            if (!auditMap.has(p.codigo)) {
-                let totalSistema = 0;
-                let corNome = 'N/A';
-                if (p.cores && p.cores.length > 0) {
-                    corNome = p.cores[0].nome || 'ÚNICA';
-                    totalSistema = Object.values(p.cores[0].tamanhos || {}).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
-                }
-
-                if (totalSistema > 0) {
-                    auditMap.set(p.codigo, {
-                        sku: p.codigo,
-                        modelo: p.modelo,
-                        cor: corNome,
-                        qtdSistema: totalSistema,
-                        qtdContada: 0,
-                        diferenca: 0 - totalSistema
-                    });
-                }
-            }
         });
 
         const auditList = Array.from(auditMap.values());
