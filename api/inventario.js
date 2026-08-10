@@ -43,6 +43,13 @@ export default async function handler(req, res) {
     try {
         const sheets = getSheets();
 
+        // 1. Busca dinamicamente os nomes de todas as abas da planilha no Google
+        const meta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+        const sheetNames = (meta.data.sheets || []).map(s => s.properties.title);
+        
+        // Encontra a aba de inventário ignorando maiúsculas/minúsculas/espaços
+        const targetSheet = sheetNames.find(n => n.trim().toLowerCase() === 'inventarios') || 'inventarios';
+
         // Prepara as linhas no formato: Data_Hora | SKU | Qtd_Contada
         const rowsToAppend = items.map(item => [
             item.last_updated || '',
@@ -50,10 +57,10 @@ export default async function handler(req, res) {
             item.qtd || 0
         ]);
 
-        // Adiciona as novas linhas ao final da aba 'inventarios'
+        // Adiciona as novas linhas ao final da aba encontrada
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: 'inventarios!A:C',
+            range: `'${targetSheet}'!A:C`,
             valueInputOption: 'USER_ENTERED',
             insertDataOption: 'INSERT_ROWS',
             requestBody: {

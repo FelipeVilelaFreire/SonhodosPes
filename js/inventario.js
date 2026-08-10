@@ -185,7 +185,7 @@
                     </td>
                 </tr>
             `;
-            totalItemsBadge.textContent = '0 peças lidas';
+            totalItemsBadge.textContent = '0 peças';
             return;
         }
 
@@ -204,7 +204,7 @@
             `;
         }).join('');
 
-        totalItemsBadge.textContent = `${totalPecas} peças lidas (${itemsArr.length} SKUs)`;
+        totalItemsBadge.textContent = `${totalPecas} peça${totalPecas !== 1 ? 's' : ''}`;
     }
 
     // Renderiza o Histórico de Sessões/Meses
