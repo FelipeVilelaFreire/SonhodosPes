@@ -99,26 +99,38 @@
         return `${day}/${month}/${year} ${hours}:${minutes}`;
     }
 
-    // Carrega a sessão atual ou cria uma nova para o mês/dia se não existir
+    // Limpa todas as sessões locais para espelhar a planilha
+    function clearLocalSessions() {
+        return new Promise((resolve) => {
+            if (!db) return resolve();
+            const tx = db.transaction('sessions', 'readwrite');
+            const store = tx.objectStore('sessions');
+            const req = store.clear();
+            req.onsuccess = () => resolve();
+            req.onerror = () => resolve();
+        });
+    }
+
+    // Carrega a sessão atual ou cria uma nova espelhando 100% o Google Sheets
     async function loadOrCreateCurrentSession() {
-        let sessions = await getAllSessions();
-        
         // Tenta buscar sessões remotas atualizadas direto do Google Sheets
         try {
             const res = await fetch('/api/inventario', {
                 headers: { 'x-app-token': APP_TOKEN }
             });
             const data = await res.json();
-            if (data.ok && Array.isArray(data.sessions) && data.sessions.length > 0) {
-                // Sincroniza e atualiza o armazenamento local
+            if (data.ok && Array.isArray(data.sessions)) {
+                // Se a planilha foi limpa ou tem dados novos, substitui o armazenamento local
+                await clearLocalSessions();
                 for (const remoteSess of data.sessions) {
                     await saveSession(remoteSess);
                 }
-                sessions = await getAllSessions();
             }
         } catch (err) {
             console.log('Modo offline: usando sessões locais.');
         }
+
+        let sessions = await getAllSessions();
 
         if (sessions.length > 0) {
             sessions.sort((a, b) => b.id.localeCompare(a.id));
