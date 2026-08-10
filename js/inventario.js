@@ -302,8 +302,11 @@
             return;
         }
 
-        // Ordena pela última bipagem (mais recente no topo)
-        itemsArr.sort((a, b) => b.last_updated.localeCompare(a.last_updated));
+        const thAction = document.getElementById('thAction');
+        if (thAction) {
+            if (isEditMode) thAction.removeAttribute('hidden');
+            else thAction.setAttribute('hidden', '');
+        }
 
         skuTableBody.innerHTML = itemsArr.map(item => {
             totalPecas += item.qtd;
@@ -317,13 +320,35 @@
                 ? `<input type="number" class="edit-qtd-input" value="${item.qtd}" min="0" style="width: 70px; text-align: right; font-weight: 700; padding: 4px 6px; border: 1px solid #C8B091; border-radius: 6px; background: #FDFAF5; font-size: 0.95rem;">`
                 : `${item.qtd}`;
 
+            const actionCell = isEditMode
+                ? `<td style="text-align: center; width: 36px; padding: 4px;"><button type="button" class="btn-delete-row" data-sku="${item.sku}" title="Excluir esta linha" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></td>`
+                : '';
+
             return `
                 <tr class="edit-sku-row ${isUpdated ? 'just-updated' : ''}" data-old-sku="${item.sku}">
                     <td>${skuCell}</td>
                     <td style="text-align: right; font-weight: 700; color: #1c1917;">${qtdCell}</td>
+                    ${actionCell}
                 </tr>
             `;
         }).join('');
+
+        if (isEditMode) {
+            document.querySelectorAll('.btn-delete-row').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const skuToDelete = btn.getAttribute('data-sku');
+                    if (skuToDelete && activeSessionData.items[skuToDelete]) {
+                        delete activeSessionData.items[skuToDelete];
+                        saveSession(activeSessionData).then(() => {
+                            syncToGoogleSheets();
+                            renderTable();
+                            showToast(`Linha do SKU ${skuToDelete} excluída.`);
+                        });
+                    }
+                };
+            });
+        }
 
         totalItemsBadge.textContent = `${totalPecas} peça${totalPecas !== 1 ? 's' : ''}`;
     }
