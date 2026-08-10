@@ -136,14 +136,14 @@
         const itemsLidos = activeSession.items || {};
         const auditMap = new Map();
 
-        // 1. Processa itens lidos do Inventário selecionado
+        // 1. Processa itens lidos no inventário selecionado
         Object.values(itemsLidos).forEach(item => {
-            const rawSku = item.sku;
+            const rawSku = String(item.sku).trim().toUpperCase();
             const qtdContada = item.qtd;
 
-            // Busca produto master (pode ser pelos 5 primeiros dígitos ou SKU exato)
+            // Busca produto master (primeiro por código exato de SKU, depois pelos 5 primeiros dígitos)
             const cod5 = rawSku.length >= 5 ? rawSku.slice(0, 5) : rawSku;
-            const pMaster = produtosByCode.get(cod5) || produtosByCode.get(rawSku);
+            const pMaster = produtosByCode.get(rawSku) || produtosByCode.get(cod5);
 
             let qtdSistema = 0;
             let nomeProduto = 'PRODUTO NÃO CADASTRADO';
@@ -153,9 +153,20 @@
                 nomeProduto = pMaster.modelo || 'SEM NOME';
                 if (pMaster.cores && pMaster.cores.length > 0) {
                     corNome = pMaster.cores.map(c => c.nome).filter(Boolean).join(' / ') || 'ÚNICA';
+                    // Tenta achar a quantidade exata do tamanho se o código for completo, senão pega a soma do modelo
                     pMaster.cores.forEach(c => {
                         const tamanhosObj = c.tamanhos || {};
-                        qtdSistema += Object.values(tamanhosObj).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                        // Se o SKU lido terminar com o tamanho (ex: 37221-36 ou 3722136)
+                        let foundExactSize = false;
+                        Object.keys(tamanhosObj).forEach(tam => {
+                            if (rawSku.endsWith(tam)) {
+                                qtdSistema += (parseInt(tamanhosObj[tam], 10) || 0);
+                                foundExactSize = true;
+                            }
+                        });
+                        if (!foundExactSize) {
+                            qtdSistema += Object.values(tamanhosObj).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                        }
                     });
                 }
             }
@@ -168,33 +179,6 @@
                 qtdContada: qtdContada,
                 diferenca: qtdContada - qtdSistema
             });
-        });
-
-        // 2. Inclui produtos do sistema cadastrados que NÃO foram contados (Faltas 🔴)
-        produtosMaster.forEach(p => {
-            const cod5 = p.codigo;
-            if (!auditMap.has(cod5)) {
-                let totalSistema = 0;
-                let corNome = 'N/A';
-                if (p.cores && p.cores.length > 0) {
-                    corNome = p.cores.map(c => c.nome).filter(Boolean).join(' / ') || 'ÚNICA';
-                    p.cores.forEach(c => {
-                        const tamanhosObj = c.tamanhos || {};
-                        totalSistema += Object.values(tamanhosObj).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
-                    });
-                }
-
-                if (totalSistema > 0) {
-                    auditMap.set(cod5, {
-                        sku: cod5,
-                        modelo: p.modelo,
-                        cor: corNome,
-                        qtdSistema: totalSistema,
-                        qtdContada: 0,
-                        diferenca: 0 - totalSistema
-                    });
-                }
-            }
         });
 
         const auditList = Array.from(auditMap.values());
