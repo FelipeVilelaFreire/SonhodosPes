@@ -152,9 +152,11 @@
             if (pMaster) {
                 nomeProduto = pMaster.modelo || 'SEM NOME';
                 if (pMaster.cores && pMaster.cores.length > 0) {
-                    corNome = pMaster.cores[0].nome || 'ÚNICA';
-                    const tamanhosObj = pMaster.cores[0].tamanhos || {};
-                    qtdSistema = Object.values(tamanhosObj).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                    corNome = pMaster.cores.map(c => c.nome).filter(Boolean).join(' / ') || 'ÚNICA';
+                    pMaster.cores.forEach(c => {
+                        const tamanhosObj = c.tamanhos || {};
+                        qtdSistema += Object.values(tamanhosObj).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                    });
                 }
             }
 
@@ -175,8 +177,11 @@
                 let totalSistema = 0;
                 let corNome = 'N/A';
                 if (p.cores && p.cores.length > 0) {
-                    corNome = p.cores[0].nome || 'ÚNICA';
-                    totalSistema = Object.values(p.cores[0].tamanhos || {}).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                    corNome = p.cores.map(c => c.nome).filter(Boolean).join(' / ') || 'ÚNICA';
+                    p.cores.forEach(c => {
+                        const tamanhosObj = c.tamanhos || {};
+                        totalSistema += Object.values(tamanhosObj).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                    });
                 }
 
                 if (totalSistema > 0) {
