@@ -453,13 +453,19 @@
             config,
             (decodedText) => {
                 const now = Date.now();
-                // Anti-bounce: evita bipar 10x o mesmo código no mesmo segundo
-                if (decodedText === lastScannedCode && (now - lastScanTime < 1500)) {
+                // Anti-bounce: evita bipar repetidamente o mesmo código em menos de 1.2s
+                if (decodedText === lastScannedCode && (now - lastScanTime < 1200)) {
                     return;
                 }
                 lastScannedCode = decodedText;
                 lastScanTime = now;
 
+                // Feedback tátil/vibração no celular se disponível
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(100); } catch (e) {}
+                }
+
+                // Soma +1 AUTOMATICAMENTE e instantaneamente
                 addSkuItem(decodedText);
             },
             () => {}
