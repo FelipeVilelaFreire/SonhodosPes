@@ -21,19 +21,11 @@ function getSheets() {
 }
 
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).end();
+    if (!['GET', 'POST'].includes(req.method)) return res.status(405).end();
 
     const receivedToken = req.headers['x-app-token'];
-    console.log('[API inventario] Token recebido:', receivedToken, '| APP_TOKEN esperado:', APP_TOKEN);
-
     if (APP_TOKEN && receivedToken !== APP_TOKEN) {
-        console.error('[API inventario] Autenticação falhou: token incompatível');
-        return res.status(401).json({ error: 'Não autorizado', receivedToken, expectedToken: APP_TOKEN });
-    }
-
-    const { items } = req.body || {};
-    if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: 'Lista de itens vazia ou inválida' });
+        return res.status(401).json({ error: 'Não autorizado' });
     }
 
     if (!SPREADSHEET_ID) {
@@ -46,33 +38,84 @@ export default async function handler(req, res) {
         // 1. Busca dinamicamente os nomes de todas as abas da planilha no Google
         const meta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
         const sheetNames = (meta.data.sheets || []).map(s => s.properties.title);
-        
-        // Encontra a aba de inventário ignorando maiúsculas/minúsculas/espaços
         const targetSheet = sheetNames.find(n => n.trim().toLowerCase() === 'inventarios') || 'inventarios';
 
-        // Prepara as linhas no formato exato da planilha: ID | Data_Hora | SKU | Qtd_Contada
-        const rowsToAppend = items.map(item => [
-            item.session_id || item.sessionId || 'CONT-001',
-            item.last_updated || '',
-            item.sku || '',
-            item.qtd || 0
-        ]);
+        // LEITURA DO HISTÓRICO DA PLANILHA (GET)
+        if (req.method === 'GET') {
+            const { data } = await sheets.spreadsheets.values.get({
+                spreadsheetId: SPREADSHEET_ID,
+                range: `'${targetSheet}'!A:D`,
+            });
 
-        // Adiciona as novas linhas ao final da aba encontrada (colunas A ate D)
-        await sheets.spreadsheets.values.append({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `'${targetSheet}'!A:D`,
-            valueInputOption: 'USER_ENTERED',
-            insertDataOption: 'INSERT_ROWS',
-            requestBody: {
-                values: rowsToAppend,
-            },
-        });
+            const rows = data.values || [];
+            if (rows.length < 2) {
+                return res.json({ ok: true, sessions: [] });
+            }
 
-        return res.json({ ok: true, count: rowsToAppend.length });
+            // Agrupa as linhas por ID de Sessão
+            const sessionsMap = new Map();
+            for (let i = 1; i < rows.length; i++) {
+                const [id, dataHora, sku, qtd] = rows[i];
+                if (!id || !sku) continue;
+
+                const cleanId = String(id).trim();
+                if (!sessionsMap.has(cleanId)) {
+                    sessionsMap.set(cleanId, {
+                        id: cleanId,
+                        session_id: cleanId,
+                        name: `Contagem ${dataHora ? dataHora.split(' ')[0] : ''}`,
+                        created_at: dataHora || '',
+                        items: {}
+                    });
+                }
+
+                const sess = sessionsMap.get(cleanId);
+                const cleanSku = String(sku).trim().toUpperCase();
+                const cleanQtd = parseInt(qtd, 10) || 0;
+
+                if (sess.items[cleanSku]) {
+                    sess.items[cleanSku].qtd += cleanQtd;
+                } else {
+                    sess.items[cleanSku] = {
+                        sku: cleanSku,
+                        qtd: cleanQtd,
+                        last_updated: dataHora || ''
+                    };
+                }
+            }
+
+            const sessions = Array.from(sessionsMap.values());
+            return res.json({ ok: true, sessions });
+        }
+
+        // ESCRITA NA PLANILHA (POST)
+        if (req.method === 'POST') {
+            const { items } = req.body || {};
+            if (!items || !Array.isArray(items) || items.length === 0) {
+                return res.status(400).json({ error: 'Lista de itens vazia ou inválida' });
+            }
+
+            const rowsToAppend = items.map(item => [
+                item.session_id || item.sessionId || 'CONT-001',
+                item.last_updated || '',
+                item.sku || '',
+                item.qtd || 0
+            ]);
+
+            await sheets.spreadsheets.values.append({
+                spreadsheetId: SPREADSHEET_ID,
+                range: `'${targetSheet}'!A:D`,
+                valueInputOption: 'USER_ENTERED',
+                insertDataOption: 'INSERT_ROWS',
+                requestBody: {
+                    values: rowsToAppend,
+                },
+            });
+
+            return res.json({ ok: true, count: rowsToAppend.length });
+        }
     } catch (e) {
-        console.error('[inventario] Sheets API error:', e);
-        const detailMsg = e.errors ? JSON.stringify(e.errors) : (e.message || String(e));
-        return res.status(500).json({ error: 'Erro ao salvar na planilha', detail: detailMsg, raw: String(e) });
+        console.error('[inventario] API error:', e);
+        return res.status(500).json({ error: 'Erro ao processar planilha', detail: e.message });
     }
 }

@@ -101,27 +101,61 @@
 
     // Carrega a sessão atual ou cria uma nova para o mês/dia se não existir
     async function loadOrCreateCurrentSession() {
-        const sessions = await getAllSessions();
+        let sessions = await getAllSessions();
+        
+        // Tenta buscar sessões remotas atualizadas direto do Google Sheets
+        try {
+            const res = await fetch('/api/inventario', {
+                headers: { 'x-app-token': APP_TOKEN }
+            });
+            const data = await res.json();
+            if (data.ok && Array.isArray(data.sessions) && data.sessions.length > 0) {
+                // Sincroniza e atualiza o armazenamento local
+                for (const remoteSess of data.sessions) {
+                    await saveSession(remoteSess);
+                }
+                sessions = await getAllSessions();
+            }
+        } catch (err) {
+            console.log('Modo offline: usando sessões locais.');
+        }
+
         if (sessions.length > 0) {
-            // Pega a mais recente
-            sessions.sort((a, b) => new Date(b.id) - new Date(a.id));
+            sessions.sort((a, b) => b.id.localeCompare(a.id));
             activeSessionData = sessions[0];
             activeSessionId = activeSessionData.id;
         } else {
             await createNewSession();
         }
+        await renderSessionList();
         renderTable();
     }
 
-    // Cria nova contagem
+    // Cria nova contagem com ID sequencial curto e bonito (CONT-001, CONT-002, etc.)
     async function createNewSession() {
         const dateStr = getCurrentDateTimeStr();
-        const newId = new Date().toISOString();
-        const sessionName = `Contagem ${dateStr.split(' ')[0]}`;
+        const sessions = await getAllSessions();
+        
+        let nextSeq = 1;
+        sessions.forEach(s => {
+            const sid = s.session_id || s.id || '';
+            const match = sid.match(/CONT-(\d+)/i);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (!isNaN(num) && num >= nextSeq) {
+                    nextSeq = num + 1;
+                }
+            }
+        });
+
+        const seqStr = String(nextSeq).padStart(3, '0');
+        const friendlyId = `CONT-${seqStr}`;
+        const newId = friendlyId;
 
         activeSessionData = {
             id: newId,
-            name: sessionName,
+            session_id: friendlyId,
+            name: `Contagem ${friendlyId}`,
             created_at: dateStr,
             items: {}
         };
@@ -130,7 +164,7 @@
         await saveSession(activeSessionData);
         await renderSessionList();
         renderTable();
-        showToast(`Nova contagem criada: ${sessionName}`);
+        showToast(`Nova contagem criada: ${friendlyId}`);
     }
 
     // Adiciona / Incrementa SKU (anota exatamente o código lido, seja de 5, 13, 14 ou 20 caracteres)
