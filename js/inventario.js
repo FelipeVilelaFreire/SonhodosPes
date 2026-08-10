@@ -33,7 +33,6 @@
     const skuTableBody = document.getElementById('skuTableBody');
     const currentSessionTitle = document.getElementById('currentSessionTitle');
     const totalItemsBadge = document.getElementById('totalItemsBadge');
-    const btnExportCsv = document.getElementById('btnExportCsv');
     const btnSyncSheets = document.getElementById('btnSyncSheets');
     const btnNewSession = document.getElementById('btnNewSession');
     const sessionList = document.getElementById('sessionList');
@@ -71,6 +70,9 @@
         });
     }
 
+    let isEditMode = false;
+    const btnEditQuantities = document.getElementById('btnEditQuantities');
+
     // Configura eventos
     function setupEventListeners() {
         btnOpenScan.addEventListener('click', startCameraScanner);
@@ -82,9 +84,56 @@
             if (e.key === 'Enter') handleManualAdd();
         });
 
-        btnExportCsv.addEventListener('click', exportToCsv);
+        if (btnEditQuantities) {
+            btnEditQuantities.addEventListener('click', toggleEditMode);
+        }
+
         if (btnSyncSheets) btnSyncSheets.addEventListener('click', syncToGoogleSheets);
         btnNewSession.addEventListener('click', createNewSession);
+    }
+
+    // Alterna modo de edição direta das quantidades na tabela
+    async function toggleEditMode() {
+        isEditMode = !isEditMode;
+
+        if (isEditMode) {
+            btnEditQuantities.style.background = '#F5F0E8';
+            btnEditQuantities.style.borderColor = '#C8B091';
+            btnEditQuantities.style.color = '#2B2118';
+            btnEditQuantities.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Concluir Edição
+            `;
+            showToast('Modo de edição ativado. Altere os valores na tabela.');
+        } else {
+            // Salva as alterações feitas nos inputs
+            document.querySelectorAll('.edit-qtd-input').forEach(input => {
+                const sku = input.getAttribute('data-sku');
+                const val = parseInt(input.value, 10);
+                if (sku && activeSessionData.items[sku] && !isNaN(val) && val >= 0) {
+                    activeSessionData.items[sku].qtd = val;
+                    activeSessionData.items[sku].last_updated = getCurrentDateTimeStr();
+                }
+            });
+
+            await saveSession(activeSessionData);
+
+            btnEditQuantities.style.background = '#FFFFFF';
+            btnEditQuantities.style.borderColor = '#E8DFD1';
+            btnEditQuantities.style.color = '#A88B65';
+            btnEditQuantities.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Editar Quantidades
+            `;
+            showToast('Quantidades atualizadas com sucesso!');
+        }
+
+        renderTable();
     }
 
     // Formata Data e Hora atual (DD/MM/AAAA HH:mm)
@@ -241,10 +290,15 @@
         skuTableBody.innerHTML = itemsArr.map(item => {
             totalPecas += item.qtd;
             const isUpdated = item.sku === lastUpdatedSku;
+            
+            const qtdCell = isEditMode
+                ? `<input type="number" class="edit-qtd-input" data-sku="${item.sku}" value="${item.qtd}" min="0" style="width: 70px; text-align: right; font-weight: 700; padding: 4px 6px; border: 1px solid #C8B091; border-radius: 6px; background: #FDFAF5; font-size: 0.95rem;">`
+                : `${item.qtd}`;
+
             return `
                 <tr class="${isUpdated ? 'just-updated' : ''}">
                     <td><strong>${item.sku}</strong></td>
-                    <td style="text-align: right; font-weight: 700; color: #1c1917;">${item.qtd}</td>
+                    <td style="text-align: right; font-weight: 700; color: #1c1917;">${qtdCell}</td>
                 </tr>
             `;
         }).join('');
