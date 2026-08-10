@@ -643,13 +643,17 @@
         });
     }
 
-    function showToast(msg) {
+    let toastTimeout = null;
+    function showToast(msg, type = 'success') {
+        if (!toast) return;
         toast.textContent = msg;
         toast.removeAttribute('hidden');
-        toast.classList.add('visible');
-        setTimeout(() => {
+        toast.className = `toast visible ${type}`;
+        
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
             toast.classList.remove('visible');
             toast.setAttribute('hidden', '');
-        }, 2200);
+        }, 3500);
     }
 })();

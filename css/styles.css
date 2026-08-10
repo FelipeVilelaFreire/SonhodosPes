@@ -1800,11 +1800,17 @@ svg {
 }
 
 .toast.success {
-    background: #4A5D3A;
+    background: #15803d;
+    color: #ffffff;
+    border: 1.5px solid #22c55e;
+    box-shadow: 0 8px 24px rgba(21, 128, 61, 0.4);
+    font-weight: 600;
 }
 
 .toast.error {
     background: var(--color-danger);
+    color: #ffffff;
+    border: 1.5px solid #f87171;
 }
 
 /* ==========================================================================
