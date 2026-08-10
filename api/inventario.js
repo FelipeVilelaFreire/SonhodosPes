@@ -88,31 +88,74 @@ export default async function handler(req, res) {
             return res.json({ ok: true, sessions });
         }
 
-        // ESCRITA NA PLANILHA (POST)
+        // ESCRITA / ATUALIZAÇÃO INTELIGENTE NA PLANILHA (POST)
         if (req.method === 'POST') {
             const { items } = req.body || {};
             if (!items || !Array.isArray(items) || items.length === 0) {
                 return res.status(400).json({ error: 'Lista de itens vazia ou inválida' });
             }
 
-            const rowsToAppend = items.map(item => [
-                item.session_id || item.sessionId || 'CONT-001',
-                item.last_updated || '',
-                item.sku || '',
-                item.qtd || 0
-            ]);
-
-            await sheets.spreadsheets.values.append({
+            // 1. Lê as linhas atuais da planilha para verificar se o SKU e ID já existem
+            const { data } = await sheets.spreadsheets.values.get({
                 spreadsheetId: SPREADSHEET_ID,
                 range: `'${targetSheet}'!A:D`,
-                valueInputOption: 'USER_ENTERED',
-                insertDataOption: 'INSERT_ROWS',
-                requestBody: {
-                    values: rowsToAppend,
-                },
             });
 
-            return res.json({ ok: true, count: rowsToAppend.length });
+            const rows = data.values || [];
+            const updates = [];
+            const appends = [];
+
+            items.forEach(item => {
+                const targetId = String(item.session_id || item.sessionId || 'CONT-001').trim();
+                const targetSku = String(item.sku || '').trim().toUpperCase();
+                const targetQtd = parseInt(item.qtd, 10) || 0;
+                const targetDate = item.last_updated || '';
+
+                let foundRowIndex = -1;
+                for (let r = 1; r < rows.length; r++) {
+                    const [rowId, , rowSku] = rows[r];
+                    if (String(rowId).trim() === targetId && String(rowSku).trim().toUpperCase() === targetSku) {
+                        foundRowIndex = r;
+                        break;
+                    }
+                }
+
+                if (foundRowIndex !== -1) {
+                    // Linha já existe: atualiza a quantidade daquela linha exata (1-based row index)
+                    const rowIndex = foundRowIndex + 1;
+                    updates.push({
+                        range: `'${targetSheet}'!A${rowIndex}:D${rowIndex}`,
+                        values: [[targetId, targetDate, targetSku, targetQtd]]
+                    });
+                } else {
+                    // Linha nova: adiciona ao final
+                    appends.push([targetId, targetDate, targetSku, targetQtd]);
+                }
+            });
+
+            if (updates.length > 0) {
+                await sheets.spreadsheets.values.batchUpdate({
+                    spreadsheetId: SPREADSHEET_ID,
+                    requestBody: {
+                        valueInputOption: 'USER_ENTERED',
+                        data: updates
+                    }
+                });
+            }
+
+            if (appends.length > 0) {
+                await sheets.spreadsheets.values.append({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: `'${targetSheet}'!A:D`,
+                    valueInputOption: 'USER_ENTERED',
+                    insertDataOption: 'INSERT_ROWS',
+                    requestBody: {
+                        values: appends,
+                    },
+                });
+            }
+
+            return res.json({ ok: true, count: items.length });
         }
     } catch (e) {
         console.error('[inventario] API error:', e);
