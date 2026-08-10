@@ -272,8 +272,15 @@
                         <strong>Contagem ${displayId}</strong>
                         <span>Criada em: ${s.created_at}</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                         <span style="font-weight: 600; color: #C8B091; font-size: 0.85rem; white-space: nowrap;">${total} peças</span>
+                        <button class="btn-export-csv-icon" data-id="${s.id}" title="Baixar CSV desta contagem">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </button>
                         <button class="btn-delete-card" data-id="${s.id}" title="Remover card da tela">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"></polyline>
@@ -288,8 +295,8 @@
         // Evento para selecionar sessão
         document.querySelectorAll('.session-item').forEach(el => {
             el.addEventListener('click', async (e) => {
-                // Evita disparar se clicou na lixeira
-                if (e.target.closest('.btn-delete-card')) return;
+                // Evita disparar se clicou nos botões de ação do card
+                if (e.target.closest('.btn-delete-card') || e.target.closest('.btn-export-csv-icon')) return;
 
                 const sId = el.getAttribute('data-id');
                 const selected = sessions.find(x => x.id === sId);
@@ -339,6 +346,18 @@
             };
         }
 
+        // Evento para baixar CSV direto pelo ícone do card
+        document.querySelectorAll('.btn-export-csv-icon').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const sId = btn.getAttribute('data-id');
+                const targetSess = sessions.find(x => x.id === sId);
+                if (targetSess) {
+                    exportToCsvData(targetSess);
+                }
+            });
+        });
+
         document.querySelectorAll('.btn-delete-card').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -348,17 +367,18 @@
         });
     }
 
-    // Exportação em CSV no formato exato: ID, Data_Hora, SKU, Qtd_Contada
-    function exportToCsv() {
-        const items = Object.values(activeSessionData.items || {});
+    // Exportação em CSV genérica para qualquer sessão
+    function exportToCsvData(sessData) {
+        const targetSession = sessData || activeSessionData;
+        const items = Object.values(targetSession.items || {});
         if (items.length === 0) {
             showToast('Nenhum item nesta contagem para exportar.');
             return;
         }
 
         let csvContent = 'ID,Data_Hora,SKU,Qtd_Contada\n';
+        const sid = targetSession.session_id || targetSession.id;
         items.forEach(item => {
-            const sid = activeSessionData.session_id || activeSessionData.id;
             csvContent += `"${sid}","${item.last_updated}","${item.sku}",${item.qtd}\n`;
         });
 
@@ -366,7 +386,7 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        const fileName = `inventario_${activeSessionData.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.csv`;
+        const fileName = `inventario_${sid.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.csv`;
         link.setAttribute('download', fileName);
         document.body.appendChild(link);
         link.click();
