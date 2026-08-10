@@ -307,6 +307,7 @@
         const confirmDeleteModal = document.getElementById('confirmDeleteModal');
         const deleteBackdrop = document.getElementById('deleteBackdrop');
         const btnCancelDelete = document.getElementById('btnCancelDelete');
+        const btnCancelDeleteX = document.getElementById('btnCancelDeleteX');
         const btnConfirmDelete = document.getElementById('btnConfirmDelete');
 
         function closeDeleteModal() {
@@ -315,6 +316,7 @@
         }
 
         if (btnCancelDelete) btnCancelDelete.onclick = closeDeleteModal;
+        if (btnCancelDeleteX) btnCancelDeleteX.onclick = closeDeleteModal;
         if (deleteBackdrop) deleteBackdrop.onclick = closeDeleteModal;
 
         if (btnConfirmDelete) {
