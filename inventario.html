@@ -377,14 +377,13 @@
                     <table class="sku-table">
                         <thead>
                             <tr>
-                                <th>Data_Hora</th>
                                 <th>SKU</th>
                                 <th style="text-align: right;">Qtd_Contada</th>
                             </tr>
                         </thead>
                         <tbody id="skuTableBody">
                             <tr>
-                                <td colspan="3" style="text-align: center; color: #a8a29e; padding: 20px;">
+                                <td colspan="2" style="text-align: center; color: #a8a29e; padding: 20px;">
                                     Nenhum item lido ainda nesta contagem.
                                 </td>
                             </tr>
@@ -430,6 +429,19 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO DE EXCLUSÃO -->
+    <div class="modal" id="confirmDeleteModal" hidden>
+        <div class="modal-backdrop" id="deleteBackdrop"></div>
+        <div class="modal-card" role="dialog" aria-labelledby="deleteModalTitle">
+            <h3 class="modal-title" id="deleteModalTitle" style="color: #B5574A;">Remover Card de Inventário</h3>
+            <p class="modal-desc">Tem certeza que deseja remover este card da tela? (Os dados salvos na planilha do Google permanecem intocados).</p>
+            <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn-export" id="btnCancelDelete" style="flex: 1; background: #FDFAF5; color: #7A6B5C; border: 1px solid #E8DFD1;">Cancelar</button>
+                <button type="button" class="btn-export" id="btnConfirmDelete" style="flex: 1; background: #B5574A; color: #FFFFFF;">Sim, Remover</button>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL DE SCANNER CAMERA -->

@@ -50,17 +50,18 @@ export default async function handler(req, res) {
         // Encontra a aba de inventário ignorando maiúsculas/minúsculas/espaços
         const targetSheet = sheetNames.find(n => n.trim().toLowerCase() === 'inventarios') || 'inventarios';
 
-        // Prepara as linhas no formato: Data_Hora | SKU | Qtd_Contada
+        // Prepara as linhas no formato exato da planilha: ID | Data_Hora | SKU | Qtd_Contada
         const rowsToAppend = items.map(item => [
+            item.session_id || item.sessionId || 'CONT-001',
             item.last_updated || '',
             item.sku || '',
             item.qtd || 0
         ]);
 
-        // Adiciona as novas linhas ao final da aba encontrada
+        // Adiciona as novas linhas ao final da aba encontrada (colunas A ate D)
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: `'${targetSheet}'!A:C`,
+            range: `'${targetSheet}'!A:D`,
             valueInputOption: 'USER_ENTERED',
             insertDataOption: 'INSERT_ROWS',
             requestBody: {

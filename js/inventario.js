@@ -180,7 +180,7 @@
         if (itemsArr.length === 0) {
             skuTableBody.innerHTML = `
                 <tr>
-                    <td colspan="3" style="text-align: center; color: #a8a29e; padding: 20px;">
+                    <td colspan="2" style="text-align: center; color: #a8a29e; padding: 20px;">
                         Nenhum item lido ainda nesta contagem.
                     </td>
                 </tr>
@@ -197,7 +197,6 @@
             const isUpdated = item.sku === lastUpdatedSku;
             return `
                 <tr class="${isUpdated ? 'just-updated' : ''}">
-                    <td style="color: #78716c;">${item.last_updated}</td>
                     <td><strong>${item.sku}</strong></td>
                     <td style="text-align: right; font-weight: 700; color: #1c1917;">${item.qtd}</td>
                 </tr>
@@ -220,10 +219,11 @@
         sessionList.innerHTML = sessions.map(s => {
             const total = Object.values(s.items || {}).reduce((acc, curr) => acc + curr.qtd, 0);
             const isActive = s.id === activeSessionId;
+            const displayId = s.session_id || s.id;
             return `
                 <div class="session-item ${isActive ? 'active' : ''}" data-id="${s.id}">
                     <div class="session-info">
-                        <strong>${s.name} ${isActive ? ' (Ativa)' : ''}</strong>
+                        <strong>Contagem ${displayId}</strong>
                         <span>Criada em: ${s.created_at}</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
@@ -256,29 +256,51 @@
             });
         });
 
-        // Evento para remover apenas o card da tela (IndexedDB local)
-        document.querySelectorAll('.btn-delete-card').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const sId = btn.getAttribute('data-id');
-                if (confirm('Remover este card de inventário da tela? (Os dados já enviados para a planilha continuam salvos lá normalmente).')) {
-                    await deleteSessionLocal(sId);
-                    const remaining = await getAllSessions();
-                    if (remaining.length > 0) {
-                        activeSessionData = remaining[0];
-                        activeSessionId = remaining[0].id;
-                    } else {
-                        await createNewSession();
-                    }
-                    await renderSessionList();
-                    renderTable();
-                    showToast('Card removido com sucesso.');
+        // Evento para remover apenas o card da tela usando Modal Customizado da marca
+        let sessionToDeleteId = null;
+        const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+        const deleteBackdrop = document.getElementById('deleteBackdrop');
+        const btnCancelDelete = document.getElementById('btnCancelDelete');
+        const btnConfirmDelete = document.getElementById('btnConfirmDelete');
+
+        function closeDeleteModal() {
+            if (confirmDeleteModal) confirmDeleteModal.setAttribute('hidden', '');
+            sessionToDeleteId = null;
+        }
+
+        if (btnCancelDelete) btnCancelDelete.onclick = closeDeleteModal;
+        if (deleteBackdrop) deleteBackdrop.onclick = closeDeleteModal;
+
+        if (btnConfirmDelete) {
+            btnConfirmDelete.onclick = async () => {
+                if (!sessionToDeleteId) return;
+                const targetId = sessionToDeleteId;
+                closeDeleteModal();
+
+                await deleteSessionLocal(targetId);
+                const remaining = await getAllSessions();
+                if (remaining.length > 0) {
+                    activeSessionData = remaining[0];
+                    activeSessionId = remaining[0].id;
+                } else {
+                    await createNewSession();
                 }
+                await renderSessionList();
+                renderTable();
+                showToast('Card removido com sucesso.');
+            };
+        }
+
+        document.querySelectorAll('.btn-delete-card').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sessionToDeleteId = btn.getAttribute('data-id');
+                if (confirmDeleteModal) confirmDeleteModal.removeAttribute('hidden');
             });
         });
     }
 
-    // Exportação em CSV no formato exato: Data_Hora, SKU, Qtd_Contada
+    // Exportação em CSV no formato exato: ID, Data_Hora, SKU, Qtd_Contada
     function exportToCsv() {
         const items = Object.values(activeSessionData.items || {});
         if (items.length === 0) {
@@ -286,9 +308,10 @@
             return;
         }
 
-        let csvContent = 'Data_Hora,SKU,Qtd_Contada\n';
+        let csvContent = 'ID,Data_Hora,SKU,Qtd_Contada\n';
         items.forEach(item => {
-            csvContent += `"${item.last_updated}","${item.sku}",${item.qtd}\n`;
+            const sid = activeSessionData.session_id || activeSessionData.id;
+            csvContent += `"${sid}","${item.last_updated}","${item.sku}",${item.qtd}\n`;
         });
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -306,6 +329,7 @@
     // Envia um único item lido instantaneamente para o Google Sheets em segundo plano
     async function syncSingleItemToSheets(dateStr, sku, qtd) {
         try {
+            const sid = activeSessionData.session_id || activeSessionData.id;
             await fetch('/api/inventario', {
                 method: 'POST',
                 headers: {
@@ -313,18 +337,18 @@
                     'x-app-token': APP_TOKEN
                 },
                 body: JSON.stringify({
-                    items: [{ last_updated: dateStr, sku: sku, qtd: qtd }]
+                    items: [{ session_id: sid, last_updated: dateStr, sku: sku, qtd: qtd }]
                 })
             });
         } catch (e) {
-            console.log('Gravado offline. Será sincronizado posteriormente.', e);
+            // Silencioso em caso de falha de conexão (modos offline)
         }
     }
 
     // Envio direto para o Google Sheets (aba 'inventarios')
     async function syncToGoogleSheets() {
-        const items = Object.values(activeSessionData.items || {});
-        if (items.length === 0) {
+        const itemsRaw = Object.values(activeSessionData.items || {});
+        if (itemsRaw.length === 0) {
             showToast('Nenhum item para salvar na planilha.');
             return;
         }
@@ -332,7 +356,13 @@
         btnSyncSheets.disabled = true;
         btnSyncSheets.textContent = 'Enviando...';
 
-        console.log('[Inventario Sync] Enviando payload:', { items, token: APP_TOKEN });
+        const sid = activeSessionData.session_id || activeSessionData.id;
+        const items = itemsRaw.map(it => ({
+            session_id: sid,
+            last_updated: it.last_updated,
+            sku: it.sku,
+            qtd: it.qtd
+        }));
 
         try {
             const res = await fetch('/api/inventario', {
@@ -344,19 +374,14 @@
                 body: JSON.stringify({ items })
             });
 
-            console.log('[Inventario Sync] HTTP Status:', res.status, res.statusText);
-
             const data = await res.json();
-            console.log('[Inventario Sync] Resposta do servidor:', data);
 
             if (res.ok && data.ok) {
                 showToast(`Sucesso! ${data.count} linhas salvas na aba 'inventarios'.`);
             } else {
-                console.error('[Inventario Sync] Erro retornado:', data);
                 showToast(`Erro ao salvar: ${data.error || data.detail || 'Falha na resposta'}`);
             }
         } catch (err) {
-            console.error('[Inventario Sync] Erro de rede/excecao:', err);
             showToast('Erro de conexão ao enviar para a planilha.');
         } finally {
             btnSyncSheets.disabled = false;

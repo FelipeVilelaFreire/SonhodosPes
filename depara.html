@@ -181,12 +181,15 @@
             box-shadow: 0 4px 16px rgba(43, 33, 24, 0.05);
             border: 1px solid rgba(200, 176, 145, 0.25);
             position: relative;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .depara-card-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            gap: 12px;
             margin-bottom: 8px;
         }
 
@@ -199,10 +202,11 @@
         }
 
         .depara-modelo {
-            font-size: 1rem;
+            font-size: 0.98rem;
             font-weight: 600;
             color: #2B2118;
             margin-bottom: 4px;
+            line-height: 1.3;
         }
 
         .depara-badge {
@@ -224,6 +228,12 @@
             border-collapse: collapse;
             font-size: 0.85rem;
             margin-top: 10px;
+            table-layout: fixed;
+        }
+
+        .depara-grid-table th, .depara-grid-table td {
+            width: 33.33%;
+            box-sizing: border-box;
         }
 
         .depara-grid-table th {
