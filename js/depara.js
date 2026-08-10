@@ -136,49 +136,60 @@
         const itemsLidos = activeSession.items || {};
         const auditMap = new Map();
 
-        // 1. Processa itens lidos no inventário selecionado
-        Object.values(itemsLidos).forEach(item => {
-            const rawSku = String(item.sku).trim().toUpperCase();
-            const qtdContada = item.qtd;
+        // 1. Preenche primeiro todos os produtos do Sistema Master com seu estoque total da Coluna F
+        produtosMaster.forEach(p => {
+            const skuKey = String(p.codigo || '').trim().toUpperCase();
+            if (!skuKey) return;
 
-            // Busca produto master (primeiro por código exato de SKU, depois pelos 5 primeiros dígitos)
-            const cod5 = rawSku.length >= 5 ? rawSku.slice(0, 5) : rawSku;
-            const pMaster = produtosByCode.get(rawSku) || produtosByCode.get(cod5);
-
-            let qtdSistema = 0;
-            let nomeProduto = 'PRODUTO NÃO CADASTRADO';
+            let totalSistema = 0;
             let corNome = 'N/A';
-
-            if (pMaster) {
-                nomeProduto = pMaster.modelo || 'SEM NOME';
-                if (pMaster.cores && pMaster.cores.length > 0) {
-                    corNome = pMaster.cores.map(c => c.nome).filter(Boolean).join(' / ') || 'ÚNICA';
-                    // Tenta achar a quantidade exata do tamanho se o código for completo, senão pega a soma do modelo
-                    pMaster.cores.forEach(c => {
-                        const tamanhosObj = c.tamanhos || {};
-                        // Se o SKU lido terminar com o tamanho (ex: 37221-36 ou 3722136)
-                        let foundExactSize = false;
-                        Object.keys(tamanhosObj).forEach(tam => {
-                            if (rawSku.endsWith(tam)) {
-                                qtdSistema += (parseInt(tamanhosObj[tam], 10) || 0);
-                                foundExactSize = true;
-                            }
-                        });
-                        if (!foundExactSize) {
-                            qtdSistema += Object.values(tamanhosObj).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
-                        }
-                    });
-                }
+            if (p.cores && p.cores.length > 0) {
+                corNome = p.cores.map(c => c.nome).filter(Boolean).join(' / ') || 'ÚNICA';
+                p.cores.forEach(c => {
+                    const tamanhosObj = c.tamanhos || {};
+                    totalSistema += Object.values(tamanhosObj).reduce((acc, curr) => acc + (parseInt(curr, 10) || 0), 0);
+                });
             }
 
-            auditMap.set(rawSku, {
-                sku: rawSku,
-                modelo: nomeProduto,
+            auditMap.set(skuKey, {
+                sku: skuKey,
+                modelo: p.modelo || 'PRODUTO CADASTRADO',
                 cor: corNome,
-                qtdSistema: qtdSistema,
-                qtdContada: qtdContada,
-                diferenca: qtdContada - qtdSistema
+                qtdSistema: totalSistema,
+                qtdContada: 0,
+                diferenca: 0 - totalSistema
             });
+        });
+
+        // 2. Cruza com os itens lidos no inventário selecionado
+        Object.values(itemsLidos).forEach(item => {
+            const rawSku = String(item.sku || '').trim().toUpperCase();
+            if (!rawSku) return;
+            const qtdContada = parseInt(item.qtd, 10) || 0;
+
+            const cod5 = rawSku.length >= 5 ? rawSku.slice(0, 5) : rawSku;
+            
+            // Verifica se o SKU lido já está no mapa (por SKU exato ou pelos 5 dígitos)
+            let targetKey = rawSku;
+            if (!auditMap.has(rawSku) && auditMap.has(cod5)) {
+                targetKey = cod5;
+            }
+
+            if (auditMap.has(targetKey)) {
+                const existing = auditMap.get(targetKey);
+                existing.qtdContada += qtdContada;
+                existing.diferenca = existing.qtdContada - existing.qtdSistema;
+            } else {
+                // Se for um item lido que NÃO existe no sistema (Sobra de produto não cadastrado)
+                auditMap.set(rawSku, {
+                    sku: rawSku,
+                    modelo: 'PRODUTO NÃO CADASTRADO',
+                    cor: 'N/A',
+                    qtdSistema: 0,
+                    qtdContada: qtdContada,
+                    diferenca: qtdContada
+                });
+            }
         });
 
         const auditList = Array.from(auditMap.values());
