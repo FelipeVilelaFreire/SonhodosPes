@@ -97,7 +97,7 @@
     let produtos = [];
     let produtosByCode = new Map();
     let stack = [];
-    let activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [], colecoes: [] };
+    let activeFilters = { priceMin: null, priceMax: null, tamanhos: [], cores: [], categorias: [], colecoes: [] };
     let activeSort = 'default';
 
     const db = {
@@ -436,13 +436,14 @@
 
     function hasActiveFilters() {
         return activeFilters.priceMin !== null || activeFilters.priceMax !== null ||
-               activeFilters.cores.length > 0 || activeFilters.categorias.length > 0 ||
-               activeFilters.colecoes.length > 0;
+               activeFilters.tamanhos.length > 0 || activeFilters.cores.length > 0 ||
+               activeFilters.categorias.length > 0 || activeFilters.colecoes.length > 0;
     }
 
     function countActiveFilters() {
         let n = 0;
         if (activeFilters.priceMin !== null || activeFilters.priceMax !== null) n++;
+        if (activeFilters.tamanhos.length) n++;
         if (activeFilters.cores.length) n++;
         if (activeFilters.categorias.length) n++;
         if (activeFilters.colecoes.length) n++;
@@ -454,6 +455,13 @@
         return list.filter(p => {
             if (activeFilters.priceMin !== null && p.preco < activeFilters.priceMin) return false;
             if (activeFilters.priceMax !== null && p.preco > activeFilters.priceMax) return false;
+            if (activeFilters.tamanhos.length) {
+                const hasMatchingSize = (p.cores || []).some(c => {
+                    if (!c.tamanhos) return false;
+                    return activeFilters.tamanhos.some(t => (c.tamanhos[t] || 0) > 0);
+                });
+                if (!hasMatchingSize) return false;
+            }
             if (activeFilters.cores.length) {
                 const pCores = (p.cores || []).map(c => c.nome);
                 if (!activeFilters.cores.some(fc => pCores.includes(fc))) return false;
@@ -492,6 +500,7 @@
         const body = el.filterBody;
         body.innerHTML = '';
 
+        const tamanhosSet = new Set();
         const coresSet = new Set();
         const catsSet = new Set();
         const colecoesSet = new Set();
@@ -501,6 +510,11 @@
             if (p.colecao) colecoesSet.add(p.colecao);
             for (const c of (p.cores || [])) {
                 if (c.nome && c.nome !== 'ÚNICA' && !/^\d+$/.test(c.nome.trim())) coresSet.add(c.nome);
+                if (c.tamanhos) {
+                    for (const [sz, qty] of Object.entries(c.tamanhos)) {
+                        if (qty > 0) tamanhosSet.add(sz);
+                    }
+                }
             }
         }
 
@@ -630,6 +644,22 @@
             return section;
         }
 
+        // Ordenar tamanhos (números numericamente, depois letras)
+        const tamanhosList = [...tamanhosSet].sort((a, b) => {
+            const numA = parseInt(a, 10);
+            const numB = parseInt(b, 10);
+            if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+            if (!isNaN(numA)) return -1;
+            if (!isNaN(numB)) return 1;
+            return a.localeCompare(b);
+        });
+
+        const tamanhosSection = buildChipsSection('Tamanho / Número', tamanhosList, activeFilters.tamanhos, (tamanho, add) => {
+            if (add) { if (!activeFilters.tamanhos.includes(tamanho)) activeFilters.tamanhos.push(tamanho); }
+            else { activeFilters.tamanhos = activeFilters.tamanhos.filter(v => v !== tamanho); }
+        });
+        if (tamanhosSection) body.appendChild(tamanhosSection);
+
         const coresList = [...coresSet].sort();
         const coresSection = buildChipsSection('Cor', coresList, activeFilters.cores, (cor, add) => {
             if (add) { if (!activeFilters.cores.includes(cor)) activeFilters.cores.push(cor); }
@@ -681,7 +711,7 @@
     }
 
     function clearActiveFilters() {
-        activeFilters = { priceMin: null, priceMax: null, cores: [], categorias: [], colecoes: [] };
+        activeFilters = { priceMin: null, priceMax: null, tamanhos: [], cores: [], categorias: [], colecoes: [] };
         updateFilterBadge();
         if (!el.consultaInput.value.trim()) {
             el.filterBrowse.hidden = true;
