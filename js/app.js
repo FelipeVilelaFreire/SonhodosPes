@@ -512,7 +512,7 @@
                 if (c.nome && c.nome !== 'ÚNICA' && !/^\d+$/.test(c.nome.trim())) coresSet.add(c.nome);
                 if (c.tamanhos) {
                     for (const [sz, qty] of Object.entries(c.tamanhos)) {
-                        if (qty > 0) tamanhosSet.add(sz);
+                        if (qty > 0 && sz !== 'QTD' && sz !== 'QTDE') tamanhosSet.add(sz);
                     }
                 }
             }
